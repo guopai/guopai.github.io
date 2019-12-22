@@ -1,6 +1,7 @@
 body {
     max-width: 800px;
     margin: auto;
+    padding: 10px;
     color: #333333;
     line-height: 1.8;
 }
@@ -19,6 +20,10 @@ a:hover {
   
 a:active {
     color: #808080;
+}
+
+img {
+    max-width: 100%;
 }
 
 table {
