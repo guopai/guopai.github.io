@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="generator" content="ReText 7.0.4">
-<title>ml-blog02-linear-regression</title>
+<title>Machine Learning ตอนที่ 2: Linear Regression Algorithm</title>
 <script type="text/x-mathjax-config">
 MathJax.Hub.Config({
   config: ["MMLorHTML.js"],
@@ -18,6 +18,7 @@ MathJax.Hub.Config({
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
 <body>
 <h1>Machine Learning ตอนที่ 2: Linear Regression Algorithm</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | ธันวาคม 2562</p>
 <p>วิธีที่ดีที่สุดในการทำความเข้าใจ Machine learning คือการอธิบายพร้อมกับตัวอย่าง โดยเราจะเริ่มที่ Algorithm ที่ง่ายที่สุด นั่นคือ Linear regression</p>
 <p><img alt="Alt text" src="images/ml-blog02-01.png"></p>
 <p>เราจะใช้ข้อมูลตัวอย่างจาก <a href="https://www.kaggle.com/venjktry/simple-linear-regression/data">Kaggle</a> ซึ่งแสดงความสัมพันธ์ระหว่างตัวแปร x บนแกนนอนกับตัวแปร y บนแกนตั้ง ถ้ามองด้วยตาเราจะเห็นว่า x กับ y มีความสัมพันธ์ที่เรียกว่า Positive correlation อย่างชัดเจน นั่นคือยิ่ง  x มีค่ามาก y ก็มีค่ามากตามไปด้วย เราจะเห็นความสัมพันธ์ลักษณะในโลกจริงได้มากมาย ตัวอย่างเช่น ยิ่งจำนวนรถมาก เวลาที่ใช้บนถนนต่อการเดินทางหนึ่งเที่ยวก็มีแนวโน้มจะมากขึ้นด้วย</p>
@@ -119,6 +120,8 @@ MathJax.Hub.Config({
 <p>ทีนี้ดูเหมือนกับว่า ถ้าเรากำหนด Learning rate สูงๆ ก็จะทำให้ได้ค่า Global minimum ของ Cost function เร็วขึ้น อย่างไรก็ตามถ้าค่า Learning rate สูงเกินไป อาจจะทำให้โมเดลหา Global minimum ไม่เจอ เพราะในขั้นท้ายๆ ของ Gradient descent ตัวแปรอาจจะกระโดดเลยจุดต่ำสุดของ J ไปอีกด้านหนึ่ง เพื่อความเข้าใจลองดูภาพประกอบ:</p>
 <p><img alt="Alt text" src="images/ml-blog02-04.png"></p>
 <p>ตอนนี้เรามีความรู้และเข้าใจขั้นตอนการสร้างโมเดล Linear regression แล้ว ตอนถัดไปเราจะใช้ตัวอย่างนี้มาสร้างโมเดลจริงกัน</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog01.html">บทที่ 1 บทนำ</a> | บทที่ 3 Linear Regression Programming</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 
 </body>
 </html>
