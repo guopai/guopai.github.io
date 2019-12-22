@@ -104,7 +104,7 @@ print(&quot;Calculate basic stat of each feature:\n&quot;)
 print(data_train.describe())
 </code></pre>
 
-<p>data_train.head() จะแสดงข้อมูล 5 รายการแรกให้เราดู:</p>
+<p><code>data_train.head()</code> จะแสดงข้อมูล 5 รายการแรกให้เราดู:</p>
 <table>
 <thead>
 <tr>
@@ -141,7 +141,7 @@ print(data_train.describe())
 </tr>
 </tbody>
 </table>
-<p>data_train.info() จะแสดงจำนวนและประเภทของข้อมูลแต่ละคอลัมน์ และข้อมูลอื่นๆ เช่นจำนวน Memory ที่ใช้:</p>
+<p><code>data_train.info()</code> จะแสดงจำนวนและประเภทของข้อมูลแต่ละคอลัมน์ และข้อมูลอื่นๆ เช่นจำนวน Memory ที่ใช้:</p>
 <pre><code>RangeIndex: 699 entries, 0 to 698
 Data columns (total 2 columns):
 x    699 non-null int64
@@ -151,7 +151,7 @@ memory usage: 11.0 KB
 </code></pre>
 
 <p>เราจะเห็นว่ามีข้อมูล 699 รายการ โดยจำนวนรายการของ x และ y จะต้องเท่ากัน เพื่อให้ Algorithm สามารถจับคู่คำนวนได้ถูกต้อง นอกจากนี้ ให้สังเกตว่า x เป็นข้อมูลในรูปแบบ int64 คือจำนวนเต็ม ส่วน y เป็นประเภท float64 คือจำนวนที่มีทศนิยม</p>
-<p>ต่อมา data_train.describe() จะแสดงสถิติพื้นฐานของข้อมูลแต่ละคอลัมน์:</p>
+<p>ต่อมา <code>data_train.describe()</code> จะแสดงสถิติพื้นฐานของข้อมูลแต่ละคอลัมน์:</p>
 <table>
 <thead>
 <tr>
