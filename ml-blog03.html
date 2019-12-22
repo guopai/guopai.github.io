@@ -1,0 +1,325 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 3: Linear Regression Programming</title>
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Machine Learning บทที่ 3: Linear Regression Programming</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | ธันวาคม 2562</p>
+<p>เมื่อเราเข้าใจแล้วว่า Linear regression algorithm ทำงานอย่างไร ทีนี้ก็มาลองสร้างโมเดลพยากรณ์กัน</p>
+<p>โดยทั่วไป การสร้างโมเดลมีขั้นตอนต่อไปนี้:</p>
+<ol>
+<li>เตรียมข้อมูล</li>
+<li>Import Library ที่จะใช้งาน และโหลดข้อมูล</li>
+<li>สำรวจข้อมูล</li>
+<li>ฝึกโมเดล</li>
+<li>ทดสอบความแม่นยำของโมเดล</li>
+<li>นำไปใช้พยากรณ์</li>
+</ol>
+<p>โดยจะแนะนำทีละขั้นตอน</p>
+<h2>เตรียมข้อมูล</h2>
+<p>ข้อมูลที่จะนำมาสร้างโมเดล Machine learning มีที่มาหลากหลาย ซึ่งเราสามารถใช้ Python ดึงข้อมูลจากหลากหลายรูปแบบมาใช้ได้ ในขั้นนี้เราจะเน้นการเตรียมข้อมูลให้อยู่ในรูปแบบข้อมูลที่มีโครงสร้าง (Structured data) ที่นำเสนอในรูปแบบตาราง</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>x</th>
+<th>y</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>24</td>
+<td>21.549452</td>
+</tr>
+<tr>
+<td>1</td>
+<td>50</td>
+<td>47.464463</td>
+</tr>
+<tr>
+<td>2</td>
+<td>15</td>
+<td>17.218656</td>
+</tr>
+</tbody>
+</table>
+<p>หลักการเตรียมข้อมูล คือให้สร้างข้อมูลใน Spreadsheet โดยแนวนอนคือตัวอย่างแต่ละรายการ ส่วนแนวตั้งคือข้อมูลของตัวอย่างแต่ละรายการ เราเรียกข้อมูลแนวตั้ง ว่า Feature ซึ่งในกรณี จะเห็นว่ามี 1 Feature คือ x ส่วนคอลัมน์สุดท้าย เราเก็บไว้สำหรับคำตอบ ซึ่งเราต้องการหาเมื่อนำโมเดลมาพยากรณ์จากข้อมูลใหม่ เราเรียกคอลัมน์คำตอบนี้ว่า Label</p>
+<p>ตัวอย่างเช่น ข้อมูลชิ้นที่ 1 มี Feature x คือ 50 ซึ่งเชื่อมโยงกับ Label y คือ 47.464463 เราจะฝึกโมเดลให้เรียนรู้ความสัมพันธ์ระหว่าง Feature กับ Label เพื่อให้ได้สมมุติฐานที่ดีที่สุด ว่า Feature กับ Label สัมพันธ์กันอย่างไร เมื่อได้สมมุติฐานนี้ก็จะสามารถพยากรณ์ Label จากข้อมูลชิ้นใหม่ที่รู้แค่ Feature ได้</p>
+<p>อนึ่ง เราไม่จำเป็นต้องใส่ลำดับที่ของข้อมูลในคอลัมน์แรกอย่างที่เห็นในตัวอย่าง เพราะเดี๋ยว Library pandas จะสร้างดัชนีเหล่านี้ให้เราเอง</p>
+<p>เมื่อเตรียมข้อมูลเสร็จ ให้ Save เป็น .csv ซึ่งเป็นรูปแบบมาตรฐานสำหรับข้อมูลแบบตาราง</p>
+<h2>Import Library ที่จะใช้งาน และโหลดข้อมูล</h2>
+<p>ขั้นต่อไปเราต้องตัดสินใจว่า เราจะสำรวจข้อมูลและสร้างโมเดลด้วยเครื่องมือใด เพื่อที่จะได้โหลด Library ของ Python ที่ต้องใช้เข้ามา ซึ่งสำหรับตัวอย่างนี้เราจะใช้เครื่องมือดังนี้</p>
+<ul>
+<li>numpy เป็น Library มาตรฐานสำหรับการคำนวนและจัดการกับ Vector และ Matrix หลากมิติ ต้องใช้ในการแปลงข้อมูลให้ ML Framework ของเราอ่านได้</li>
+<li>pandas เป็น Library สำหรับโหลดจัดการ และวิเคราะห์ข้อมูล Structured data เช่นตาราง csv ต้องใช้เพื่อโหลดข้อมูลของเราและทำการสำรวจข้อมูลโดยใช้เครื่องมือทางสถิติ</li>
+<li>matplotlib เป็น Library ที่เอาไว้แปลงข้อมูลเป็นกราฟ เพื่อแสดงผลให้เห็นเข้าใจง่าย และเพื่อช่วยในการวิเคราะห์และตัดสินใจ</li>
+<li>Scikit-learn เป็น Machine learning framework library มีเครื่องมือและ Algorithm ที่เกี่ยวข้องกับการฝึกโมเดลและตรวจสอบความแม่นยำ</li>
+</ul>
+<p>เราเลือกใช้ Scikit-learn เพราะเป็น Library ที่ออกแบบมาดี ใช้งานง่าย สามารถเลือก Algorithm ได้หลากหลายโดยมีวิธีการฝึกคล้ายๆ กัน การใช้ Framework อย่าง Scikit-learn จะช่วยย่นเวลาและลดโอกาสที่จะเกิดข้อผิดพลาดได้มาก เมื่อเทียบกับการเขียน Algorithm ขึ้นมาเอง</p>
+<p>แนะนำให้ไปอ่านคู่มือและคำแนะนำการใช้แต่ละ Library เพื่อทำความคุ้นเคย จะได้ใช้งานได้คล่องและประยุกต์กับสถานการณ์ได้หลากหลาย</p>
+<p>เมื่อตัดสินใจได้แล้วเราก็เริ่ม Import Library เหล่านี้ได้:</p>
+<pre><code>import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+</code></pre>
+
+<p>สำหรับใครที่มาถึงจุดนี้แล้วไม่เข้าใจว่าต้องพิมพ์โค้ดนี้ที่ไหน อย่างไร และแต่ละบรรทัดหมายความว่าอะไร แนะนำให้หยุดก่อน แล้วไปศึกษา Python ขั้นพื้นฐาน ซึ่งปัจจุบันหาอ่านได้ทั่วไปบนเว็บหรือจะเรียนตามคอร์สออนไลน์ต่างๆ ก็ได้</p>
+<p>ต่อมาเราจะเริ่มโหลดข้อมูล โดยใช้ pandas:</p>
+<pre><code># Load the data
+# Data from https://www.kaggle.com/venjktry/simple-linear-regression/data
+data_train = pd.read_csv(&quot;data/lr_train.csv&quot;)
+data_test = pd.read_csv(&quot;data/lr_test.csv&quot;)
+</code></pre>
+
+<p>ข้อสังเกตที่สำคัญในขั้นนี้ คือจากตัวอย่างเราจะเห็นว่าได้แบ่งข้อมูลเป็นสองไฟล์ คือ <code>lr_train.csv</code> และ <code>lr_test.csv</code> การแบ่งนี้เกิดขึ้นเพราะในกระบวนการสร้างโมเดล เราจะต้องกันข้อมูลส่วนหนึ่งเอาไว้ไม่ให้โมเดลได้เห็นก่อน เพื่อจะได้เอาโมเดลที่ได้ไปทดลองพยากรณ์กับข้อมูลที่กันเอาไว้ เพื่อทดสอบความแม่นยำ โดยปกติเราจะใช้สัดส่วน Train set: Test set ประมาณ 80:20 แต่ถ้าหากมีข้อมูลหลายรายการมาก เช่นเป็นหลักล้านขึ้นไป ก็สามารถเพิ่มสัดส่วนเป็น 90:10 หรือไปจนถึง 99:1 ก็ได้ เพราะโดยทั่วไปเราต้องการข้อมูลที่เอาไว้ฝึกโมเดลที่มีจำนวนมากที่สุดเท่าที่จะทำได้ ส่วนข้อมูลที่เอาไว้ทดสอบ ถ้าปริมาณข้อมูลรวมมีเยอะมาก ข้อมูลทดสอบก็มีจำนวนมากเพียงพอถึงแม้สัดส่วนจะน้อยก็ตาม</p>
+<p>ในกรณีของเรา Train set มี 699 รายการ ส่วน Test set มี 300 รายการ คิดเป็นสัดส่วนประมาณ 70:30</p>
+<p>สิ่งสำคัญอีกประการคือการแบ่งข้อมูลออกเป็น Train set และ Test set จะต้องแบ่งแบบสุ่ม ไม่ใช่การตัดเอาส่วนต้นมาเป็น Train set และที่เหลือเป็น Test set เพราะเราต้องการให้ข้อมูลทั้งสองชุดเป็นตัวแทนของรายการข้อมูลที่มี Feature และ Label ที่หลากหลาย กระจายตัวออกตามธรรมชาติ อนึ่ง ในความเป็นจริงเราไม่จำเป็นต้องแบ่งข้อมูลออกเป็นสองไฟล์ ให้ใช้ไฟล์เดียว แล้วใช้ฟังก์ชัน <code>train_test_split</code> ของ Scikit-learn สุ่มแบ่งให้โดยอัตโนมัติได้</p>
+<p>ข้อมูลที่โหลดมา ให้เก็บไว้ใน Object โดยในที่นี้ Train set เก็บไว้ใน <code>data_train</code> ส่วน Test set เก็บไว้ใน <code>data_test</code></p>
+<h2>สำรวจข้อมูล</h2>
+<p>เมื่อเราโหลดข้อมูลลงใน Object แล้ว เราก็จะสำรวจข้อมูลที่มี โดยใช้ Method ต่างๆ ของ pandas object ดังนี้:</p>
+<pre><code># Explore the data
+print(&quot;See the data sample:\n&quot;)
+print(data_train.head())
+print(&quot;See the summary of features:\n&quot;)
+print(data_train.info())
+print(&quot;Calculate basic stat of each feature:\n&quot;)
+print(data_train.describe())
+</code></pre>
+
+<p>data_train.head() จะแสดงข้อมูล 5 รายการแรกให้เราดู:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>x</th>
+<th>y</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>24</td>
+<td>21.549452</td>
+</tr>
+<tr>
+<td>1</td>
+<td>50</td>
+<td>47.464463</td>
+</tr>
+<tr>
+<td>2</td>
+<td>15</td>
+<td>17.218656</td>
+</tr>
+<tr>
+<td>3</td>
+<td>38</td>
+<td>36.586398</td>
+</tr>
+<tr>
+<td>2</td>
+<td>87</td>
+<td>87.288984</td>
+</tr>
+</tbody>
+</table>
+<p>data_train.info() จะแสดงจำนวนและประเภทของข้อมูลแต่ละคอลัมน์ และข้อมูลอื่นๆ เช่นจำนวน Memory ที่ใช้:</p>
+<pre><code>RangeIndex: 699 entries, 0 to 698
+Data columns (total 2 columns):
+x    699 non-null int64
+y    699 non-null float64
+dtypes: float64(1), int64(1)
+memory usage: 11.0 KB
+</code></pre>
+
+<p>เราจะเห็นว่ามีข้อมูล 699 รายการ โดยจำนวนรายการของ x และ y จะต้องเท่ากัน เพื่อให้ Algorithm สามารถจับคู่คำนวนได้ถูกต้อง นอกจากนี้ ให้สังเกตว่า x เป็นข้อมูลในรูปแบบ int64 คือจำนวนเต็ม ส่วน y เป็นประเภท float64 คือจำนวนที่มีทศนิยม</p>
+<p>ต่อมา data_train.describe() จะแสดงสถิติพื้นฐานของข้อมูลแต่ละคอลัมน์:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>x</th>
+<th>y</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>count</td>
+<td>699.000000</td>
+<td>699.000000</td>
+</tr>
+<tr>
+<td>mean</td>
+<td>50.014306</td>
+<td>49.939869</td>
+</tr>
+<tr>
+<td>std</td>
+<td>28.954560</td>
+<td>29.109217</td>
+</tr>
+<tr>
+<td>min</td>
+<td>0.000000</td>
+<td>-3.839981</td>
+</tr>
+<tr>
+<td>25%</td>
+<td>25.000000</td>
+<td>24.929968</td>
+</tr>
+<tr>
+<td>50%</td>
+<td>49.000000</td>
+<td>48.973020</td>
+</tr>
+<tr>
+<td>75%</td>
+<td>75.000000</td>
+<td>74.929911</td>
+</tr>
+<tr>
+<td>max</td>
+<td>100.000000</td>
+<td>108.871618</td>
+</tr>
+</tbody>
+</table>
+<p>ใครที่อ่านสถิติขั้นพื้นฐานเป็น จะพบว่าทั้ง x และ y มีลักษณะคล้ายกันมาก เช่น มีค่า Mean และส่วนเบี่ยงเบนมาตรฐานใกล้เคียงกัน มีการกระจายตัวแบบ Normal distribution มีค่าต่ำสุดและสูงสุดใกล้กัน ซึ่งถ้าเราเห็นข้อมูลแบบนี้ก็อาจจะเริ่มนึกออกว่า x และ y น่าจะมีความสัมพันธ์อย่างใกล้ชิดกันมาก (มี Correlation สูง) ซึ่งจะยืนยันได้ด้วยการพล็อตกราฟแบบ Scatter plot โดยใช้ matplotlib:</p>
+<pre><code># Visualise the data
+plt.figure(figsize=(12,9))
+plt.scatter(data_train[&quot;x&quot;], data_train[&quot;y&quot;])
+plt.xlabel(&quot;x&quot;)
+plt.ylabel(&quot;y&quot;)
+</code></pre>
+
+<p><img alt="matplotlib scatter plot" src="images/ml-blog02-01.png"></p>
+<p>ซึ่งยืนยันการวิเคราะห์ของเราจากการอ่านสถิติในขั้นตอนที่แล้ว ว่า x กับ y มีความสัมพันธ์เป็นเส้นตรงซึ่งกันและกัน ซึ่งทำให้เราตัดสินใจเลือกใช้ Linear regression algorithm ในการสร้างโมเดล เพราะเป็นโมเดลที่มีสมมติฐานว่าความสัมพันธ์ระหว่าง Feature กับ Label เป็นเส้นตรง</p>
+<p>อนึ่งจะอธิบายไวยากรณ์ของโค้ดด้านบนเพื่อความเข้าใจที่กระจ่าง:</p>
+<ul>
+<li><code>plt.figure(figsize=(12,9))</code> สร้างกราฟว่างๆ ขนาด 12 x 9 เพื่อเป็นพื้นที่ให้เราใส่ข้อมูล</li>
+<li><code>plt.scatter(data_train["x"], data_train["y"])</code> สั่งให้พล็อตกราฟแบบ Scatter plot โดยกำหนด Argument คือ <code>(ข้อมูลสำหรับแกน x, ข้อมูลสำหรับแกน y)</code> ซึ่งเราจะดึงข้อมูลจาก pandas object ที่โหลดมาไว้แล้ว โดยข้อมูลแกน x กำหนดให้เป็น <code>data_train["x"]</code> ซึ่งแปลว่า "ให้เลือกข้อมูลทั้งหมดจากคอลัมน์ที่ชื่อ "x"" ส่วนข้อมูลสำหรับแกน y ก็ทำลักษณะเดียวกัน</li>
+<li><code>plt.xlabel("x")</code> และ <code>plt.ylabel("y")</code> กำหนดชื่อป้ายบนแกน x และ y ว่า "x" และ "y" ตามลำดับ</li>
+</ul>
+<p>เมื่อเราเห็นข้อมูลแล้วตัดสินใจเลือก Algorithm แล้ว ก็ถึงเวลาสร้างโมเดลจริงๆ เสียที</p>
+<h2>ฝึกโมเดล</h2>
+<p>เราจะสร้างโมเดลด้วยการเรียกใช้ฟังก์ชัน <code>LinearRegression</code> จากโมดูล <code>linear_model</code> ของ Scikit-learn library</p>
+<p>แต่ก่อนอื่นเราต้องเข้าใจก่อนว่า Scikit-learn กำหนดว่าข้อมูลที่จะป้อนเข้าสู่ Algorithm จะต้องเป็น Array ที่มีมิติชัดเจนทั้งด้านแถวและด้านคอลัมน์ เช่น ถ้า Feature มี 1 Feature คือ x และแต่ละ x มี 699 รายการ มิติของข้อมูลชุดนี้ต้องเป็น (699,1)</p>
+<p>ซึ่งปัญหาจะเกิดขึ้นตรงนี้ ว่า Object ข้อมูลที่เราโหลดเข้ามา อาจไม่ได้มีมิติครบทั้งสองด้าน เช่น pandas object <code>data_train</code> ของเรา มีมิติ (699,) คือกำหนดมิติชัดเจนแค่ด้านแถว ส่วนด้านคอลัมน์ไม่ได้กำหนด เราจึงต้องแปลงข้อมูลให้มีมิติครบทั้งสองด้านเสียก่อน</p>
+<p>วิธีการแปลงคือ เราจะแปลง pandas object เป็น numpy array โดยในกรณีของเราทำดังนี้:</p>
+<pre><code># Format X_train and y_train into 2D vector
+X_train = np.array(data_train[&quot;x&quot;]).reshape(-1,1)
+y_train = np.array(data_train[&quot;y&quot;]).reshape(-1,1)
+X_test = np.array(data_test[&quot;x&quot;]).reshape(-1,1)
+y_test = np.array(data_test[&quot;y&quot;]).reshape(-1,1)
+
+print(&quot;X_train shape = &quot; + str(X_train.shape))
+print(&quot;y_train shape = &quot; + str(y_train.shape))
+print(&quot;X_test shape = &quot; + str(X_test.shape))
+print(&quot;y_test shape = &quot; + str(y_test.shape))
+</code></pre>
+
+<p>Method <code>.reshape(-1,1)</code> เป็นการเติมมิติให้ด้านคอลัมน์ ผลที่ได้คือ:</p>
+<pre><code>X_train shape = (699, 1)
+y_train shape = (699, 1)
+X_test shape = (300, 1)
+y_test shape = (300, 1)
+</code></pre>
+
+<p>ซึ่งเป็นรูปแบบข้อมูลที่พร้อมจะนำเข้า Algorithm ให้ฝึกโมเดล</p>
+<p>ต่อมาคือขั้นตอนที่สำคัญที่สุด แต่สั้นที่สุด นั่นคือการฝึกโมเดลด้วย Linear regression algorithm:</p>
+<pre><code># Train the data
+lr = LinearRegression().fit(X_train, y_train)
+print(&quot;LR coefficient is&quot;, lr.coef_)
+print(&quot;LR intercept is&quot;, lr.intercept_)
+</code></pre>
+
+<p>ผลที่ได้คือ:</p>
+<pre><code>LR coefficient is [[1.00065638]]
+LR intercept is [-0.10726546]
+</code></pre>
+
+<p>อธิบายว่าเกิดอะไรขึ้นบ้าง:</p>
+<ul>
+<li><code>lr = LinearRegression().fit(X_train, y_train)</code> เราเรียกฟังค์ชัน <code>LinearRegression()</code> แล้วใช้ Method <code>.fit</code> ป้อน Vector ของ feature และ Vector ของ label ลงไปในฟังค์ชัน โดยฟังก์ชันจะใช้ข้อมูลเหล่านี้มาคำนวนหา Parameter ที่จะลด Cost function ให้มีค่าต่ำที่สุด โดย Parameter สำหรับ Linear regression ก็คือ Coefficient (= w) และ Intercept (= b) อยู่ใน Hypothesis function ของ Linear regression:</li>
+</ul>
+<p>
+<script type="math/tex; mode=display">\hat{y} = wx + b\tag{1}</script>
+</p>
+<ul>
+<li>จากนั้นเราพิมพ์ Parameter ทั้งสองตัวมาดู ซึ่งเมื่อเอามาใส่ใน Hypothesis function ก็จะได้สมการเส้นตรงที่เป็นโมเดลของชุดข้อมูลนี้ นั่นก็คือ:</li>
+</ul>
+<p>
+<script type="math/tex; mode=display">\hat{y} = 1.00065638x - 0.10726546\tag{2}</script>
+</p>
+<p>ซึ่งทำให้เราสามารถพยากรณ์ค่า y ได้ด้วยการใส่ค่า x ลงไปตามที่ต้องการ</p>
+<p>แต่ก่อนที่เราจะนำโมเดลไปใช้ เราต้องมั่นใจเสียก่อนว่าโมเดลของเราเป็นโมเดลที่ดี นั่นคือมีความแม่นยำสูงพอที่เราจะเชื่อได้ว่าเป็นตัวแทนข้อมูลชุดนี้ได้</p>
+<h2>ทดสอบความแม่นยำของโมเดล</h2>
+<p>หนึ่งในข้อสงสัยที่แทบทุกคนจะถามเมื่อกำลังพิจารณาจะนำ Machine learning มาแก้ปัญหาของตน ก็คือจะรู้ได้อย่างไรว่าโมเดลจะมีความแม่นยำ คำตอบคือมีวิธีการทดสอบและชี้วัดความแม่นยำของโมเดลหลากหลายวิธี ซึ่งแต่ละวิธีก็จะเหมาะสมกับ Algorithm และสถานการณ์ที่แตกต่างกันออกไป</p>
+<p>สำหรับ Linear regression เราจะใช้ Method <code>.score</code> ของ Scikit-learn ในการตรวจสอบความแม่นยำของโมเดล โดยมีวิธีการเรียกใช้ คือ:</p>
+<pre><code># Evaluate model's accuracy on train and test set
+print(&quot;Train set accuracy = &quot; + str(lr.score(X_train, y_train)))
+print(&quot;Test set accuracy = &quot; + str(lr.score(X_test, y_test)))
+</code></pre>
+
+<p>Method <code>.score</code> นี้จะแตกต่างกันสำหรับแต่ละโมเดล โดย Linear regression จะเรียกใช้วิธีที่เรียกว่า <script type="math/tex">R^2 Score</script> ซึ่งมีสูตรคำนวนดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">R^2 = 1 - \frac{SS_{res}}{SS_{tot}}\tag{3}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">SS_{res} = \sum\limits_{i = 1}^m(y_i - \hat{y}_i)^2\tag{4}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">SS_{tot} = \sum\limits_{i = 1}^m(y_i - \bar{y}_i)^2\tag{5}</script>
+</p>
+<ul>
+<li>
+<script type="math/tex">SS_{res}</script> คือ Residual sum of squares ชี้วัดความต่างระหว่างค่าจริงกับค่าที่พยากรณ์ได้</li>
+<li>
+<script type="math/tex">SS_{tot}</script> คือ Total sum of squares ชี้วัดความต่างระหว่างค่าจริงกับค่าเฉลี่ยของค่าจริงทั้งหมด</li>
+<li>ยิ่ง <script type="math/tex">R^2</script> มีค่าใกล้ 1 แปลว่าโมเดลมีความแม่นยำมาก</li>
+</ul>
+<p>สำหรับตัวอย่างของเรา ได้ผลดังนี้:</p>
+<pre><code>Train set accuracy = 0.9907015319025518
+Test set accuracy = 0.9888014444327563
+</code></pre>
+
+<p>พูดง่ายๆ ก็คือเมื่อเทียบกับ Train set 699 ตัวอย่าง มีความแม่นยำ 99.07% ส่วนเมื่อเทียบกับ Test set 300 ตัวอย่าง มีความแม่นยำ 98.88%</p>
+<p>สุดท้าย เรามาลองพล็อตกราฟดูว่าโมเดลของเรามีหน้าตาเป็นอย่างไร เมื่อเทียบกับข้อมูลจริง:</p>
+<pre><code># Make a prediction
+y_pred = lr.predict(X_test)
+
+# Visualise the model VS actual data
+plt.figure(figsize=(12,9))
+plt.scatter(X_test, y_test)
+plt.plot(X_test, y_pred, color=&quot;red&quot;, linewidth=3)
+plt.xlabel(&quot;x&quot;)
+plt.ylabel(&quot;y&quot;)
+</code></pre>
+
+<p>การสร้างกราฟของโมเดล ทำได้โดยการเรียก Method <code>.predict</code> โดยใส่ข้อมูล X_test ลงไป เพื่อให้โมเดลพยากรณ์ค่า y ออกมาเป็นเส้นตรง กำหนดผลที่ได้ลงไปใน Object y_pred จากนั้นเอา y_pred ไปพล็อตในแกน y เป็นเส้นตรงเมื่อเทียบกับ X_test ก็จะได้ฟังก์ชันเส้นตรงของโมเดล</p>
+<p><img alt="matplotlib scatter plot against predicted function" src="images/ml-blog02-02.png"></p>
+<p>จะเห็นว่าเส้นฟังก์ชันโมเดลสีแดงของเรา ผ่ากลางกลุ่มข้อมูลตัวอย่างแบบพอดีๆ เป็นการยืนยันให้เห็นด้วยตา ว่าโมเดลของเราน่าจะมีความแม่นยำสูงที่สุดเท่าที่จะเป็นไปได้</p>
+<p>เป็นอันว่าเราได้สร้างโมเดลพยากรณ์แบบ Linear regression ตัวแปรเดียว ได้สำเร็จเป็นที่เรียบร้อย ตอนต่อไปจะมาเรียนรู้การสร้างโมเดลแบบ Binary classification เพื่อจำแนกข้อมูลออกเป็นสองหมวด คือ "ใช่" กับ "ไม่ใช่" กัน</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog02.html">บทที่ 2 Linear Regression Algorithm</a> | บทที่ 4 Logistic Regression</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+
+</body>
+</html>
