@@ -1,0 +1,22 @@
+body {
+    max-width: 800px;
+    margin: auto;
+    color: #333333;
+    line-height: 1.8;
+}
+
+a:link {
+    color: #808080;
+}
+  
+a:visited {
+    color: #808080;
+}
+  
+a:hover {
+    color:#808080;
+}
+  
+a:active {
+    color: #808080;
+} 
