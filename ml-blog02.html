@@ -102,13 +102,13 @@ MathJax.Hub.Config({
 </p>
 <p>มาลองทำความเข้าใจ Algorithm นี้ด้วยตัวอย่าง สมมุติว่าเราเริ่มคำนวนด้วยค่าตั้งต้นดังนี้: <script type="math/tex">\theta_0 = b = 2</script>; <script type="math/tex">\alpha = 0.5</script> ถ้าเราหาอนุพันธ์ครั้งแรกได้ 1 ครั้งที่สองได้ 0.7 และครั้งที่สามได้ 0.4 เราจะได้:</p>
 <p>
-<script type="math/tex; mode=display">2 := 2 - (0.5)1 = 1.5\tag{1st iteration}</script>
+<script type="math/tex; mode=display">2 := 2 - (0.5)1 = 1.5\tag{8}</script>
 </p>
 <p>
-<script type="math/tex; mode=display">1.5 := 1.5 - (0.5)0.7 = 1.15\tag{2nd iteration}</script>
+<script type="math/tex; mode=display">1.5 := 1.5 - (0.5)0.7 = 1.15\tag{9}</script>
 </p>
 <p>
-<script type="math/tex; mode=display">1.15 := 1.15 - (0.5)0.4 = 0.95\tag{3rd iteration}</script>
+<script type="math/tex; mode=display">1.15 := 1.15 - (0.5)0.4 = 0.95\tag{10}</script>
 </p>
 <p>จะเห็นว่า ผลลัพธ์ค่า b ที่ได้มาค่าน้อยลงเรื่อยๆ คือจาก 1.5 เป็น 1.15 เป็น 0.95 โดยผลลัพธ์ที่ได้แต่ละรอบจะส่งผลให้ความชันของ Cost function ลดลงเรื่องๆ ทำให้อนุพันธ์น้อยลงเรื่อยๆ จาก 1 เป็น 0.7 เป็น 0.4 เป็นต้น</p>
 <p>เป้าหมายของกระบวนการ Gradient descent นี้คือการหาค่าตัวแปรของโมเดลที่ทำให้โมเดลมีผลลัพธ์ y ที่คลาดเคลื่อนกับค่า y ที่แท้จริงให้น้อยที่สุด นั่นคือเราจะได้โมเดลที่เป็นตัวแทนของชุดข้อมูลนี้ได้ดีที่สุดนั่นเอง</p>

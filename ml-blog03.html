@@ -221,7 +221,7 @@ plt.ylabel(&quot;y&quot;)
 </ul>
 <p>เมื่อเราเห็นข้อมูลแล้วตัดสินใจเลือก Algorithm แล้ว ก็ถึงเวลาสร้างโมเดลจริงๆ เสียที</p>
 <h2>ฝึกโมเดล</h2>
-<p>เราจะสร้างโมเดลด้วยการเรียกใช้ฟังก์ชัน <code>LinearRegression</code> จากโมดูล <code>linear_model</code> ของ Scikit-learn library</p>
+<p>เราจะสร้างโมเดลด้วยการเรียกใช้คลาส <code>LinearRegression</code> จากโมดูล <code>linear_model</code> ของ Scikit-learn library</p>
 <p>แต่ก่อนอื่นเราต้องเข้าใจก่อนว่า Scikit-learn กำหนดว่าข้อมูลที่จะป้อนเข้าสู่ Algorithm จะต้องเป็น Array ที่มีมิติชัดเจนทั้งด้านแถวและด้านคอลัมน์ เช่น ถ้า Feature มี 1 Feature คือ x และแต่ละ x มี 699 รายการ มิติของข้อมูลชุดนี้ต้องเป็น (699,1)</p>
 <p>ซึ่งปัญหาจะเกิดขึ้นตรงนี้ ว่า Object ข้อมูลที่เราโหลดเข้ามา อาจไม่ได้มีมิติครบทั้งสองด้าน เช่น pandas object <code>data_train</code> ของเรา มีมิติ (699,) คือกำหนดมิติชัดเจนแค่ด้านแถว ส่วนด้านคอลัมน์ไม่ได้กำหนด เราจึงต้องแปลงข้อมูลให้มีมิติครบทั้งสองด้านเสียก่อน</p>
 <p>วิธีการแปลงคือ เราจะแปลง pandas object เป็น numpy array โดยในกรณีของเราทำดังนี้:</p>
@@ -259,7 +259,7 @@ LR intercept is [-0.10726546]
 
 <p>อธิบายว่าเกิดอะไรขึ้นบ้าง:</p>
 <ul>
-<li><code>lr = LinearRegression().fit(X_train, y_train)</code> เราเรียกฟังค์ชัน <code>LinearRegression()</code> แล้วใช้ Method <code>.fit</code> ป้อน Vector ของ feature และ Vector ของ label ลงไปในฟังค์ชัน โดยฟังก์ชันจะใช้ข้อมูลเหล่านี้มาคำนวนหา Parameter ที่จะลด Cost function ให้มีค่าต่ำที่สุด โดย Parameter สำหรับ Linear regression ก็คือ Coefficient (= w) และ Intercept (= b) อยู่ใน Hypothesis function ของ Linear regression:</li>
+<li><code>lr = LinearRegression().fit(X_train, y_train)</code> เราเรียกฟังก์ชัน <code>LinearRegression()</code> แล้วใช้ Method <code>.fit</code> ป้อน Vector ของ feature และ Vector ของ label ลงไปในฟังก์ชัน โดยฟังก์ชันจะใช้ข้อมูลเหล่านี้มาคำนวนหา Parameter ที่จะลด Cost function ให้มีค่าต่ำที่สุด โดย Parameter สำหรับ Linear regression ก็คือ Coefficient (= w) และ Intercept (= b) อยู่ใน Hypothesis function ของ Linear regression:</li>
 </ul>
 <p>
 <script type="math/tex; mode=display">\hat{y} = wx + b\tag{1}</script>
