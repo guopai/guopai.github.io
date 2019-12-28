@@ -1,0 +1,333 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>ml-blog04-logistic-regression</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Logistic Regression</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | ธันวาคม 2562</p>
+<p>คราวที่แล้วเราได้เรียนรู้ Linear Regression เพื่อสร้างโมเดลพยากรณ์ผลลัพธ์ที่เป็นตัวเลขต่อเนื่อง (Continuous number) คราวนี้เราจะมาสร้างโมเดลสำหรับพยากรณ์หมวดหมู่ หรือที่เรียกว่า Classification กันบ้าง</p>
+<p>โจทย์ของเราคือการจำแนกสายพันธุ์ของพืชตระกูล Iris ออกเป็น 3 กลุ่ม คือ Sentosa, Versicolor, และ Virginica โดยมีข้อมูลอยู่ 4 Feature คือ ความยาวกลีบเลี้ยง (Sepal length), ความกว้างกลีบเลี้ยง (Sepal width), ความยาวกลีบดอก (Petal length), และความกว้างกลีบดอก (Petal width) โดยทั้งหมดมีหน่วยวัดเป็นเซ็นติเมตร</p>
+<p><img alt="Iris flowers" src="images/ml-blog04-iris-dataset.png"></p>
+<h2>Load</h2>
+<p>เราจะใช้ชุดข้อมูล <a href="https://en.wikipedia.org/wiki/Iris_flower_data_set">Iris plants dataset</a> ซึ่งเป็นชุดข้อมูลยอดนิยมในการทดสอบโมเดลการจำแนกแบบหลายหมวดหมู่ โดยชุดข้อมูลนี้ถูกฝังอยู่ใน scikit-learn เรียบร้อยแล้ว สามารถเรียกใช้ได้เลยโดยการเรียก <code>load_iris()</code> ฟังก์ชัน ในคลาส <code>datasets</code>:</p>
+<pre><code>import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+
+# Load the iris data
+iris = datasets.load_iris()
+</code></pre>
+
+<h2>Explore</h2>
+<p>เมื่อโหลดแล้วลองดูโครงสร้างและคำอธิบายข้อมูล:</p>
+<pre><code>print(iris.keys())
+print(iris[&quot;DESCR&quot;])
+print(&quot;Feature names are: &quot;, iris[&quot;feature_names&quot;])
+print(&quot;Target names are: &quot;, iris[&quot;target_names&quot;])
+</code></pre>
+
+<p><code>keys</code> method ของ iris object จะเรียกดู Dictionary key ของชุดข้อมูล ซึ่งประกอบด้วย:</p>
+<pre><code>dict_keys(['data', 'target', 'target_names', 'DESCR', 'feature_names', 'filename'])
+</code></pre>
+
+<p>หมายความว่าถ้าเราเรียกดู Keys เหล่านี้ ก็จะเจอข้อมูลใน Key นั้นๆ เช่น ถ้าเราอยากรู้ว่าหมวดหมู่ที่จะพยากรณ์ มีอะไรบ้าง ก็เรียก <code>iris["target_names"]</code> ก็จะได้:</p>
+<pre><code>['setosa' 'versicolor' 'virginica']
+</code></pre>
+
+<p>แนะนำให้เรียก <code>iris["DESCR"]</code> เพื่อดูคำอธิบายชุดข้อมูลด้วย จะได้เข้าใจที่มาที่ไป ลักษณะ และจำนวนตัวอย่างข้อมูล:</p>
+<pre><code>Iris plants dataset
+--------------------
+
+**Data Set Characteristics:**
+
+    :Number of Instances: 150 (50 in each of three classes)
+    :Number of Attributes: 4 numeric, predictive attributes and the class
+    :Attribute Information:
+        - sepal length in cm
+        - sepal width in cm
+        - petal length in cm
+        - petal width in cm
+        - class:
+                - Iris-Setosa
+                - Iris-Versicolour
+                - Iris-Virginica
+
+    :Summary Statistics:
+
+    ============== ==== ==== ======= ===== ====================
+                    Min  Max   Mean    SD   Class Correlation
+    ============== ==== ==== ======= ===== ====================
+    sepal length:   4.3  7.9   5.84   0.83    0.7826
+    sepal width:    2.0  4.4   3.05   0.43   -0.4194
+    petal length:   1.0  6.9   3.76   1.76    0.9490  (high!)
+    petal width:    0.1  2.5   1.20   0.76    0.9565  (high!)
+    ============== ==== ==== ======= ===== ====================
+
+    :Missing Attribute Values: None
+    :Class Distribution: 33.3% for each of 3 classes.
+    :Creator: R.A. Fisher
+    :Donor: Michael Marshall (MARSHALL%PLU@io.arc.nasa.gov)
+    :Date: July, 1988
+
+The famous Iris database, first used by Sir R.A. Fisher. The dataset is taken
+from Fisher's paper. Note that it's the same as in R, but not as in the UCI
+Machine Learning Repository, which has two wrong data points.
+
+This is perhaps the best known database to be found in the
+pattern recognition literature.  Fisher's paper is a classic in the field and
+is referenced frequently to this day.  (See Duda &amp; Hart, for example.)  The
+data set contains 3 classes of 50 instances each, where each class refers to a
+type of iris plant.  One class is linearly separable from the other 2; the
+latter are NOT linearly separable from each other.
+</code></pre>
+
+<h2>Prepare</h2>
+<p>พอเข้าใจข้อมูลแล้ว ก็ต้องเตรียมข้อมูลให้อยู่ในรูปแบบที่จะนำไปให้โมเดลฝึกได้ ซึ่งโดยหลักการคือการกำหนด Matrix ข้อมูลให้อยู่ในตัวแปร X ส่วน Vector เป้าหมายให้อยู่ในตัวแปร y โดยสำหรับชุดข้อมูลที่ฝังอยู่ใน scikit_learn เราสามารถเรียก Method <code>.data</code> และ <code>.target</code> ได้เลย</p>
+<pre><code>X = iris.data
+y = iris.target
+print(&quot;X_shape shape is:&quot;, X.shape)
+print(&quot;y_shape shape is:&quot;, y.shape)
+</code></pre>
+
+<p>สองบรรทัดสุดท้าย เป็นการตรวจสอบมิติของข้อมูลทั้ง X และ y ซึ่งจะได้:</p>
+<pre><code>X_shape shape is: (150, 4)
+y_shape shape is: (150,)
+</code></pre>
+
+<p>แปลว่า X เป็น Matrix ขนาด (150, 4) คือมี 150 แถวเท่ากับจำนวนตัวอย่าง และ 4 คอลัมน์เท่ากับจำนวน Feature ส่วน y เป็น Column vector ขนาด 150 ซึ่งจะต้องเท่ากับจำนวนแถวของ X matrix</p>
+<p>อนึ่ง เราใช้ตัวพิมพ์ใหญ่ เช่น X เวลาแทน Matrix ส่วน Vector ใช้ตัวพิมพ์เล็กเช่น y เพื่อทำให้ชัดเจนว่าข้อมูลอยู่ในประเภทอะไรทางคณิตศาสตร์</p>
+<p>จากนั้นเราจะแบ่งข้อมูลออกเป็น Train set กับ Test set โดยการสุ่มด้วยฟังก์ชัน <code>train_test_split</code> ในโมดูล <code>model_selection</code> โดยฟังก์ชันนี้จะ Return ตัวแปร 4 ตัว ได้แก่ Matrix X เพื่อเทรน, Matrix X เพื่อทดสอบ, Vector Y เพื่อเทรน, และ Vector Y เพื่อทดสอบ ตามลำดับ ดังนั้นให้เรากำหนดตัวแปรทั้ง 4 เมื่อเรียกฟังก์ชันนี้ </p>
+<pre><code># Split the data into train and test set
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+print(&quot;X_train shape is:&quot;, X_train.shape)
+print(&quot;y_train shape is:&quot;, y_train.shape)
+print(&quot;X_test shape is:&quot;, X_test.shape)
+print(&quot;y_test shape is:&quot;, y_test.shape)
+</code></pre>
+
+<p>สังเกตว่า <code>train_test_split</code> มี Argument <code>X</code>, <code>y</code> ซึ่งก็คือชุดข้อมูลที่เราเพิ่งเตรียม และมี <code>random_state</code> ซึ่งทำให้เราสามารถกำหนดได้การสุ่มแต่ละครั้งได้ผลออกมาเหมือนกัน ซึ่งเป็นประโยชน์ในการทดสอบโมเดล เพราะถ้าเราเรียกฟังก์ชันแต่ละครั้งแล้วผลออกมาไม่เหมือนกัน คือแต่ละครั้งก็สุ่มใหม่ เราจะไม่สามรถควบคุมตัวแปรในการทดสอบโมเดลได้</p>
+<p>วิธีการกำหนด <code>random_state</code> คือการใส่ตัวเลขจำนวนเต็มอะไรก็ได้ลงไป ถ้าดูหนังสือหรือโค้ดคนอื่นจะเห็นว่าบางทีจะใส่เลข <code>42</code> อันนี้เป็น <a href="https://www.independent.co.uk/life-style/history/42-the-answer-to-life-the-universe-and-everything-2205734.html">Meme</a> ซึ่งมาจากนิยายวิทยาศาสตร์เรื่อง A Hitchhiker's Guide to the Galaxy ของ Douglas Adams</p>
+<h2>Visualise</h2>
+<p>ก่อนจะสร้างโมเดลก็น่าจะลอง Visualise ข้อมูลให้เห็นภาพสักหน่อย ในที่นี่เราจะสร้าง Scatterplot matrix ซึ่งแสดงความสัมพันธ์ระหว่างข้อมูลแต่ละ Feature และจำแนกจุดที่เป็นตัวแทนของข้อมูลที่อยู่ในหมวดหมู่แต่ละหมวดจาก 3 หมวด โดยการใช้สีที่ไม่เหมือนกัน</p>
+<pre><code># Plot the data
+pd.plotting.scatter_matrix(iris_df, c=y_train, figsize=(12,12), marker=&quot;o&quot;)
+</code></pre>
+
+<p>ได้ผลแบบนี้:</p>
+<p><img alt="Scatterplot matrix of Iris dataset" src="images/ml-blog04-01.png"></p>
+<p>วิธีอ่าน Scatterplot matrix มีดังนี้:</p>
+<ul>
+<li>Scatterplot matrix แสดงความสัมพันธ์ระหว่างตัวแปรสองตัว ซึ่งอาจจะเป็น Feature ทั้งสองตัว หรืออาจจะเป็น Feature กับ Label ก็ได้ โดยแสดงทุกคู่ความสัมพันธ์ที่เป็นไปได้อยู่ในภาพเดียวกัน เลยมีหน้าตาเป็น Matrix</li>
+<li>จะเห็นว่า Matrix ช่องบนซ้ายแทยงลงมาช่องล่างขวา ไม่ได้แสดงเป็น Scatter plot แต่เป็น Distribution plot เพราะมันคือความสัมพันธ์ของตัวมันเอง โดย Distribution plot ก็มีประโยชน์ ทำเราจะได้เห็นว่ารายการข้อมูลทั้งหมดมีการกระจายตัวใน Feature นั้นอย่างไร เช่น ช่อง Sepal width พบว่ามีการกระจายตัวแบบ Normal distribution คือข้อมูลส่วนมากมีค่าอยู่กลางๆ แถวๆ Mean แล้วกระจายตัวออกทั้งด้านลบและด้านบวก</li>
+<li>ส่วนช่องอื่นๆ เราสามารถกำหนดให้แยกสีตาม Label ได้ ทำให้เห็นว่าในแต่ละคู่ความสัมพันธ์ ข้อมูล Label ไหนอยู่ตรงไหน ตัวอย่างเช่น คู่ Petal length VS. Sepal length (แถว 3 คอลัมน์ 1) จะเห็นว่า Label แรกจะมี Petal และ Sepal length น้อย, Label ที่สองอยู่ตรงกลางๆ, และ Label ที่สามมีค่ามาก แต่เมื่อดู Sepal width VS. Sepal length (แถว 2 คอลัมน์ 1) พบว่า Label 2 และ 3 มีค่าผสมผสานกัน แยกกจากกันไม่เด็ดขาด เป็นต้น</li>
+</ul>
+<p>สำหรับเรา ประโยชน์หนึ่งจากการอ่าน Scatterplot matrix คือการสร้างความเข้าใจในภาพรวมว่าชุดข้อมูลนี้น่าจะ "ยาก" หรือ "ง่าย" ในการสร้างโมเดล โดยถ้าข้อมูลแต่ละ Label แยกจากกันค่อนข้างชัด การสร้างโมเดลก็จะค่อนข้างง่ายและแม่นยำ</p>
+<h2>Logistic regression algorithm</h2>
+<p>และแล้วก็เกือบถึงเวลาที่จะฝึกโมเดลให้เข้ากับชุดข้อมูล แต่ก่อนหน้านั้นเรามาทำความเข้าใจว่า Algorithm ที่เราจะใช้นั้นทำงานอย่างไร โดย Algorithm ที่เราเลือกใช้คือ Logistic Regression ชื่ออาจจะฟังดูเหมือน Regression ที่มีเป้าหมายพยากรณ์ค่าต่อเนื่อง แต่ในความเป็นจริงไม่ได้เป็นอย่างนั้น เราลองมาดูกันว่าโมเดลนี้ทำงานอย่างไร</p>
+<h3>Hypothesis function</h3>
+<p>ใน Classification model เราต้องการให้ y มีคำตอบ คือ 0 หรือ 1 เท่านั้น ซึ่งหมายความว่า "ไม่ใช่" หรือ "ใช่" (ตอนนี้กำหนดให้มีสองคำตอบไปก่อน การใช้หลักการเดียวกันมาใช้กับการจัดหมวดหมู่ที่มีหลายคำตอบ ทำได้โดยการใช้ Softmax function ซึ่งจะกล่าวถึงภายหลัง)</p>
+<p>แต่ในความเป็นจริง เราไม่สามารถมั่นใจอะไรได้ร้อยเปอร์เซ็น ว่าคำตอบคือ "ไม่ใช่" หรือ "ใช่" ดังนั้น สิ่งที่เราต้องการ คือเราจะสร้าง Hypothesis function ที่ให้ค่าความเป็นไปได้ ที่คำตอบจะคือ "ไม่ใช่" หรือ "ใช่" โดยกำหนดขอบเขตการตัดสินใจ (Decision boundary) ไว้ที่ 0.5 ซึ่งจะทำให้เราได้ขอบเขตการตัดสินใจดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">y = 1 \text{ if } h_\theta(x) \geq 0.5\tag{1.1}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">y = 0 \text{ if } h_\theta(x) < 0.5\tag{1.2}</script>
+</p>
+<p>โดย <script type="math/tex">h_\theta(x)</script> คือ Hypothesis function ที่มี x เป็น Input ซึ่งอยู่ในรูปของ:</p>
+<p>
+<script type="math/tex; mode=display">h_\theta(x) = \sigma(z)\tag{2}</script>
+</p>
+<p>
+<script type="math/tex">\sigma</script> อ่านว่า Sigma และ <script type="math/tex">\sigma(z)</script> อ่านว่า Sigmoid z ซึ่ง <script type="math/tex">\sigma(z)</script> นี้เป็นฟังก์ชันที่เรียกว่า Sigmoid function หรือ Logistic function ซึ่งเป็นที่มาของชื่อ Logistic regression นั่นเอง</p>
+<p>Sigmoid function มีหน้าตาอย่างนี้:</p>
+<p><img alt="" src="images/ml-blog04-02.png"></p>
+<p>
+<script type="math/tex; mode=display">\sigma(z) = \frac{1}{1+e^{-z}}\tag{3}</script>
+</p>
+<ul>
+<li>แกนนอนคือ Input ซึ่งในที่นี้คือ <script type="math/tex">z</script> ส่วนแกนตั้งคือ Output ซึ่งในที่นี้คือ <script type="math/tex">h_\theta(x) = \sigma(z)</script>
+</li>
+<li>สังเกตว่าเมื่อ <script type="math/tex">z</script> มีค่ามาก <script type="math/tex">\sigma(z)</script> จะมีค่าเข้าใกล้ 1 ส่วนเมื่อ <script type="math/tex">z</script> มีค่าน้อย <script type="math/tex">\sigma(z)</script> จะมีค่าเข้าใกล้ 0</li>
+<li>สังเกตว่าเมื่อ <script type="math/tex">z = 0</script>, <script type="math/tex">\sigma(z) = 0.5</script> ซึ่งอยู่กึ่งกลางระหว่าง Limit ด้านบน คือ 1 และ Limit ด้านล่าง คือ 0 ดังนั้นเราจึงเลือก 0.5 เป็นขอบเขตการตัดสินใจนั่นเอง</li>
+<li>
+<script type="math/tex">e</script> คือค่าคงที่ของ Euler มีค่าเท่ากับ 2.7182 (และทศนิยมลำดับต่อไปเรื่อยๆ)</li>
+<li>
+<script type="math/tex">z</script> คือ Linear function <script type="math/tex">z = wx</script> ซึ่งเราเคยใช้ใน Linear regression โดยไม่มีตัวแปร Intercept <script type="math/tex">b</script>
+</li>
+</ul>
+<p>นั่นหมายความว่า:</p>
+<p>
+<script type="math/tex; mode=display">\sigma(z) = \frac{1}{1+e^{-(wx)}}\tag{4}</script>
+</p>
+<p>อนึ่ง สำหรับใครที่สนใจจะเขียน Algorithm เอง จะควรจะแปลง <script type="math/tex">wx</script> ให้เป็น Vectorised form เพื่อเร่งความเร็วในการคำนวน ซึ่งมีวิธีคือหาการ Dot product ของ W transpose และ X (ทั้งคู่เป็น Matrix) ดังนั้นเราจะได้ Sigmoid function ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">\sigma(Z) = \frac{1}{1+e^{-(W^T X)}}\tag{5}</script>
+</p>
+<p>เมื่อได้ Hypotheses function แล้ว หน้าที่ของเรา คือการหาค่า w ที่จะทำให้ค่าความคลาดเคลื่อนระหว่าง <script type="math/tex">h_\theta(x)</script> กับ <script type="math/tex">y</script> นั้นน้อยที่สุด การที่จะทำให้ค่าความคลาดเคลื่อนน้อยที่สุดดังกล่าว ก็ต้องอาศัย Cost function และการหา Gradient descent ของ Cost function เหมือนที่เราเคยทำ</p>
+<h3>Cost function</h3>
+<p>สำหรับ Logistic regression เราจะใช้ Cost function ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">\text{cost}(h_\theta(x),y) =
+\begin{cases}
+    -\log h_\theta(x) \text{ if } y = 1 \\
+    -\log(1 - h_\theta(x)) \text{ if } y = 0
+\end{cases}\tag{6}</script>
+</p>
+<p>ลองทำความเข้าใจเงื่อนไขของ Cost function ด้านบน พิจารณาว่าหน้าที่ของ Cost function คือการหาค่าตัวแปรที่จะส่งผลให้ Cost นั้นต่ำที่สุด ซึ่งแบ่งได้เป็น 2 กรณี คือเมื่อ y เท่ากับ 1 และ y เท่ากับ 0</p>
+<p>โดยในกรณีของ y เท่ากับ 1 หากเราได้ Hypothesis function <script type="math/tex">h_\theta(x) = 1</script> จะทำให้ Cost function ซึ่งก็คือ <script type="math/tex">-\log h_\theta(x) = 0</script> ซึ่งมีค่าน้อยที่สุดที่จะเป็นไปได้ ดังนั้นเราจึงใช้ <script type="math/tex">-\log h_\theta(x)</script> เป็นตัวแทนของ Cost function ในกรณี <script type="math/tex">y = 1</script>
+</p>
+<p><img alt="Cost function of y = 1" src="images/ml-blog04-03.png"></p>
+<p>ส่วนในกรณีของ y เท่ากับ 0 หากเราได้ Hypothesis function <script type="math/tex">h_\theta(x) = 0</script> จะทำให้ Cost function ซึ่งก็คือ <script type="math/tex">-\log(1 - h_\theta(x)) = 0</script> ซึ่งมีค่าน้อยที่สุดที่จะเป็นไปได้ ดังนั้นเราจึงใช้ <script type="math/tex">-\log(1 - h_\theta(x))</script> เป็นตัวแทนของ Cost function ในกรณี <script type="math/tex">y = 0</script>
+</p>
+<p><img alt="Cost function of y = 0" src="images/ml-blog04-04.png"></p>
+<p>เงื่อนไขทั้งสองแบบ สามารถนำมารวมกันเป็นสมการเดียวได้ว่า:</p>
+<p>
+<script type="math/tex; mode=display">\text{cost}(h_\theta(x),y) = -y\log(h_\theta(x)) - (1-y)\log(1-h_\theta(x))\tag{7}</script>
+</p>
+<p>นำ Cost function นี้มาใส่ในรูปแบบ Cost function ของ Linear regression:</p>
+<p>
+<script type="math/tex; mode=display">J(\theta) = \frac{1}{m} \sum\limits_{i = 1}^m \text{cost}(h_\theta(x^{(i)}), y^{(i)})\tag{8}</script>
+</p>
+<p>จะได้ Cost function เต็มรูปแบบ คือ:</p>
+<p>
+<script type="math/tex; mode=display">J(\theta) = - \frac{1}{m} \sum\limits_{i = 1}^m \left( y^{(i)}\log h_\theta(x^{(i)}) + (1-y^{(i)})\log(1-h_\theta(x^{(i)})) \right) \tag{9}</script>
+</p>
+<p>หรือใน Vectorised form ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">J(\theta) = \frac{1}{m} \cdot \left( -y^T \log (h) - (1-y)^T \log (1-h) \right) \tag{10}</script>
+</p>
+<h3>Gradient descent</h3>
+<p>เชื่อหรือไม่ว่าอนุพันธ์ของ <script type="math/tex">J(\theta)</script> ของ Logistic regression cost function นั้นเหมือนกับอนุพันธ์ <script type="math/tex">J(\theta)</script> ของ Linear regression cost function:</p>
+<p>
+<script type="math/tex; mode=display">\theta_j := \theta_j - \alpha \frac{1}{m} \sum\limits_{i = 1}^m(h_\theta (x^{(i)}) - y^{(i)})x_j^{(i)}\tag{11}</script>
+</p>
+<p>ส่วน Vectorized version ก็คือ:</p>
+<p>
+<script type="math/tex; mode=display">\theta := \theta - \frac{\alpha}{m} X^T(\sigma(X\theta) - y)\tag{12}</script>
+</p>
+<p>ดังนั้น วิธีการอับเดตตัวแปรจึงทำเหมือน Linear regression ทุกประการ</p>
+<h3>Softmax function</h3>
+<p>Algorithm ของเราสามารถให้คำตอบสำหรับปัญหาที่มีคำตอบแค่ 2 ค่า คือ 1 กับ 0 เรียกว่า Binary classification แล้วถ้าคำตอบมีหลายค่า เช่นในโจทย์ของเรา ที่ต้องการจำแนกดอก Iris ออกเป็น 3 สายพันธุ์ล่ะ เราเรียกปัญหาแบบนี้ว่า Multiclass classification</p>
+<p>Logistic Regression สามารถให้คำตอบปัญหา Multiclass classification โดยการแก้ไขรายละเอียดของกลไกเล็กน้อย ซึ่งจบลงที่การใช้ Softmax function ตอน Output โดยมีหลักการและขั้นตอนดังนี้:</p>
+<p>1) คำนวนหาผลลัพธ์ Linear function <code>z</code> ของแต่ละ Class <code>k</code>:</p>
+<p>
+<script type="math/tex; mode=display">z_k = \theta_k^T x\tag{13}</script>
+</p>
+<p>เช่นกรณีของเรา มี <code>k = 3</code> เราจะได้ <script type="math/tex">z_1</script>, <script type="math/tex">z_2</script>, และ <script type="math/tex">z_3</script> ของข้อมูลแต่ละรายการ</p>
+<p>2) นำ <script type="math/tex">z_k</script> ไปประกอบกันใน Softmax function แทน Logistic function เดิม ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">\hat{p}_k = \sigma(z)_k = \frac{e^{z_k}}{\sum\limits_{j = 1}^K e^{z_j}}\tag{14}</script>
+</p>
+<ul>
+<li>
+<script type="math/tex">\hat{p}_k</script> คือความเป็นไปได้ที่รายการนี้จะอยู่ใน Class <code>k</code></li>
+<li>
+<script type="math/tex">\sigma(z)_k</script> เป็นค่าความเป็นไปได้ที่รายการนี้จะอยู่ใน Class <code>k</code> โดยเทียบกับคะแนน Linear function ของแต่ละ Class ของรายการนั้น</li>
+</ul>
+<p>โดย Softmax จะเลือกพยากรณ์ Class ที่ได้คะแนนความเป็นไปได้สูงที่สุด</p>
+<p>ถ้าอ่านแล้วงง ลองโค้ด Softmax function ใน Python ดู:</p>
+<pre><code>z = [1, 2, 3]
+p = np.exp(z)/np.sum(np.exp(z))
+</code></pre>
+
+<p>เมื่อเรียก <code>p</code> จะได้ผลว่า <code>array([0.09003057, 0.24472847, 0.66524096])</code> แปลว่าถ้า Linear function z ของ Class แรก ให้ผลเท่ากับ 1 ความเป็นไปได้ของ Class นี้จะเท่ากับ 9% เมื่อเทียบกับ Class ที่สอง (2 --&gt; 24.47%) และ Class ที่สาม (3 --&gt; 66.52%) ดังนั้น Softmax function จะเลือก Class 3 เป็นคำตอบ</p>
+<p>3) Algorithm จะนำ <script type="math/tex">\hat{p}_k</script> ไปคำนวนใน Cost function ที่ดัดแปลงจากเดิมเล็กน้อย เรียกว่า Cross entropy cost function เพื่อหา Global minimum ที่จะทำให้ความต่างของค่าที่พยากรณ์กับค่าจริงมีน้อยที่สุด:</p>
+<p>
+<script type="math/tex; mode=display">J(\theta) = - \frac{1}{m} \sum\limits_{i = 1}^m \sum\limits_{k = 1}^K y^{(i)}_k \log(\hat{p}^{(i)}_k) \tag{15}</script>
+</p>
+<ul>
+<li>
+<script type="math/tex">y^{(i)}_k</script> คือค่าจริงที่รายการที่ <code>i</code> จะอยู่ใน Class <code>k</code> ซึ่งจะมีค่า 1 หรือ 0</li>
+</ul>
+<p>4) หาอนุพันธ์ในกระบวนการ Gradient descent โดยใช้สูตรเดิม:</p>
+<p>
+<script type="math/tex; mode=display">\theta_j := \theta_j - \alpha \frac{1}{m} \sum\limits_{i = 1}^m(\hat{p}^{(i)}_k - y^{(i)}_k)x^{(i)}\tag{16}</script>
+</p>
+<p>อนึ่ง ฟังก์ชัน <code>LogisticRegression</code> ใน scikit-learn จะเลือกใช้ Softmax function โดยอัตโนมัติอยู่แล้ว โดยดูจากข้อมูล Label <code>y</code> ของเรา ซึ่งสะดวกมาก ไม่ต้องทำอะไรเพิ่มแล้ว แค่เรียกฟังก์ชัน</p>
+<h2>Modelling</h2>
+<p>ตอนนี้เราก็พร้อมแล้วในการสร้างโมเดล โดยเรียก <code>LogisticRegression</code> ฟังก์ชัน และพ่วง Method <code>.fit</code> เพื่อสร้างเทรนโมเดลไปเลย</p>
+<pre><code># Train the model
+logreg = LogisticRegression(max_iter=200, random_state=42).fit(X_train, y_train)
+</code></pre>
+
+<p>จะเห็นว่า <code>LogisticRegression</code> ฟังก์ชัน มี Argument <code>max-iter</code> อยู่ด้วย Argument นี้ทำหน้าที่ควบคุม Hyperparameter ของโมเดล โดยเราสามารถกำหนดว่าจะให้ Algorithm (เรียกใน scikit-learn ว่า "Solver") ทำงานกี่ครั้ง ในลักษณะเดียวกับที่ Gradient descent อับเดต Parameter ซ้ำไปเรื่อยๆ เพื่อให้ Cost function ลดลงทุกๆ รอบ</p>
+<p>อันที่จริง แต่ละโมเดลจะมี Argument แบบนี้มากมาย เช่น <code>LogisticRegression</code> มี Argument ดังนี้ (ดูจากเอกสารอ้างอิงของ scikit-learn):</p>
+<p>class sklearn.linear_model.LogisticRegression(penalty='l2', dual=False, tol=0.0001, C=1.0, fit_intercept=True, intercept_scaling=1, class_weight=None, random_state=None, solver='lbfgs', max_iter=100, multi_class='auto', verbose=0, warm_start=False, n_jobs=None, l1_ratio=None)</p>
+<p>เราจะพูดถึง Hyperparameter เหล่านี้ในหัวข้อถัดไป ในขั้นนี้เพียงแค่ให้รู้ก่อนว่าเราสามารถกำหนดค่าต่างๆ เพื่อปรับแต่งโมเดลของเราได้ในที่นี้</p>
+<h2>Evaluate</h2>
+<p>เมื่อเทรนโมเดลแล้ว เราก็มีประเมินความแม่นยำกัน:</p>
+<pre><code># Evaluate the model's accuracy
+print(&quot;Train set accuracy = &quot; + str(logreg.score(X_train, y_train)))
+print(&quot;Test set accuracy = &quot; + str(logreg.score(X_test, y_test)))
+</code></pre>
+
+<p>ได้ผลว่า:</p>
+<pre><code>Train set accuracy = 0.9642857142857143
+Test set accuracy = 1.0
+</code></pre>
+
+<p>นั่นคือเมื่อเทรนกับ Train set ได้ความแม่นยำ 96.42% ส่วนเมื่อนำมาทดสอบกับ Test set ได้ความแม่นยำถึง 100% ทีเดียว</p>
+<p>สำหรับวิธีการคำนวนความแม่นยำของ Logistic regression สูตรนั้นง่ายมาก คือคำนวนว่าสัดส่วนระหว่าง <script type="math/tex">h_\theta(x)</script> ที่ให้ค่าตรงกับ <script type="math/tex">y</script> ที่แท้จริงนั้น เป็นเท่าไหร่</p>
+<h2>Predict</h2>
+<p>มาลองดูกันว่าเวลาเราต้องการพยากรณ์จริงๆ นั้นทำอย่างไร สมมุติว่าเราไปเจอดอก Iris ที่อยากรู้ว่าเป็นสายพันธุ์ไหน เราจึงไปวัด Feature ทั้ง 4 มา ได้ว่า:</p>
+<ul>
+<li>sepal length 6 cm</li>
+<li>sepal width 2.5 cm</li>
+<li>petal length 4 cm</li>
+<li>petal width 1.5 cm</li>
+</ul>
+<p>เราจะต้องใส่ข้อมูลนี้ลงไปในให้โมเดลพยากรณ์ โดยทำข้อมูลให้อยู่ในรูปแบบและมิติเดียวกันกับ X ที่เอาไว้เทรน ซึ่งถ้าจำได้ เราเคยหามิติของ X ไว้ ได้ดังนี้:</p>
+<pre><code>X_shape shape is: (150, 4)
+</code></pre>
+
+<p>คือเป็น Array ขนาด 150 แถว 4 คอลัมน์ โดยแต่ละแถวคือ 1 รายการ ดังนั้น X ใหม่ของเรา ตั้งชื่อว่า <code>X_new</code> จีงจะต้องเป็น Array มิติ (1, 4) ซึ่งเขียนใน Python ได้ว่า <code>np.array([[6, 2.5, 4, 1.5]])</code>:</p>
+<pre><code># Make a prediction
+X_new = np.array([[6, 2.5, 4, 1.5]])
+y_pred = logreg.predict(X_new)
+y_pred_prob = logreg.predict_proba(X_new)
+print(&quot;Prediction:&quot;, y_pred, &quot;with the probability array:&quot;, y_pred_prob)
+print(&quot;Predicted target name:&quot;, iris[&quot;target_names&quot;][y_pred])
+</code></pre>
+
+<p>ได้คำตอบคือ:</p>
+<pre><code>Prediction: [1] with the probability array: [[0.01372466 0.91809317 0.06818217]]
+Predicted target name: ['versicolor']
+</code></pre>
+
+<p>นั่นคือโมเดลได้พยากรณ์ว่าดอก Iris ดอกนี้ เป็นสายพันธุ์ Versicolor โดยมีความมั่นใจ 91.8% อย่างไรก็ตามก็มีความเป็นไปได้ที่จะเป็นสายพันธุ์ Setosa 1.37% และ Virginica 6.81%</p>
+<p>ถ้าดูโค้ดแล้วงง ลองพิจารณารายละเอียดดังนี้:</p>
+<ul>
+<li>Method <code>.predict_proba</code> หมายว่าว่า ให้พยากรณ์โดย Output ออกเป็น Array ของความเป็นไปได้</li>
+<li>ทำไม <code>iris["target_names"][y_pred]</code> จึงให้ผลออกมาเป็นชื่อสายพันธุ์ได้ ถ้าจำได้ตอนต้น เรารู้ว่าชุดข้อมูลนี้ได้เตรียม Dictionary key ที่ชื่อ <code>target_names</code> ไว้ให้ โดยมีค่าว่า <code>['setosa' 'versicolor' 'virginica']</code> คำสั่งนี้คือการเรียกค่าของ Key <code>target_names</code> ลำดับที่ <code>[y_pred]</code> ซึ่งในที่นี้คือ <code>[1]</code> นั่นเอง</li>
+</ul>
+<h2>สรุป</h2>
+<p>เป็นอันว่าเราสร้างโมเดล Logistic regression เพื่อพยากรณ์ปัญหา Multiclass classification สำเร็จ ยังมีเรื่องสำคัญที่เรายังไม่ได้พูดถึง ที่ส่งผลต่อความแม่นยำของโมเดล ดังนี้:</p>
+<ul>
+<li>ปัญหา Underfitting / Overfitting</li>
+<li>การแก้ไขปัญหา Overfitting ด้วยเทคนิค Regularisation</li>
+</ul>
+<p>ซึ่งจะเป็นหัวข้อของบทต่อไป</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog03.html">บทที่ 3 Linear Regression Programming</a> | บทที่ 5 Overfitting and Regularisation</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+
+</body>
+</html>
