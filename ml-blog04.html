@@ -46,7 +46,7 @@ print(&quot;Feature names are: &quot;, iris[&quot;feature_names&quot;])
 print(&quot;Target names are: &quot;, iris[&quot;target_names&quot;])
 </code></pre>
 
-<p><code>keys</code> method ของ iris object จะเรียกดู Dictionary key ของชุดข้อมูล ซึ่งประกอบด้วย:</p>
+<p>Method <code>.keys</code> ของ iris object จะเรียกดู Dictionary key ของชุดข้อมูล ซึ่งประกอบด้วย:</p>
 <pre><code>dict_keys(['data', 'target', 'target_names', 'DESCR', 'feature_names', 'filename'])
 </code></pre>
 
@@ -125,11 +125,12 @@ print(&quot;X_test shape is:&quot;, X_test.shape)
 print(&quot;y_test shape is:&quot;, y_test.shape)
 </code></pre>
 
-<p>สังเกตว่า <code>train_test_split</code> มี Argument <code>X</code>, <code>y</code> ซึ่งก็คือชุดข้อมูลที่เราเพิ่งเตรียม และมี <code>random_state</code> ซึ่งทำให้เราสามารถกำหนดได้การสุ่มแต่ละครั้งได้ผลออกมาเหมือนกัน ซึ่งเป็นประโยชน์ในการทดสอบโมเดล เพราะถ้าเราเรียกฟังก์ชันแต่ละครั้งแล้วผลออกมาไม่เหมือนกัน คือแต่ละครั้งก็สุ่มใหม่ เราจะไม่สามรถควบคุมตัวแปรในการทดสอบโมเดลได้</p>
+<p>สังเกตว่า <code>train_test_split</code> มี Argument <code>X</code>, <code>y</code> ซึ่งก็คือชุดข้อมูลที่เราเพิ่งเตรียม และมี <code>random_state</code> ซึ่งทำให้เราสามารถกำหนดได้การสุ่มแต่ละครั้งได้ผลออกมาเหมือนกัน ซึ่งเป็นประโยชน์ในการทดสอบโมเดล เพราะถ้าเราเรียกฟังก์ชันแต่ละครั้งแล้วผลออกมาไม่เหมือนกัน คือแต่ละครั้งก็สุ่มใหม่ เราจะไม่สามารถควบคุมตัวแปรในการทดสอบโมเดลได้</p>
 <p>วิธีการกำหนด <code>random_state</code> คือการใส่ตัวเลขจำนวนเต็มอะไรก็ได้ลงไป ถ้าดูหนังสือหรือโค้ดคนอื่นจะเห็นว่าบางทีจะใส่เลข <code>42</code> อันนี้เป็น <a href="https://www.independent.co.uk/life-style/history/42-the-answer-to-life-the-universe-and-everything-2205734.html">Meme</a> ซึ่งมาจากนิยายวิทยาศาสตร์เรื่อง A Hitchhiker's Guide to the Galaxy ของ Douglas Adams</p>
 <h2>Visualise</h2>
 <p>ก่อนจะสร้างโมเดลก็น่าจะลอง Visualise ข้อมูลให้เห็นภาพสักหน่อย ในที่นี่เราจะสร้าง Scatterplot matrix ซึ่งแสดงความสัมพันธ์ระหว่างข้อมูลแต่ละ Feature และจำแนกจุดที่เป็นตัวแทนของข้อมูลที่อยู่ในหมวดหมู่แต่ละหมวดจาก 3 หมวด โดยการใช้สีที่ไม่เหมือนกัน</p>
 <pre><code># Plot the data
+iris_df = pd.DataFrame(X_train, columns=iris.feature_names)
 pd.plotting.scatter_matrix(iris_df, c=y_train, figsize=(12,12), marker=&quot;o&quot;)
 </code></pre>
 
@@ -265,12 +266,12 @@ p = np.exp(z)/np.sum(np.exp(z))
 </p>
 <p>อนึ่ง ฟังก์ชัน <code>LogisticRegression</code> ใน scikit-learn จะเลือกใช้ Softmax function โดยอัตโนมัติอยู่แล้ว โดยดูจากข้อมูล Label <code>y</code> ของเรา ซึ่งสะดวกมาก ไม่ต้องทำอะไรเพิ่มแล้ว แค่เรียกฟังก์ชัน</p>
 <h2>Modelling</h2>
-<p>ตอนนี้เราก็พร้อมแล้วในการสร้างโมเดล โดยเรียก <code>LogisticRegression</code> ฟังก์ชัน และพ่วง Method <code>.fit</code> เพื่อสร้างเทรนโมเดลไปเลย</p>
+<p>ตอนนี้เราก็พร้อมแล้วในการสร้างโมเดล โดยเรียก Class <code>LogisticRegression</code> และพ่วง Method <code>.fit</code> เพื่อสร้างเทรนโมเดลไปเลย</p>
 <pre><code># Train the model
 logreg = LogisticRegression(max_iter=200, random_state=42).fit(X_train, y_train)
 </code></pre>
 
-<p>จะเห็นว่า <code>LogisticRegression</code> ฟังก์ชัน มี Argument <code>max-iter</code> อยู่ด้วย Argument นี้ทำหน้าที่ควบคุม Hyperparameter ของโมเดล โดยเราสามารถกำหนดว่าจะให้ Algorithm (เรียกใน scikit-learn ว่า "Solver") ทำงานกี่ครั้ง ในลักษณะเดียวกับที่ Gradient descent อับเดต Parameter ซ้ำไปเรื่อยๆ เพื่อให้ Cost function ลดลงทุกๆ รอบ</p>
+<p>จะเห็นว่า Class <code>LogisticRegression</code> มี Argument <code>max-iter</code> อยู่ด้วย Argument นี้ทำหน้าที่ควบคุม Hyperparameter ของโมเดล โดยเราสามารถกำหนดว่าจะให้ Algorithm (เรียกใน scikit-learn ว่า "Solver") ทำงานกี่รอบ ในลักษณะเดียวกับที่ Gradient descent อับเดต Parameter ซ้ำไปเรื่อยๆ เพื่อให้ Cost function ลดลงทุกๆ รอบ</p>
 <p>อันที่จริง แต่ละโมเดลจะมี Argument แบบนี้มากมาย เช่น <code>LogisticRegression</code> มี Argument ดังนี้ (ดูจากเอกสารอ้างอิงของ scikit-learn):</p>
 <p>class sklearn.linear_model.LogisticRegression(penalty='l2', dual=False, tol=0.0001, C=1.0, fit_intercept=True, intercept_scaling=1, class_weight=None, random_state=None, solver='lbfgs', max_iter=100, multi_class='auto', verbose=0, warm_start=False, n_jobs=None, l1_ratio=None)</p>
 <p>เราจะพูดถึง Hyperparameter เหล่านี้ในหัวข้อถัดไป ในขั้นนี้เพียงแค่ให้รู้ก่อนว่าเราสามารถกำหนดค่าต่างๆ เพื่อปรับแต่งโมเดลของเราได้ในที่นี้</p>
