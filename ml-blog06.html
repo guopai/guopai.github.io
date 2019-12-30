@@ -22,13 +22,13 @@ MathJax.Hub.Config({
 <h1>Feature Scaling</h1>
 <p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | ธันวาคม 2562</p>
 <p>Machine learning algorithm หลายตัว เช่น SVM และ Neural Networks จะทำงานได้ดีเมื่อข้อมูล Input อยู่ใน Scale มาตรฐาน นั่นคือมีค่าเฉลี่ย Mean เท่ากับ 0 และ Variance เท่ากับ 1 ดังนั้นหากเราใช้ Algorithm เหล่านี้ หรือลองเทรนโมเดลแล้วได้ค่าความแม่นยำต่ำ หรือใช้เวลานานมากในการเทรน ให้ลองเปลี่ยน Scale ของ Feature ดู</p>
-<p>Feature scaling มีหลายสูตร แต่สูตรที่ใช้งานได้ดีและเป็นที่นิยม คือสูตร <code>StandardScaler</code> ใน <code>preprocessing</code> Module ของ scikit-learn โดย <code>StandardScaler</code> จะมีสูตรดังนี้:</p>
+<p>Feature scaling มีหลายสูตร แต่สูตรที่ใช้งานได้ดีและเป็นที่นิยม คือสูตร <code>StandardScaler</code> ใน <code>preprocessing</code> module ของ scikit-learn โดย <code>StandardScaler</code> จะมีสูตรดังนี้:</p>
 <p>
 <script type="math/tex; mode=display">x_{i (scaled)} = \frac{x_i-\mu}{\sigma}\tag{1}</script>
 </p>
 <ul>
 <li>
-<script type="math/tex">x^{(i)}</script> คือ Input <code>x</code></li>
+<script type="math/tex">x_i</script> คือ Input <code>x</code></li>
 <li>
 <script type="math/tex">\mu</script> คือค่า Mean ของ Input <code>x</code> ทั้งหมด</li>
 <li>
@@ -59,7 +59,6 @@ print(df.head())
 2   49308    Medium    S              72
 3   32062       Low   NE              59
 4   71707      High  BKK              65
-
 </code></pre>
 
 <p>เราจะลองทำ Scaling เฉพาะ Feature "Income" และ Label "LifeExpectancy" โดยในความจริงเราไม่จำเป็นต้อง Scale label แต่จะทำให้ดูเพื่อพล็อต Scatterplot แสดงว่าความสัมพันธ์ของข้อมูลยังคงเหมือนเดิมหลังจาก Scale แล้ว</p>
