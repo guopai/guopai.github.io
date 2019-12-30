@@ -1,0 +1,182 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 6: Feature Scaling</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Feature Scaling</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | ธันวาคม 2562</p>
+<p>Machine learning algorithm หลายตัว เช่น SVM และ Neural Networks จะทำงานได้ดีเมื่อข้อมูล Input อยู่ใน Scale มาตรฐาน นั่นคือมีค่าเฉลี่ย Mean เท่ากับ 0 และ Variance เท่ากับ 1 ดังนั้นหากเราใช้ Algorithm เหล่านี้ หรือลองเทรนโมเดลแล้วได้ค่าความแม่นยำต่ำ หรือใช้เวลานานมากในการเทรน ให้ลองเปลี่ยน Scale ของ Feature ดู</p>
+<p>Feature scaling มีหลายสูตร แต่สูตรที่ใช้งานได้ดีและเป็นที่นิยม คือสูตร <code>StandardScaler</code> ใน <code>preprocessing</code> Module ของ scikit-learn โดย <code>StandardScaler</code> จะมีสูตรดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">x_{i (scaled)} = \frac{x_i-\mu}{\sigma}\tag{1}</script>
+</p>
+<ul>
+<li>
+<script type="math/tex">x^{(i)}</script> คือ Input <code>x</code></li>
+<li>
+<script type="math/tex">\mu</script> คือค่า Mean ของ Input <code>x</code> ทั้งหมด</li>
+<li>
+<script type="math/tex">\sigma</script> คือส่วนเบี่ยงเบนมาตรฐาน หรือ Standard deviation ของ Input <code>x</code> ทั้งหมด ซึ่งคิดมาจาก Square root ของ Variance</li>
+</ul>
+<p>โดย Variance (<script type="math/tex">\sigma^2</script>) มีสูตรคือ:</p>
+<p>
+<script type="math/tex; mode=display">\sigma^2 = \frac{1}{m} \sum\limits_{i = 1}^m (x_i-\mu)^2\tag{2}</script>
+</p>
+<p>ค่า <code>x</code> ที่ Scale แล้ว จะกระจายตัวออกรอบๆ 0 และรวมกันจะมีส่วนเบี่ยงเบนมาตรฐานเท่ากับ 1 ซึ่งเดี๋ยวจะพิสูจน์ให้ดู</p>
+<p>เรามาลองทำ <code>StandardScaler</code> กัน โดยโหลดข้อมูลมาก่อน:</p>
+<pre><code>import numpy as np
+import pandas as pd
+from sklearn.preprocessing import scale
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+
+# Load the dataset
+df = pd.read_csv(&quot;data/life_expectancy.csv&quot;)
+
+print(df.head())
+</code></pre>
+
+<p>ซึ่งเป็นชุดข้อมูลเดิมจากบทที่ 5 มีหน้าตาดังนี้:</p>
+<pre><code>   Income Happiness Area  LifeExpectancy
+0  132546      High  BKK              80
+1  190998    Medium   NE              75
+2   49308    Medium    S              72
+3   32062       Low   NE              59
+4   71707      High  BKK              65
+
+</code></pre>
+
+<p>เราจะลองทำ Scaling เฉพาะ Feature "Income" และ Label "LifeExpectancy" โดยในความจริงเราไม่จำเป็นต้อง Scale label แต่จะทำให้ดูเพื่อพล็อต Scatterplot แสดงว่าความสัมพันธ์ของข้อมูลยังคงเหมือนเดิมหลังจาก Scale แล้ว</p>
+<p>สมมุติว่าจะสร้างโมเดลเฉพาะความสัมพันธ์ระหว่าง <code>Income</code> กับ <code>LifeExpectancy</code> ลองพล็อต Scatterplot ดูดังนี้:</p>
+<pre><code># Plot Income against LifeExpectancy before scaling
+plt.scatter(df[&quot;Income&quot;], df[&quot;LifeExpectancy&quot;])
+</code></pre>
+
+<p>ได้ผลดังนี้:</p>
+<p><img alt="Scatterplot of Income against LifeExpectancy before scaling" src="images/ml-blog06-01.png"></p>
+<p>ก่อนเราจะทำการ Scale มาเตรียมข้อมูลให้เป็น numpy array กันก่อนเพื่อให้ไม่ต้องเรียกคอลัมน์จาก pandas ทุกๆ ครั้ง:</p>
+<pre><code># Prep X and y
+x = np.array(df[&quot;Income&quot;]).reshape(-1,1)
+y = np.array(df[&quot;LifeExpectancy&quot;]).reshape(-1,1)
+print(x.shape)
+print(y.shape)
+</code></pre>
+
+<p>ได้มิติ <code>x</code> และ <code>y</code> เป็น (20, 1) ทั้งคู่</p>
+<p>ต่อมาเราจะ Scale ข้อมูลสองหมวดนี้กันเลย โดยมี 2 วิธีดังนี้:</p>
+<p>1) Function <code>scale</code></p>
+<p>เป็นวิธีที่ง่ายและสั้น ทำได้โดย:</p>
+<pre><code># Method 1: Apply scaling using scale function
+x_scaled = scale(x)
+y_scaled = scale(y)
+print(x_scaled[:5, :])
+print(y_scaled[:5, :])
+</code></pre>
+
+<p>ได้ผลว่า:</p>
+<pre><code>[[ 0.47792414]
+ [ 1.38439361]
+ [-0.81292487]
+ [-1.08037462]
+ [-0.46556277]]
+[[ 0.77057895]
+ [ 0.35850465]
+ [ 0.11126006]
+ [-0.96013313]
+ [-0.46564397]]
+</code></pre>
+
+<p>2) Class <code>StandardScaler</code></p>
+<p>วิธีนี้จะใช้ Transformer API คำนวน Mean และ Standard deviation ก่อน เพื่อนำค่าทั้งสองไปใช้ประโยชน์ภายหลังได้ เช่นการเอาไป Scale test set ให้มีลักษณะการกระจายตัวเหมือน Train set ซึ่งจะอธิบายความสำคัญของความสามารถในตอนจบบทนี้</p>
+<p>วิธีการคือ:</p>
+<pre><code># Method 2.1: Apply scaling using StandardScaler class (fit then transform)
+x_scaler = StandardScaler().fit(x)
+y_scaler = StandardScaler().fit(y)
+print(&quot;Mean of x is:&quot;, x_scaler.mean_)
+print(&quot;Variance of x is:&quot;, x_scaler.var_)
+print(&quot;Standard deviation of x is:&quot;, x_scaler.scale_)
+x_scaled = x_scaler.transform(x)
+y_scaled = y_scaler.transform(y)
+print(x_scaled[:5, :])
+print(y_scaled[:5, :])
+</code></pre>
+
+<p>เราฟิต <code>StandardScaler</code> กับข้อมูลก่อน ซึ่งจะเป็นการเก็บ Parameter ที่ได้มาไว้ใน Object ก่อน เราสามารถเรียก Mean, Variance, และ Standard deviation มาดูได้โดยใช้ Method <code>.mean_</code>, <code>.var_</code>, และ <code>.scale_</code> โดยได้คำตอบคือ:</p>
+<pre><code>Mean of x is: [1.11022302e-17]
+Variance of x is: [1.]
+Standard deviation of x is: [1.]
+</code></pre>
+
+<p>สังเกตว่า Mean เท่ากับ <script type="math/tex">1.11022302 \times 10^{(-17)}</script> ซึ่งมีค่าน้อยมากๆ เข้าใกล้ 0 นั่นเอง</p>
+<p>จากนั้นเราค่อยเอา Object ที่ฟิตแล้ว มา Transform เพื่อให้ได้ Array ที่ Scale แล้ว ได้ผลคือ:</p>
+<pre><code>[[ 0.47792414]
+ [ 1.38439361]
+ [-0.81292487]
+ [-1.08037462]
+ [-0.46556277]]
+[[ 0.77057895]
+ [ 0.35850465]
+ [ 0.11126006]
+ [-0.96013313]
+ [-0.46564397]]
+</code></pre>
+
+<p>สังเกตว่าเท่ากับวิธีที่ 1</p>
+<p>อนึ่ง เราสามารถควบ <code>.fit</code> และ <code>.transform</code> เอาไว้ในคำสั่งเดียว คือ <code>.fit_transform</code> ซึ่งกระชับกว่า ทำได้โดย:</p>
+<pre><code># Method 2.2: Apply scaling using StandardScaler class (fit_transform)
+scaler = StandardScaler()
+x_scaled = scaler.fit_transform(x)
+y_scaled = scaler.fit_transform(y)
+print(x_scaled[:5, :])
+print(y_scaled[:5, :])
+</code></pre>
+
+<p>จะได้ผลเหมือนเดิม</p>
+<p>พอเรา Scale ทั้ง <code>x</code> และ <code>y</code> แล้ว ก็มาลองทำ Scatterplot ดู:</p>
+<p><img alt="Scatterplot of Income against LifeExpectancy after scaling" src="images/ml-blog06-02.png"></p>
+<p>พบว่าหน้าตาความสัมพันธ์และระยะห่างระหว่างข้อมูลแต่ละรายการนั้นเหมือนเดิมทุกประการ สิ่งเดียวที่ต่างออกไปคือ Scale บนแกน x และ y ที่ตอนนี้ข้อมูลจะกระจายตัวรอบๆ ค่าเฉลี่ย 0 โดยจะลองเช็คอีกทีก็ได้:</p>
+<pre><code># Check that all means is 0 and std is 1.
+print(&quot;All x has mean of:&quot;, x_scaled.mean(axis=0))
+print(&quot;All x has standard deviation of:&quot;, x_scaled.std(axis=0))
+</code></pre>
+
+<p>แน่นอนว่าคำตอบคือ:</p>
+<pre><code>All x has mean of: [1.11022302e-17]
+All x has standard deviation of: [1.]
+</code></pre>
+
+<p>ข้อสำคัญของการทำ Feature scaling คือต้อง Scale ทั้งข้อมูล Train set และ Test set โดยใช้ Mean และ Variance เดียวกัน เพื่อรักษารูปแบบการกระจายตัวของข้อมูลทั้งสองชุดให้เหมือนกัน อย่างไรก็ตาม ไม่ควร Scale ข้อมูลทั้งหมดทีเดียวและค่อยแยก Train set กับ Test set เพราะการทำอย่างนั้นจะทำให้ข้อมูลการกระจายตัวของ Test set "รั่ว" ไปส่งผลต่อการ Scale train set</p>
+<p>ดังนั้น วิธีที่ถูกต้องคือ:</p>
+<ol>
+<li>ใช้ <code>StandardScaler</code> เรียก <code>.fit</code> เข้ากับ <code>X_train</code> แล้วผลที่ได้ไว้เป็น Instance object</li>
+<li>เรียก <code>.transform</code> จาก Instance ในข้อ 1 โดยใส่ Argument เป็น <code>X_train</code> เพื่อเปลี่ยนชุด <code>X_train</code> ให้ได้ Scale</li>
+<li>จากนั้นเรียก <code>.transform</code> จาก Instance ในข้อ 1 โดยใส่ Argument เป็น <code>X_test</code> ซึ่งเป็นการเรียก Parameter (Mean, variance) ที่เคยฟิตจาก <code>X_train</code> มาใช้กับ <code>X_test</code></li>
+</ol>
+<p>การทำ Feature scaling นั้นยังมีวิธีอื่นๆ อีก เช่น:</p>
+<ul>
+<li><code>MinMaxScaler</code> เป็นการ Scale ให้ข้อมูลมีค่าระหว่างค่าต่ำสุดและสูงสุด เหมาะกับข้อมูลที่มี Standard deviation น้อยมากๆ</li>
+<li><code>RobustScaler</code> เป็นการ Scale โดยใช้ Median และ Quantile แทน Mean กับ Variance เพื่อให้ค่าที่ได้ไม่ได้รับอิทธิพลจากข้อมูลที่มีค่าโดดจากพวก (Outliers)</li>
+<li><code>Normalizer</code> เป็นการ Scale ให้ข้อมูลแต่ละรายการมี Norm เท่ากับ 1 โดยไม่เกี่ยวกับข้อมูลรายการอื่น เหมาะกับงาน Text classification และ Clustering</li>
+</ul>
+<p>แนะนำให้ศึกษาเพิ่มจากคู่มือของ scikit-learn และแหล่งข้อมูลอื่นๆ ได้เอง</p>
+<p>บทต่อไปจะเข้าสู่รายละเอียดของการเทรนโมเดล โดยจะพูดถึงปัญหา Bias และ Variance และวิธีแก้</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog05.html">บทที่ 5 Categorical Encoding</a> | บทที่ 7 Bias and Variance</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
