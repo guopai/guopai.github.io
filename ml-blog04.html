@@ -24,7 +24,7 @@ MathJax.Hub.Config({
 <p>คราวที่แล้วเราได้เรียนรู้ Linear Regression เพื่อสร้างโมเดลพยากรณ์ผลลัพธ์ที่เป็นตัวเลขต่อเนื่อง (Continuous number) คราวนี้เราจะมาสร้างโมเดลสำหรับพยากรณ์หมวดหมู่ หรือที่เรียกว่า Classification กันบ้าง</p>
 <p>โจทย์ของเราคือการจำแนกสายพันธุ์ของพืชตระกูล Iris ออกเป็น 3 กลุ่ม คือ Sentosa, Versicolor, และ Virginica โดยมีข้อมูลอยู่ 4 Feature คือ ความยาวกลีบเลี้ยง (Sepal length), ความกว้างกลีบเลี้ยง (Sepal width), ความยาวกลีบดอก (Petal length), และความกว้างกลีบดอก (Petal width) โดยทั้งหมดมีหน่วยวัดเป็นเซนติเมตร</p>
 <p><img alt="Iris flowers" src="images/ml-blog04-iris-dataset.png"></p>
-<p>ภาพจาก <a href="https://en.wikipedia.org/wiki/Iris_flower_data_set">Wikipedia</a> | <a href="https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License">Creative Commons Attribution-Sharealike 3.0 License</a></p>
+<p>ภาพจาก <a href="https://commons.wikimedia.org/w/index.php?curid=170298">Radomil</a>, CC BY-SA 3.0 | <a href="https://commons.wikimedia.org/w/index.php?curid=248095">Dlanglois</a>, CC BY-SA 3.0 | <a href="https://commons.wikimedia.org/w/index.php?curid=9805580">Frank Mayfield</a> - originally posted to Flickr as Iris virginica shrevei BLUE FLAG, CC BY-SA 2.0</p>
 <h2>Load</h2>
 <p>เราจะใช้ชุดข้อมูล <a href="https://en.wikipedia.org/wiki/Iris_flower_data_set">Iris plants dataset</a> ซึ่งเป็นชุดข้อมูลยอดนิยมในการทดสอบโมเดลการจำแนกแบบหลายหมวดหมู่ โดยชุดข้อมูลนี้ถูกฝังอยู่ใน scikit-learn เรียบร้อยแล้ว สามารถเรียกใช้ได้เลยโดยการเรียก <code>load_iris()</code> ฟังก์ชัน ในคลาส <code>datasets</code>:</p>
 <pre><code>import numpy as np
@@ -322,13 +322,9 @@ Predicted target name: ['versicolor']
 <li>ทำไม <code>iris["target_names"][y_pred]</code> จึงให้ผลออกมาเป็นชื่อสายพันธุ์ได้ ถ้าจำได้ตอนต้น เรารู้ว่าชุดข้อมูลนี้ได้เตรียม Dictionary key ที่ชื่อ <code>target_names</code> ไว้ให้ โดยมีค่าว่า <code>['setosa' 'versicolor' 'virginica']</code> คำสั่งนี้คือการเรียกค่าของ Key <code>target_names</code> ลำดับที่ <code>[y_pred]</code> ซึ่งในที่นี้คือ <code>[1]</code> นั่นเอง</li>
 </ul>
 <h2>สรุป</h2>
-<p>เป็นอันว่าเราสร้างโมเดล Logistic regression เพื่อพยากรณ์ปัญหา Multiclass classification สำเร็จ ยังมีเรื่องสำคัญที่เรายังไม่ได้พูดถึง ที่ส่งผลต่อความแม่นยำของโมเดล ดังนี้:</p>
-<ul>
-<li>ปัญหา Underfitting / Overfitting</li>
-<li>การแก้ไขปัญหา Overfitting ด้วยเทคนิค Regularisation</li>
-</ul>
-<p>ซึ่งจะเป็นหัวข้อของบทต่อไป</p>
-<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog03.html">บทที่ 3 Linear Regression Programming</a> | บทที่ 5 Overfitting and Regularisation</p>
+<p>เป็นอันว่าเราสร้างโมเดล Logistic regression เพื่อพยากรณ์ปัญหา Multiclass classification สำเร็จ</p>
+<p>ในบทต่อไปจะเจาะลึกรายละเอียดเกี่ยวกับการเตรียมข้อมูล โดยเฉพาะข้อมูลที่เป็นข้อความหรือหมวดหมู่ ซึ่งเราต้องแปลงให้เป็นตัวเลขเสียก่อน</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog03.html">บทที่ 3 Linear Regression Programming</a> | <a href="ml-blog05.html">บทที่ 5 Categorial Encoding</a></p>
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 
 </body>
