@@ -1,0 +1,111 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 6: Bias and Variance</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Bias and Variance</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | ธันวาคม 2562</p>
+<p>สมมุติว่าเราเทรนโมเดล Binary classification (มีสองคำตอบ คือ "ใช่" กับ "ไม่ใช่") แล้วได้คะแนนความแม่นยำดังนี้:</p>
+<ul>
+<li>Human-expert's score = 90%</li>
+<li>Train set score = 75%</li>
+</ul>
+<p>จะเห็นว่าคะแนนค่อนข้างต่ำ คือถ้าให้มนุษย์จำแนกอาจจะถูกมากกว่า 90% แต่โมเดลจำแนกถูกเพียง 75% เราเรียกว่าโมเดลนี้มีปัญหา Bias ซึ่งแสดงได้โดยภาพนี้:</p>
+<p><img alt="Model with bias" src="images/ml-blog07-01.png"></p>
+<p>ภาพที่ 1: โมเดลที่มีปัญหา Bias เพราะ Underfit ข้อมูล Train set</p>
+<p>ปัญหานี้เกิดจากการที่โมเดลเราไม่สามารถฟิตกับข้อมูลได้ดีเท่าที่ควร เรียกว่าโมเดลมี Bias หรือโมเดลนั้น Underfit ข้อมูล โดยในภาพจะเห็นว่าโมเดลได้ลากเส้นแบ่งการตัดสินใจ แต่ในโซนสีน้ำเงิน (สมมุติว่าแทนคำตอบว่า "ใช่") กลับมีข้อมูลสีแดงประเภท "ไม่ใช่" อยู่ และกลับกัน ในโซนแดง ก็มีข้อมูลสีน้ำเงินอยู่หลายรายการ</p>
+<p>สาเหตุของปัญหา Bias มีหลักๆ ดังนี้:</p>
+<ul>
+<li>ข้อมูล Train set มีขนาดเล็กเกินไป โมเดลจึงไม่มี Information เพียงพอที่จะเรียนรู้ว่าควรจะตั้ง Parameter เท่าใดจึงจะเข้าได้กับข้อมูลส่วนมาก</li>
+<li>การตั้ง Hyperparameter ไม่เหมาะสมกับข้อมูล เช่น ตั้ง Learning rate สูงเกินไป หรือการตั้งจำนวนครั้งในการ Iterate น้อยเกินไป (ส่งผลเหมือนกับการบังคับให้โมเดลหยุดการทำงานก่อนกำหนด หรือ Early stopping) ทำให้ Algorithm ไม่สามารถหา Global minimum พบได้</li>
+<li>เราเลือกใช้ Algorithm ที่ไม่เหมาะกับข้อมูล หรือกำหนดโครงสร้าง Algorithm ไม่เหมาะกับข้อมูล โดยมีความซับซ้อนน้อยเกินไป เช่น ข้อมูลที่มีความสัมพันธ์แบบ Polynomial ไม่ใช่เส้นตรง แต่เราไปใช้ Linear regression ซึ่ง "ง่าย" เกินไปเมื่อเทียบกับลักษณะข้อมูล หรือ Neural networks มีจำนวน Layer และจำนวน Neuron ในแต่ละ Layer ไม่เพียงพอกับความซับซ้อนของข้อมูล เป็นต้น</li>
+</ul>
+<p>สมมุติว่าเราพยายามแก้ปัจจัยเหล่านี้ เช่น การเพิ่มจำนวน Training set, การลด Learning rate, การเลือก Algorithm ที่เหมาะสมขึ้น แล้วลองเทรนโมเดลใหม่ อาจพบว่าได้คะแนนความแม่นยำดังนี้:</p>
+<ul>
+<li>Human-expert's score = 90%</li>
+<li>Train set score = 87%</li>
+<li>Test set score = 65%</li>
+</ul>
+<p>จะเห็นว่า คราวนี้เราได้ความแม่นยำของ Train set สูงขึ้นจนเกือบเท่ามนุษย์แล้ว แต่เมื่อนำไปทดสอบกับ Test set ซึ่งเป็นข้อมูลชุดที่โมเดลไม่เคยเห็น พบว่าได้ความแม่นยำเพียง 65% เท่านั้น สถานการณ์นี้แสดงเป็นภาพได้ดังนี้:</p>
+<p><img alt="Model with variance" src="images/ml-blog07-03.png"></p>
+<p>ภาพที่ 2: โมเดลที่มีปัญหา Variance เพราะ Overfit ข้อมูล Train set</p>
+<p>ปัญหานี้เรียกว่า โมเดลมี Variance สูง หรือโมเดลได้ Overfit ข้อมูล ซึ่งมีลักษณะกลับกันกับปัญหา Bias/underfit กล่าวคือ โมเดลพยายาม "รู้ดี" จนเกินไป ด้วยการฟิตตัวเองเข้ากับข้อมูลใน Train set ทุกๆ รายการอย่างถูกต้อง แต่การทำอย่างนี้ไม่ได้แปลว่าขอบเขตการตัดสินใจที่เกิดขึ้นจะฟิตกับข้อมูลอื่นๆ ที่โมเดลไม่เคยเห็น ซึ่งทดสอบได้จากการพยากรณ์ด้วย Test set</p>
+<p>สาเหตุของปัญหา Variance มีหลักๆ ดังนี้:</p>
+<ul>
+<li>ข้อมูล Test set มีขนาดเล็กเกินไป ทำให้ไม่เป็นตัวแทนที่ดีในการทดสอบ</li>
+<li>ข้อมูล Train set และ Test set มี่ลักษณะการกระจายตัวที่แตกต่างกันมาก ซึ่งอาจจะเกิดจากการไม่ได้สุ่มคัดแยก Train set / Test set อย่างถูกต้องตั้งแต่แรก หรือการเก็บข้อมูล Train set คนละครั้ง หรือจากคนละแหล่งที่มากับ Test set</li>
+<li>จำนวน Feature มากเกินไป ทำให้โมเดลมีความซับซ้อนจนเกินจำเป็น (อาจแก้ด้วยการตัด Feature ที่คิดว่าไม่ได้ส่งผลจากผลลัพธ์ออก แต่ก็เสี่ยงเพราะเรารู้ได้ยากว่า Feature ไหนสำคัญมากน้อย)</li>
+<li>Algorithm ขาดหรือไม่ได้ใช้กลไกการชดเชยน้ำหนัก ที่เรียกว่า Regularisation ซึ่งจะกล่าวถึงโดยละเอียดในส่วนถัดไป</li>
+</ul>
+<p>ดังนั้น ทางแก้คือให้พิจารณาว่า Test set มีขนาดเพียงพอหรือไม่ และมีการกระจายตัวเหมือน Train set หรือไม่ ถ้าสองปัจจัยนี้ผ่าน ก็มาถึงการใช้เทคนิค Regularisation ซึ่งเมื่อทำแล้ว ก็น่าจะได้โมเดลที่มีคะแนนประมาณนี้:</p>
+<ul>
+<li>Human-expert's score = 90%</li>
+<li>Train set score = 85%</li>
+<li>Test set score = 83%</li>
+</ul>
+<p>สังเกตว่าคะแนน Train set อาจจะลดลงเล็กน้อย เพราะโมเดลถูกชดเชยน้ำหนัก ทำให้ความแม่นยำบน Train set ลดลง แต่ลดความซับซ้อนลงจนทำให้ฟิตกับข้อมูล Test set ที่โมเดลไม่เคยเห็นได้ดียิ่งขึ้น ลองดูภาพประกอบ:</p>
+<p><img alt="Just-right model" src="images/ml-blog07-02.png"></p>
+<p>ภาพที่ 3: โมเดลที่ "กำลังดี" (Just right model)</p>
+<p>เป้าหมายของเรา คือการสร้างโมเดลที่ "กำลังดี" แบบนี้ ซึ่งวิธีที่ได้ผลที่สุดและควรลองเป็นอันดับแรก (เมื่อมั่นใจแล้วว่า Test set ไม่ได้เป็นปัญหา) คือ Regularisation</p>
+<h2>Regularisation</h2>
+<p>Regularisation คือเทคนิคการ "ชดเชยน้ำหนัก" ของ Parameter ต่างๆ ในโมเดล ซึ่งจะทำให้น้ำหนักของ Parameter ต่างๆ ลดลง ส่งผลให้โมเดลลดความซับซ้อนลง จึงเพิ่มโอกาสที่โมเดลจะสามารถฟิตกับข้อมูลที่ไม่เคยมองเห็น เช่น Test set ได้มากขึ้น เราเรียกสถานการณ์แบบนี้ว่าโมเดลสามารถ Generalise ได้ดี</p>
+<p>การชดเชยน้ำหนักของ Algorithm แต่ละตัวมีหลักการคล้ายกัน ตัวอย่างเช่น Linear regression ที่ปกติมี Cost function ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">J(\theta_0, \theta_1) = \frac{1}{2m} \sum\limits_{i = 1}^m(h_\theta(x^{(i)}) - y^{(i)})^2 \tag{1}</script>
+</p>
+<p>การทำ Regularisation จะเปลี่ยน Cost function ให้เป็นดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">J(\theta_0, \theta_1) = \frac{1}{2m} \left(\sum\limits_{i = 1}^m(h_\theta(x^{(i)}) - y^{(i)})^2 + \lambda \sum\limits_{j=1}^n \theta_j^2\right) \tag{2}</script>
+</p>
+<p>และปรับ Gradient descent เล็กน้อย ยกเว้น <script type="math/tex">\theta_0</script> ที่ไม่ต้อง Regularise:</p>
+<p><em>ทำซ้ำจนกระทั่งผลลัพธ์ล่าสุดไม่เปลี่ยนแปลงจากผลลัพธ์ครั้งก่อน:</em></p>
+<p>
+<script type="math/tex; mode=display">\theta_0 := \theta_0 - \alpha \frac{1}{m} \sum\limits_{i = 1}^m(h_\theta (x^{(i)}) - y^{(i)})x_0^{(i)} \tag{3}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">\theta_j := \theta_j - \alpha\Biggl(\biggl( \frac{1}{m} \sum\limits_{i = 1}^m(h_\theta (x^{(i)}) - y^{(i)})x_j^{(i)}\biggl) + \frac{\lambda}{m} \theta_j\Biggl) \tag{4}</script>
+</p>
+<p>สังเกตว่าเราเพิ่ม <script type="math/tex">\lambda \sum\limits_{j=1}^n \theta_j^2</script> เข้าไปใน Cost function ซึ่งทั้ง Term นี้มีค่าเป็นบวกเสมอ จึงเป็นการบีบให้ <script type="math/tex">\sum\limits_{i = 1}^m(h_\theta(x^{(i)}) - y^{(i)})^2</script> ต้องมีขนาดเล็กลง โดยการที่จะเป็นเช่นนั้นได้ หมายความว่า <script type="math/tex">h_\theta(x^{(i)})</script> จะต้องมีขนาดเล็กลง ซึ่งก็หมายความว่าทางเดียวที่จะทำอย่างนั้นได้คือน้ำหนัก <script type="math/tex">\theta</script> (หรือ <script type="math/tex">w</script> ในบทที่ 2) จะต้องน้อยลงนั่นเอง โดยการลดขนาด <script type="math/tex">\theta</script> ลง จะเกิดขึ้นในอัตราคงที่ทุกๆ Iteration ดังนั้นเราอาจเรียก Term นี้ว่า Weight decay term ก็ได้</p>
+<p>เรื่อง Regularisation มีรายละเอียดที่ควรรู้ดังนี้:</p>
+<ul>
+<li>
+<script type="math/tex">\lambda</script> อ่านว่า Lambda คือ Hyperparameter ที่ควบคุมระดับของการ Regularise (Regularisation strength) ยิ่งมาก ยิ่งชดเชยมาก แต่ใน scikit-learn บาง Algorithm เช่น Logistic regression จะใช้ Argument <code>C</code> แทน ซึ่งเป็น Inverse ของ <script type="math/tex">\lambda</script> ดังนั่น เวลากำหนด <code>C</code> ยิ่งน้อย ยิ่งชดเชยมาก</li>
+<li>
+<script type="math/tex">\sum\limits_{j=1}^n \theta_j^2</script> มาจาก <script type="math/tex">l^2</script> norm ของ Vector ซึ่งเป็นวิธีการวัด "ระยะทาง" ของ Vector เพื่อให้รู้ว่า Vector นี้มีขนาดเท่าไหร่ โดย <script type="math/tex">l^2</script> norm มีสูตรคือ:</li>
+</ul>
+<p>
+<script type="math/tex; mode=display">|| x ||_2 = \sqrt{\left(\sum_i x_i^2\right)} \tag{5}</script>
+</p>
+<ul>
+<li>ใน scikit-learn ถ้าเป็น Linear regression ให้ใช้ Ridge regression algorithm ในการทำ Linear regression พร้อมกับ <script type="math/tex">l^2</script> regularisation เรียกใช้ได้จาก Class <code>Ridge</code> ใน <code>sklearn.linear_model</code></li>
+<li>นอกจาก <script type="math/tex">l^2</script> regularisation แล้ว ยังมี <script type="math/tex">l^1</script> regularisation ซึ่งใช้ <script type="math/tex">l^1</script> norm ที่มีสูตรคือ:</li>
+</ul>
+<p>
+<script type="math/tex; mode=display">|| x ||_1 = \sum_i |x_i| \tag{6}</script>
+</p>
+<ul>
+<li>ใน scikit-learn ให้ใช้ Lasso regression algorithm ในการทำ Linear regression พร้อมกับ <script type="math/tex">l^1</script> regularisation เรียกใช้ได้จาก Class <code>Lasso</code> ใน <code>sklearn.linear_model</code></li>
+<li>ข้อแตกต่างสำคัญระหว่าง Ridge regression ที่ใช้ <script type="math/tex">l^2</script> regularisation กับ Lasso regression ที่ใช้ <script type="math/tex">l^1</script> regularisation ก็คือ Lasso มีแนวโน้มจะตัด Feature ที่มีความสำคัญน้อยมากๆ ออกไปเลย ซึ่งก็คือการลดจำนวน Feature อัตโนมัติแทนเรา ตรงกันข้ามกับ Ridge ที่จะรักษา Feature ทั้งหมดไว้</li>
+<li>ยังมีอีก Algorithm ชื่อว่า Elastic Net ที่รวม Ridge regression กับ Lasso regression เข้าไว้ด้วยกัน โดยเราสามารถเลือกสัดส่วนผสม <code>r</code> ว่าจะใช้ Ridge กี่ส่วน Lasso กี่ส่วน โดย <code>r = 0</code> จะได้ Ridge ทั้งหมด ส่วน <code>r = 1</code> จะได้ Lasso ทั้งหมด สามารถเรียกใช้ได้ด้วย Class <code>ElasticNet</code> ใน <code>sklearn.linear_model</code></li>
+</ul>
+<p>เป็นอันว่าเราได้รู้จักปัญหา Bias / Variance และรู้วิธีแก้ปัญหาด้วย Regularisation แล้ว ตอนนี้เราก็มีความรู้และเครื่องมือสำหรับการสร้าง Machine learning model ด้วย Algorithm อื่นๆ ซึ่งจะนำเสนอในบทต่อไป</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog06.html">บทที่ 6 Feature Scaling</a> | บทที่ 8</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
