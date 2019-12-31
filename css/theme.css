@@ -6,6 +6,10 @@ body {
     line-height: 1.8;
 }
 
+.center {
+    text-align: center;
+}
+
 a:link {
     color: #808080;
 }
