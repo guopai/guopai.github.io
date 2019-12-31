@@ -90,7 +90,7 @@ MathJax.Hub.Config({
 <script type="math/tex">\sum\limits_{j=1}^n \theta_j^2</script> มาจาก <script type="math/tex">l^2</script> norm ของ Vector ซึ่งเป็นวิธีการวัด "ระยะทาง" ของ Vector เพื่อให้รู้ว่า Vector นี้มีขนาดเท่าไหร่ โดย <script type="math/tex">l^2</script> norm มีสูตรคือ:</li>
 </ul>
 <p>
-<script type="math/tex; mode=display">|| x ||_2 = \sqrt{\left(\sum_i x_i^2\right)} \tag{5}</script>
+<script type="math/tex; mode=display">|| x ||_2 = \sqrt{\sum_i x_i^2} \tag{5}</script>
 </p>
 <ul>
 <li>ใน scikit-learn ถ้าเป็น Linear regression ให้ใช้ Ridge regression algorithm ในการทำ Linear regression พร้อมกับ <script type="math/tex">l^2</script> regularisation เรียกใช้ได้จาก Class <code>Ridge</code> ใน <code>sklearn.linear_model</code></li>
