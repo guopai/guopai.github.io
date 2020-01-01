@@ -1,0 +1,260 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 8: Support Vector Machines</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Support Vector Machines</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
+<p>คราวนี้ก็ถึงเวลาที่จะแนะนำ Algorithm ใหม่ ที่ชื่อ Support Vector Machines หรือ SVM ซึ่งทั้งยึดหยุ่นและทำงานได้ดี โดยเฉพาะอย่างยิ่งเมื่อข้อมูลมีความซับซ้อน (หลาย Feature) แต่จำนวนตัวอย่างไม่มาก (ต่ำกว่าแสนรายการ)</p>
+<p>SVM น่าจะอธิบายได้ง่ายที่สุดด้วยภาพ:</p>
+<p><img alt="Support Vector Machines" src="images/ml-blog08-01.png"></p>
+<p>จากภาพเป็นปัญหา Binary classification เราต้องการจำแนกข้อมูลออกเป็นสองพวก คือสีน้ำเงินและสีแดง สิ่งที่ SVM ทำ คือการหาเส้นแบ่งการตัดสินใจที่เป็นเส้นทึบ ซึ่งเส้นนี้จะเกิดขึ้นระหว่างกลางของเส้นประด้านซ้ายและขวา โดยมีเงื่อนไขว่าจะต้องหาคู่ของเส้นประที่กว้างที่สุดเท่าที่จะเป็นไปได้</p>
+<p>โดยคู่ของเส้นประที่กว้างที่สุดเท่าที่จะเป็นไปได้นี้ จะมีสองแบบ คือ 1) Hard margin classification คือคู่เส้นประที่ห้ามไม่ให้มีจุดข้อมูลอยู่ในพื้นที่ระหว่างเส้นประ และ 2) Soft margin classification คืออนุญาตให้มีข้อมูลอยู่ในพื้นที่ระหว่างเส้นประได้บ้าง</p>
+<p>โดยใน scikit-learn เราสามารถกำหนด Hyperparameter <code>C</code> เพื่อเลือกระดับของการอนุญาตให้มีการละเมิดขอบเขตเส้นประ โดยถ้า <code>C</code> มาค่าน้อย หมายความว่ายอมให้มีขอบเขตที่กว้างขึ้น นั่นแปลว่ามี Regularisation มากขึ้นนั่นเอง</p>
+<p>SVM นั้นถึงแม้จะถูกออกแบบมาสำหรับ Binary classification แต่สามารถนำไปประยุกต์ใช้กับ Multiclass classification และ Linear regression ได้โดยง่าย โดยใช้หลักการเดิมแต่เปลี่ยนรายละเอียดเล็กน้อย ซึ่งจะไม่กล่าวถึงในที่นี้ ขอให้รู้ว่าในระดับการใช้งาน สามารถใส่ข้อมูลแบบ Multiclass ลงไปได้เลย ส่วน SVM สำหรับ Linear regression ให้เรียกใช้ Class <code>LinearSVR</code> จากโมดูล <code>sklearn.svm</code></p>
+<p>ก่อนที่จะลองทำจริง เรามาทำความเข้าใจกันก่อนว่า SVM ทำงานจริงๆ อย่างไร</p>
+<h2>SVM algorithm</h2>
+<p>SVM ใช้ Hypothesis function แบบเส้นตรง เหมือนกับ Linear regression นั่นคือ:</p>
+<p>
+<script type="math/tex; mode=display">\begin{align*}
+    h_\theta(x) & = w_1x_1 + w_2x_2 + \dots + w_nx_n + b \\
+    & = w^Tx + b
+\end{align*} \tag{1}</script>
+</p>
+<p>โดยถ้าผลลัพธ์เป็นบวก จะทำนาย Class <script type="math/tex">\hat{y}</script> ว่าเป็น 1 ส่วนถ้าเป็นลบ ทำนายว่าเป็น 0 เราสามารถเขียนวิธีการตัดสินใจตามเงื่อนไขดังกล่าวได้ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">\hat{y} =
+\begin{cases}
+    0 \text{ if } w^Tx + b < 0,\\
+    1 \text{ if } w^Tx + b \geq 0
+\end{cases} \tag{2}</script>
+</p>
+<p>เมื่อเรานิยามเส้นแบ่งการจัดสินใจแล้ว (เส้นทึบ) เรากำหนดเส้นประทั้งสองด้านของเส้นทึบ โดยเส้นประแต่ละด้านคือตำแหน่งที่ <script type="math/tex">h_\theta(x)</script> เท่ากับ -1 และ 1</p>
+<p>ต่อมา ลองพิจารณาว่า ความชันของฟังก์ชันการตัดสินใจ เท่ากับ Norm ของ Vector ค่าน้ำหนัก <code>w</code>:</p>
+<p>
+<script type="math/tex; mode=display">\begin{align*}
+\frac{\partial}{\partial x} h_\theta(x) & = \sum\limits_{i = 1}^m |w_i| \\
+    & = |w_1| + |w_2| + \ldots + |w_i| \\
+    & = || w ||_1
+\end{align*} \tag{3}</script>
+</p>
+<p>ดังนั้นถ้าเราหารความชันของฟังก์ชันการตัดสินใจด้วย 2 ก็แปลว่าเราต้องคูณ 2 เข้าไปในความกว้างเส้นประเพื่อให้สมการยังคงเป็นจริง ดังนั้นผลที่ได้คือการขยายความกว้างระหว่างเส้นทึบกับเส้นประออกด้านละ 2 เท่า</p>
+<p>จากข้อเท็จจริงนี้ เราก็จะได้เป้าหมายว่าเราต้องการลด <script type="math/tex">||w||</script> เพื่อให้ได้ขอบเขตเส้นแบ่งที่กว้างที่สุดเท่าที่จะเป็นไปได้ อย่างไรก็ตาม ในเวลาเดียวกันเราไม่ต้องการให้ขอบเขตเส้นแบ่งนั้นกว้างเกินไปจนกระทั่งครอบคลุมจุดข้อมูล ดังนั้นเราจึงต้องการให้ฟังก์ชันการตัดสินใจนั้นมีค่ามากกว่า 1 ในด้านที่ผลพยากรณ์เป็น 1 ("ใช่") และน้อยกว่า -1 ในด้านที่ผลพยากรณ์เป็น 0 ("ไม่ใช่") โดยถ้าเรากำหนดตัวแปร <script type="math/tex">t^{(i)} = -1</script> สำหรับด้าน <script type="math/tex">\hat{y} = 0</script> และ <script type="math/tex">t^{(i)} = 1</script> สำหรับด้าน <script type="math/tex">\hat{y} = 1</script> เราก็จะสามารถเขียนข้อจำกัดนี้ได้ว่า <script type="math/tex">t^{(i)} (w^T x^{(i)} + b) \geq 1</script> สำหรับทุก Class คำตอบ</p>
+<p>ดังนั้นเราจะได้เป้าหมายการ Optimise ของ SVM algorithm ว่า:</p>
+<p>
+<script type="math/tex; mode=display">\begin{align*}
+\text{minimise}_{w, b } & \quad \frac{1}{2} w^T w \\
+\text{subject to } & \quad t^{(i)} (w^T x^{(i)} + b) \geq 1
+\end{align*} \tag{4}</script>
+</p>
+<p>สังเกตว่าเรา Minimise <script type="math/tex">\frac{1}{2} ||w||^2</script> แทนที่จะเป็น <script type="math/tex">||w||</script> เพราะ <script type="math/tex">\frac{1}{2} ||w||^2</script> สามารถหาอนุพันธ์ได้ผลเป็น <code>w</code> ในขณะที่อนุพันธ์ของ <script type="math/tex">||w||</script> เท่ากับ 0 ไม่สามารถนำไป Optimise ได้</p>
+<p>เป้าหมายนี้ใช้สำหรับ Hard margin SVM แต่ถ้าเป็น Soft margin ที่เราต้องการอนุญาตให้พื้นที่เส้นขอบเขตการตัดสินใจนั้นกินบริเวณที่มีจุดข้อมูลอยู่ด้วยได้ ก็ต้องเพิ่มตัวแปรที่เรียกว่า Slack variable <script type="math/tex">\zeta^{(i)} \geq 0</script> (อ่านว่า Zeta) โดยระดับของ Slack variable จะถูกกำหนดโดย Hyperparameter <code>C</code></p>
+<p>ดังนั้นเป้าหมายการ Optimise สำหรับ Soft margin SVM คือ:</p>
+<p>
+<script type="math/tex; mode=display">\begin{align*}
+\text{minimise}_{w, b } & \quad \frac{1}{2} w^T w + C\sum\limits_{i = 1}^m\zeta^{(i)}\\
+\text{subject to } & \quad t^{(i)} (w^T x^{(i)} + b) \geq 1 - \zeta^{(i)}
+\end{align*} \tag{5}</script>
+</p>
+<h3>Kernel</h3>
+<p>SVM algorithm ที่เรานำเสนอไป มีข้อจำกัดคือสามารถสร้างเส้นแบ่งขอบเขตการตัดสินใจแบบเส้นตรงเท่านั้น ซึ่งอาจทำงานได้ไม่ดีถ้าความสัมพันธ์ของข้อมูลนั้นมีความซับซ้อนจนแบ่งด้วยเส้นตรงไม่ได้ วิธีการแก้ปัญหานี้เรียกว่า Kernel</p>
+<p>Kernel คือ "ทริค" ทางคณิตศาสตร์ที่ทำให้ Algorithm สามารถ Optimise ค่าตัวแปรแบบ Polynomial ได้ โดยไม่ต้องไปเปลี่ยนรูปแบบและความสัมพันธ์ของ Feature ตั้งต้น แต่ก่อนอื่น เราจะต้องดัดแปลงเป้าหมายการ Optimise ของเราให้อยู่ในรูปแบบที่ Kernel จะทำงานได้ โดยเปลี่ยนจากรูปแบบในสมการที่ (5) ซึ่งเป็นปัญหาแบบ Primal problem ให้กลายเป็นปัญหาแบบ Dual problem (ปัญหาทั้งสองรูปแบบมีรายละเอียดทางคณิตศาสตร์ที่ละเอียดเกินขอบเขตที่จะอธิบายในที่นี้ ในขั้นนี้ขอเพียงให้รู้ว่า SVM algorithm สามารถใช้ทั้งสองวิธีในการ Optimise ได้ผลเหมือนกัน)</p>
+<p>รูปแบบของเป้าหมาย Optimise แบบใหม่ที่จะใช้ คือ:</p>
+<p>
+<script type="math/tex; mode=display">\begin{align*}
+\text{minimise}_{\alpha} & \quad \frac{1}{2} \sum\limits_{i = 1}^m \sum\limits_{j = 1}^m \alpha^{(i)} \alpha^{(j)} t^{(i)} t^{(j)} x^{(i)T} x^{(j)} - \sum\limits_{i = 1}^m\alpha^{(i)}\\
+\text{subject to } & \quad \alpha^{(i)} \geq 0
+\end{align*} \tag{6}</script>
+</p>
+<p>เมื่อหา Vector <script type="math/tex">\hat{\alpha}</script> ที่ทำให้สมการนี้มีค่าน้อยที่สุดได้แล้ว (โดยใช้ Quadratic Programming Solver ซึ่งเป็น Algorithm สำเร็จรูปในการหาคำตอบปัญหาประเภทนี้โดยเฉพาะ) เราก็จะสามารถคำนวนหา Vector <script type="math/tex">\hat{w}</script> และ Intercept <script type="math/tex">\hat{b}</script> ที่ทำให้สมการ Primal problem (4) หรือ (5) นั้นมีค่าน้อยที่สุด โดยทำดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">\hat{w} = \sum\limits_{i = 1}^m \alpha^{(i)} t^{(i)} x^{(i)} \tag{7}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">\hat{b} = \frac{1}{n_s} \sum\limits_{i = 1}^m (t^{(i)} - \hat{w}^T x^{(i)}) \tag{8}</script>
+</p>
+<p>เป็นอันว่าเราได้รูปแบบของเป้าหมาย Optimisation ที่พร้อมสำหรับ Kernel แล้ว ต่อไปคือการอธิบาย Kernel</p>
+<p>สมมุติว่าเราต้องการทำเหมือนกับว่า Hypothesis function ที่ประกอบด้วยตัวแปร <script type="math/tex">x_1</script> และ <script type="math/tex">x_2</script> นั้นมีรูปร่างฟังก์ชันที่ซับซ้อนขึ้น โดยต้องการให้เป็น Second-degree polynomial เราจะสามารถเขียน Mapping function (<script type="math/tex">\phi</script> อ่านว่า Phi) ของสมการนี้ได้ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">\phi(x) = \phi
+\begin{pmatrix}
+    x_1 \\
+    x_2
+\end{pmatrix} =
+\begin{pmatrix}
+    x_1^2 \\
+    \sqrt{2} \; x_1 x_2 \\
+    x_2^2
+\end{pmatrix}
+\tag{9}</script>
+</p>
+<p>ทีนี้ลองดูว่า ถ้าเราคำนวน Dot product ของ Vector ขนาด 3 มิติ 2 Vector (แบบเดียวกับที่อยู่ในสมการ (6)) โดยสมมุติว่าชื่อ a และ b จะได้ว่า:</p>
+<p>
+<script type="math/tex; mode=display">\begin{align*}
+\phi(a)^T \phi(b) & =
+\begin{pmatrix}
+    a_1^2 \\
+    \sqrt{2} \; a_1 a_2 \\
+    a_2^2
+\end{pmatrix}^T
+\begin{pmatrix}
+    b_1^2 \\
+    \sqrt{2} \; b_1 b_2 \\
+    b_2^2
+\end{pmatrix} \\[2ex]
+& = a_1^2 b_1^2 + 2a_1b_1a_2b_2 + a_2^2 b_2^2 \\
+& = (a_1b_1 + a_2b_2)^2 \\
+& = \left[\begin{pmatrix}
+    a_1 \\
+    a_2
+\end{pmatrix}^T
+\begin{pmatrix}
+    b_1 \\
+    b_2
+\end{pmatrix}\right]^2 \\
+& = (a^Tb)^2
+\end{align*}
+\tag{10}</script>
+</p>
+<p>ก็หมายความว่า เราสามารถหา Dot product ของ Vector ที่อยู่ในรูปแบบ Mapping function (คือยังไม่ได้เปลี่ยนรูปจริงๆ) เพียงด้วยการนำเอา Dot product ของ Vector ต้นฉบับมายกกำลังสอง ซึ่งก็หมายความว่าในทางกลับกัน ถ้าเราคำนวนฟังก์ชันเป้าหมาย Optimisation ด้วยการแทนที่ <script type="math/tex">(a^Tb)</script> ด้วย <script type="math/tex">(a^Tb)^2</script> เราก็จะได้ผฃการคำนวนเสมือนว่าเราได้เปลี่ยนรูป Hypothesis function จาก Linear ให้เป็น Second-degree polynomial โดยไม่ต้องไปเปลี่ยนฟังก์ชันจริง</p>
+<p>ดังนั้น เวลาเราใช้ Kernel ก็เพียงเปลี่ยน <script type="math/tex">x^{(i)T} x^{(j)}</script> ในสมการที่ (6) ให้เป็น <script type="math/tex">(x^{(i)T} x^{(j)})^2</script>
+</p>
+<p>เราเรียกฟังก์ชัน <script type="math/tex">K(a, b) = (a^Tb)^2</script> นี้ว่า Second-degree polynomial kernel ซึ่งเป็นหนึ่งใน Kernel หลายแบบที่ทำหน้าที่เดียวกัน ต่างตรงที่แต่ละ Kernel จะเปลี่ยนรูปสมการเป็นรูปแบบที่ไม่เหมือนกัน ทำให้เหมาะกับข้อมูลแต่ละประเภท โดย Kernel เป็นที่นิยม เช่น:</p>
+<p>
+<script type="math/tex; mode=display">\text{Linear:} \quad K(a, b) = a^Tb \tag{11}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">\text{Polynomial:} \quad K(a, b) = (\gamma a^Tb + r)^d \tag{12}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">\text{Gaussian RBF:} \quad K(a, b) = e^{(-\gamma ||a-b||^2)} \tag{13}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">\text{Sigmoid:} \quad K(a, b) = \text{tanh} (\gamma a^Tb + r) \tag{14}</script>
+</p>
+<p>ทั้งหมดนี้คือหลักการของ SVM และ Kernel อนึ่งคณิตศาสตร์ในส่วนนี้ ส่วนมากอ้างอิงจากหนังสือ Hands-On Machine Learning with Scikit-Learn &amp; TensorFlow โดย Aurélien Géron</p>
+<p>ทีนี้ก็ถึงเวลามาลองโปรแกรมกันเลย</p>
+<h2>SVM programming</h2>
+<p>เราจะใช้ชุดข้อมูล Iris เหมือนเดิมในการทดลอง SVM โดยจะใช้ข้อมูล Petal length และ Petal width เท่านั้น เพื่อให้ที่สามารถพล็อตกราฟแสดงขอบเขตการตัดสินใจให้ดูได้</p>
+<p>เริ่มด้วยการโหลดและพล็อตดูข้อมูล:</p>
+<pre><code>import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import LinearSVC
+from sklearn.svm import SVC
+
+# Load the iris data
+iris = datasets.load_iris()
+X = iris.data[:, 2:]
+y = iris.target
+
+# Split the data into train and test set
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+
+# Plot the data
+plt.figure(figsize=(7,6))
+plt.scatter(X[:, 0], X[:, 1], c=y, cmap='Paired_r')
+plt.xlabel(iris.feature_names[2])
+plt.ylabel(iris.feature_names[3])
+plt.show()
+</code></pre>
+
+<p>ได้ Scatterplot ของความสัมพันธ์ระหว่าง Petal length และ Petal width โดยจำแนกจุดข้อมูลตาม Class ซึ่งได้แก่ <code>['setosa' 'versicolor' 'virginica']</code>:</p>
+<p><img alt="Iris dataset petal length and width scatterplot" src="images/ml-blog08-02.png"></p>
+<p>จากนั้นทดลองเทรนด้วย Linear SVC ซึ่งเป็นเวอร์ชั่นที่ใช้ Hypothesis function แบบเส้นตรง โดยเรียก Class <code>LinearSVC</code> จากโมดูล <code>sklearn.svm</code>:</p>
+<pre><code># Model 1: Linear SVC version
+# Create a pipeline
+clf_linSVC = Pipeline([
+    (&quot;linear_svc&quot;, LinearSVC(C=200, loss=&quot;hinge&quot;, max_iter=100000))
+])
+
+# Train the model
+clf_linSVC.fit(X_train, y_train)
+
+# Evaluate the model's accuracy
+print(&quot;Train set accuracy = &quot; + str(clf_linSVC.score(X_train, y_train)))
+print(&quot;Test set accuracy = &quot; + str(clf_linSVC.score(X_test, y_test)))
+</code></pre>
+
+<p>ทดสอบแล้วได้ค่าความแม่นยำดีทีเดียว:</p>
+<pre><code>Train set accuracy = 0.9375
+Test set accuracy = 0.9736842105263158
+</code></pre>
+
+<p>ทีนี้เราลองพล็อตพื้นที่และเส้นแบ่งการตัดสินใจของโมเดล โดยสร้างฟังก์ชันชื่อ <code>plot_decision_boundary</code> ดังนี้:</p>
+<pre><code># Plot the decision boundaries
+def plot_decision_boundary(clf, X, y, cmap='Paired_r'):
+    h = 0.005  # Boundary lines' resolution
+    x_min, x_max = X[:,0].min() - 10*h, X[:,0].max() + 10*h
+    y_min, y_max = X[:,1].min() - 10*h, X[:,1].max() + 10*h
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                         np.arange(y_min, y_max, h))
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    plt.figure(figsize=(7,6))
+    plt.contourf(xx, yy, Z, cmap=cmap, alpha=0.25)  # Background
+    plt.contour(xx, yy, Z, colors='k', linewidths=0.2)  # Boundary lines
+    plt.scatter(X[:,0], X[:,1], c=y, cmap=cmap);  # Data points
+    plt.xlabel(iris.feature_names[2])
+    plt.ylabel(iris.feature_names[3])
+
+plot_decision_boundary(clf_linSVC, X, y)
+</code></pre>
+
+<p>ได้ผลออกมาตามภาพนี้:</p>
+<p><img alt="Iris dataset decision boundaries for LinearSVC" src="images/ml-blog08-03.png"></p>
+<p>จะสังเกตว่าการที่ขอบเขตการตัดสินใจเป็นเส้นตรง ทำให้ไม่สามารถฟิตขอบเขตระหว่าง Class สีแดงกับสีฟ้าได้ดี ส่งผลต่อความแม่นยำของโมเดล ดังนั้น เรามาลองใช้ Kernel เพื่อทำให้ขอบเขตการตัดสินใจนั้นมีความโค้งรับกับความสัมพันธ์ของข้อมูล</p>
+<p>โดยเราจะใช้ Gaussian RBF kernel เรียกใช้จาก Class <code>SVC</code> ในโมดูล <code>sklearn.svm</code> โดยกำหนด Argument <code>kernel="rbf"</code>:</p>
+<pre><code># Model 2: Gaussian RBF Kernel version
+# Create a pipeline
+clf_SVC = Pipeline([
+    (&quot;linear_svc&quot;, SVC(kernel=&quot;rbf&quot;, gamma=2, C=10, max_iter=10000))
+])
+
+# Train the model
+clf_SVC.fit(X_train, y_train)
+
+# Evaluate the model's accuracy
+print(&quot;Train set accuracy = &quot; + str(clf_SVC.score(X_train, y_train)))
+print(&quot;Test set accuracy = &quot; + str(clf_SVC.score(X_test, y_test)))
+</code></pre>
+
+<p>สังเกตว่ามี Argument <code>gamma</code> ซึ่งก็คือ Hyperparameter <script type="math/tex">\gamma</script> ใน Kernel function <script type="math/tex">K(a, b) = e^{(-\gamma ||a-b||^2)}</script> โดย <code>gamma</code> นี้กำหนดความแคบของส่วนโค้งซึ่งมีรูปร่างตามการกระจายแบบ Gaussian</p>
+<p>ผลความแม่นยำที่ได้ คือ 100%:</p>
+<pre><code>Train set accuracy = 0.9553571428571429
+Test set accuracy = 1.0
+</code></pre>
+
+<p>ต่อมาลองพล็อตพื้นที่และเส้นแบ่งการตัดสินใจของโมเดลดู:</p>
+<pre><code># Plot the decision boundaries
+plot_decision_boundary(clf_SVC, X, y)
+</code></pre>
+
+<p>ภาพที่ได้คือ:</p>
+<p><img alt="Iris dataset decision boundaries for Gaussian RBF SVC" src="images/ml-blog08-04.png"></p>
+<p>จะเห็นว่า Kernel นั้นแก้ปัญหาของเราได้จริง เพราะทำให้เส้นการตัดสินใจนั้นโค้งรับกับข้อมูล ส่งผลให้ความผิดพลาดลดลง</p>
+<p>เป็นอันว่าเราได้รู้จัก Support Vector Machines รวมทั้ง Kernel ที่ช่วยให้ Algorithm สามารถเรียนรู้การตัดสินใจข้อมูลที่ซับซ้อนได้ ตอนต่อไปจะมาทำความรู้จักกับอีก Algorithm ที่ใช้งานได้ดีในหลายๆ กรณีเช่นกัน คือ Decision trees</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog07.html">บทที่ 7 Bias and Variance</a> | บทที่ 9: Decision Trees</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
