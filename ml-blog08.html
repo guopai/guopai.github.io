@@ -45,7 +45,7 @@ MathJax.Hub.Config({
     1 \text{ if } w^Tx + b \geq 0
 \end{cases} \tag{2}</script>
 </p>
-<p>เมื่อเรานิยามเส้นแบ่งการจัดสินใจแล้ว (เส้นทึบ) เรากำหนดเส้นประทั้งสองด้านของเส้นทึบ โดยเส้นประแต่ละด้านคือตำแหน่งที่ <script type="math/tex">h_\theta(x)</script> เท่ากับ -1 และ 1</p>
+<p>เมื่อเรานิยามเส้นแบ่งการตัดสินใจแล้ว (เส้นทึบ) เรากำหนดเส้นประทั้งสองด้านของเส้นทึบ โดยเส้นประแต่ละด้านคือตำแหน่งที่ <script type="math/tex">h_\theta(x)</script> เท่ากับ -1 และ 1</p>
 <p>ต่อมา ลองพิจารณาว่า ความชันของฟังก์ชันการตัดสินใจ เท่ากับ Norm ของ Vector ค่าน้ำหนัก <code>w</code>:</p>
 <p>
 <script type="math/tex; mode=display">\begin{align*}
@@ -132,7 +132,7 @@ MathJax.Hub.Config({
 \end{align*}
 \tag{10}</script>
 </p>
-<p>ก็หมายความว่า เราสามารถหา Dot product ของ Vector ที่อยู่ในรูปแบบ Mapping function (คือยังไม่ได้เปลี่ยนรูปจริงๆ) เพียงด้วยการนำเอา Dot product ของ Vector ต้นฉบับมายกกำลังสอง ซึ่งก็หมายความว่าในทางกลับกัน ถ้าเราคำนวนฟังก์ชันเป้าหมาย Optimisation ด้วยการแทนที่ <script type="math/tex">(a^Tb)</script> ด้วย <script type="math/tex">(a^Tb)^2</script> เราก็จะได้ผฃการคำนวนเสมือนว่าเราได้เปลี่ยนรูป Hypothesis function จาก Linear ให้เป็น Second-degree polynomial โดยไม่ต้องไปเปลี่ยนฟังก์ชันจริง</p>
+<p>ก็หมายความว่า เราสามารถหา Dot product ของ Vector ที่อยู่ในรูปแบบ Mapping function (คือยังไม่ได้เปลี่ยนรูปจริงๆ) เพียงด้วยการนำเอา Dot product ของ Vector ต้นฉบับมายกกำลังสอง ซึ่งก็หมายความว่าในทางกลับกัน ถ้าเราคำนวนฟังก์ชันเป้าหมาย Optimisation ด้วยการแทนที่ <script type="math/tex">(a^Tb)</script> ด้วย <script type="math/tex">(a^Tb)^2</script> เราก็จะได้ผลการคำนวนเสมือนว่าเราได้เปลี่ยนรูป Hypothesis function จาก Linear ให้เป็น Second-degree polynomial โดยไม่ต้องไปเปลี่ยนฟังก์ชันจริง</p>
 <p>ดังนั้น เวลาเราใช้ Kernel ก็เพียงเปลี่ยน <script type="math/tex">x^{(i)T} x^{(j)}</script> ในสมการที่ (6) ให้เป็น <script type="math/tex">(x^{(i)T} x^{(j)})^2</script>
 </p>
 <p>เราเรียกฟังก์ชัน <script type="math/tex">K(a, b) = (a^Tb)^2</script> นี้ว่า Second-degree polynomial kernel ซึ่งเป็นหนึ่งใน Kernel หลายแบบที่ทำหน้าที่เดียวกัน ต่างตรงที่แต่ละ Kernel จะเปลี่ยนรูปสมการเป็นรูปแบบที่ไม่เหมือนกัน ทำให้เหมาะกับข้อมูลแต่ละประเภท โดย Kernel เป็นที่นิยม เช่น:</p>
