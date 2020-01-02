@@ -1,0 +1,130 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 9: Decision Trees</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Decision Trees</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
+<p>Decision trees เป็น Algorithm ที่เป็นที่นิยม ใช้ง่าย เข้าใจง่าย ได้ผลดี และเป็นฐานของ Random Forests ซึ่งเป็นหนึ่งใน Algorithm ที่ดีที่สุดในปัจจุบัน</p>
+<p>หลักการพยากรณ์ด้วย Decision trees นั้นเข้าใจง่ายมาก ให้นึกว่า Decision tree คือต้นไม้กลับหัว โดยบนสุดคือราก และส่วนล่างลงมาที่ไม่สามารถแตกไปไหนได้แล้วก็คือใบ เราจะเริ่มด้วยการพิจารณาเริ่มแรกบนจุดเริ่มต้นที่เรียกว่า Root node ถ้าข้อมูลที่พบเป็นไปตามเงื่อนไขนั้น การตัดสินใจก็จะวิ่งไปทางซ้ายของ Root node ไปที่จุดที่เรียกว่า Child node ซึ่งถ้าข้อมูลที่มาตามเส้นทางนี้ตรงตามเงื่อนไขของ Child node นี้ ก็จะถือว่าสิ้นสุด เราเรียกว่า Node สิ้นสุดว่า Leaf node</p>
+<p>ย้อนกลับไปยัง Root node ถ้าข้อมูลที่พิจารณาไม่เป็นไปตามเงื่อนไข การตัดสินใจจะวิ่งไปอีกทาง คือทางขวา ไปพบ Child node อีกอันซึ่งก็จะตั้งเงื่อนไขคำถามต่อไป การตัดสินใจก็จะวิ่งไปทางที่ตรงตามเงื่อนไข ทำอย่างนี้ไปเรื่อยๆ จนได้คำตอบ</p>
+<p>สำหรับกลไกการเทรนโมเดลเพื่อสร้าง Decision trees จะอธิบายด้านล่าง เมื่อได้อธิบายเรื่องค่า Gini</p>
+<p>ก่อนจะไปไกลกว่านั้น จะชี้ให้เห็นว่า Decision trees นั้นไม่ต้องใช้ข้อมูลที่ทำ Feature scaling เพราะไม่ได้มี Optimisation algorithm แบบทั่วไป จึงใช้งานสะดวกมาก</p>
+<p>เพื่อความเข้าใจมากขึ้น ลองมา Program ด้วย scikit-learn กันเลย โดยใช้ชุดข้อมูล Iris เหมือนเดิม เพื่อความเรียบง่ายจะเลือก Feature เฉพาะ Petal length และ Petal width:</p>
+<pre><code>import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import export_graphviz
+
+# Load the iris data
+iris = datasets.load_iris()
+X = iris.data[:, 2:]
+y = iris.target
+
+# Split the data into train and test set
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+</code></pre>
+
+<p>แล้วก็ลองเทรนโมเดลกันเลย:</p>
+<pre><code># Train and fit the model
+tree_clf = DecisionTreeClassifier(max_depth=5).fit(X_train, y_train)
+
+# Evaluate the model's accuracy
+print(&quot;Train set accuracy = &quot; + str(tree_clf.score(X_train, y_train)))
+print(&quot;Test set accuracy = &quot; + str(tree_clf.score(X_test, y_test)))
+</code></pre>
+
+<p>สังเกตว่ามี Argument <code>max-depth</code> นั่นคือตัวควบคุมว่าจะให้ต้นไม้ของเรามีความลึกกี่ขั้น ถ้าเราพบว่าโมเดลของเรา Overfit ก็ควรลองลดจำนวนชั้นของความลึกลง ดังนั้น <code>max-depth</code> จึงเป็น Regularisation hyperparameter ของ Decision trees</p>
+<p>สำหรับความคลาดเคลื่อน พบว่าได้ความแม่นยำจาก Method <code>.score</code> ดังนี้:</p>
+<pre><code>Train set accuracy = 0.9821428571428571
+Test set accuracy = 1.0
+</code></pre>
+
+<p>คือแม่นยำ 100% ทีเดียว</p>
+<p>จากนั้นเรามาลองสร้างกราฟการตัดสินใจ โดยใช้ฟังก์ชัน <code>export_graphviz</code> ในโมดูล <code>sklearn.tree</code> เพื่อ Export กราฟออกมาด้วย Graphviz ซึ่งเป็น Open-source graph visualisation software:</p>
+<pre><code># Export graph
+export_graphviz(tree_clf, out_file=&quot;iris_tree.dot&quot;,
+               feature_names=iris.feature_names[2:],
+               class_names=iris.target_names,
+               rounded=True, filled=True)
+</code></pre>
+
+<p>ฟังก์ชันนี้จะ Export กราฟออกมาเป็นไฟล์นามสกุล <code>.dot</code> ซึ่งเราต้องใช้คำสั่ง <code>dot</code> จาก Graphviz package เพื่อแปลงไฟล์เป็น <code>.png</code> โดยเรียกคำสั่งจาก Command line:</p>
+<pre><code>$ dot -Tpng iris_tree.dot -o iris_tree.png
+</code></pre>
+
+<p>กราฟที่ได้ออกมาเป็นดังนี้:</p>
+<p><img alt="Iris dataset GraphViz output" src="images/ml-blog09-iris_tree.png"></p>
+<p>ถ้าอ่านตามแผนภาพก็น่าจะพอเข้าใจคำอธิบายข้างต้นว่า Decision trees พยากรณ์อย่างไร อย่างไรก็ตาม ในแต่ละ Node มีรายละเอียดที่ควรรู้เพื่อเพิ่มความเข้าใจดังนี้:</p>
+<ul>
+<li><code>samples</code> คือจำนวนรายการข้อมูลที่เข้ากันได้กับ Node นั้น ดังนั้น เมื่อการตัดสินใจเคลื่อนลงไปตามความลึกของต้นไม้ จำนวน <code>samples</code> ของ Node ในแต่ละชั้นจะมีแนวโน้มที่จะลดลงเรื่อยๆ</li>
+<li><code>gini</code> บ่งชี้ความ "บริสุทธิ์" ของ Node โดย <code>gini = 0</code> หมายความว่าข้อมูลทุกรายการใน Node นั้นอยู่ใน Class เดียวกัน ส่วน <code>gini = 0.5</code> ก็แปลว่ารายการข้อมูลใน Node นั้นอยู่ใน 2 Class เท่าๆ กัน โดยแสดงผ่าน <code>value</code> เช่น <code>value = [0, 39, 38]</code> ใน Child node ด้านขวาของ Root node แปลว่า จากข้อมูล 77 รายการที่เข้าเงื่อนไข Node นี้ มี 39 รายการที่อยู่ใน Class <code>versicolor</code> และ 38 รายการอยู่ใน Class <code>virginica</code> โดยถ้าหยุดพิจารณาที่ขั้นนี้ ก็จะถือว่าข้อมูลที่เข้าเงื่อนไขของ Node นี้อยู่ใน Class <code>versicolor</code> เป็นต้น</li>
+</ul>
+<p>เพื่อให้เป็นประโยชน์ในการทำความเข้าใจ Algorithm ในส่วนถัดไป เราสามารถบอกได้ว่าค่า <code>gini</code> คำนวนตามสูตรนี้:</p>
+<p>
+<script type="math/tex; mode=display">G_i = 1 - \sum\limits_{k = 1}^{n} p_{i, k}^2 \tag{1}</script>
+</p>
+<p>โดย <script type="math/tex">p_{i, k}</script> คือสัดส่วนว่าจากจำนวนรายการข้อมูลใน Node ที่ <script type="math/tex">i</script> นั้นอยู่ใน Class <script type="math/tex">k</script> กี่รายการ</p>
+<p>มาถึงจุดนี้เราก็พร้อมที่จะมาทำความเข้าใจว่า Decision tree algorithm นั้นสร้างโมเดลได้อย่างไร โดย scikit-learn จะใช้ Algorithm ที่ชื่อ Classification And Regression Tree (CART) ซึ่งทำงานตามลำดับดังนี้:</p>
+<p>1) แบ่ง Train set ออกเป็น 2 ส่วนโดยเลือก Class <script type="math/tex">k</script> และเงื่อนไข <script type="math/tex">t_k</script> เช่น petal length &lt;= 2.45 โดยค้นหาคู่ของ <script type="math/tex">k</script> และ <script type="math/tex">t_k</script>
+ที่จะได้ Node ที่ "บริสุทธิ์" ที่สุด นั่นคือมีค่า Gini ต่ำที่สุดนั่นเอง เราสามารถแสดง Cost function ที่สอดคล้องกับเงื่อนไขนี้ได้ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">J(k, t_k) = \frac{m_{left}}{m} G_{left} + \frac{m_{right}}{m} G_{right} \tag{2}</script>
+</p>
+<ul>
+<li>
+<script type="math/tex">G_{left/right}</script> คือ <code>gini</code> ของข้อมูลชุดซ้ายและขวาที่ถูกแบ่ง</li>
+<li>
+<script type="math/tex">m_{left/right}</script> คือจำนวนรายการข้อมูลในชุดซ้ายและขวา</li>
+<li>
+<script type="math/tex">m</script> คือจำนวนรายการข้อมูลทั้งหมดใน Node นั้น</li>
+</ul>
+<p>2) แยกข้อมูลแต่ละชุดย่อยออกเป็นสองชุดและทำซ้ำข้อ 1) เรื่อยๆ จนกระทั่งถึงความลึก <code>max-depth</code> ที่กำหนด หรือจนกระทั่งไม่พบค่า <script type="math/tex">k</script> และ <script type="math/tex">t_k</script> ที่จะลดความไม่บริสุทธิ์ได้อีกต่อไป</p>
+<p>ตอนนี้เราก็เข้าใจแล้วว่า Decision tree สร้างโมเดลอย่างไร สุดท้ายเรามาลองพล็อตเส้นแบ่งการตัดสินใจจากตัวอย่างของเรา:</p>
+<pre><code># Plot the decision boundaries
+def plot_decision_boundary(clf, X, y, cmap='Paired_r'):
+    h = 0.005  # Boundary lines' resolution
+    x_min, x_max = X[:,0].min() - 10*h, X[:,0].max() + 10*h
+    y_min, y_max = X[:,1].min() - 10*h, X[:,1].max() + 10*h
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                         np.arange(y_min, y_max, h))
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    plt.figure(figsize=(7,6))
+    plt.contourf(xx, yy, Z, cmap=cmap, alpha=0.25)  # Background
+    plt.contour(xx, yy, Z, colors='k', linewidths=0.2)  # Boundary lines
+    plt.scatter(X[:,0], X[:,1], c=y, cmap=cmap);  # Data points
+    plt.xlabel(iris.feature_names[2])
+    plt.ylabel(iris.feature_names[3])
+
+plot_decision_boundary(tree_clf, X, y)
+</code></pre>
+
+<p>ได้ผลคือ:</p>
+<p><img alt="Iris decision trees decision boundary" src="images/ml-blog09-01.png"></p>
+<p>จะเห็นว่า Decision trees สร้างเส้นแบ่งการตัดสินใจที่เป็นเส้น Orthogonal คือแนวระนาบและแนวดิ่งที่ตั้งฉากกันเท่านั้น ดังนั้นในบางกรณีจะเป็นไปไม่ได้เลยที่ Decision trees จะทำนาย Test set ได้แม่นยำ 100%</p>
+<p>ข้อสังเกตนี้สอดคล้องกับธรรมชาติของ CART algorithm ที่ค้นหา Parameter ที่ดีที่สุดจากบนลงล่างโดยตัดสินใจจากเงื่อนไขที่พบในลำดับชั้นปัจจุบันเท่านั้น โดยไม่ได้เช็คว่าการตัดสินใจในชั้นนั้นจะส่งผลให้ลำดับชั้นล่างๆ ลงมามีค่าความไม่บริสุทธิ์น้อยที่สุดหรือไม่ เราเรียกพฤติกรรมแบบนี้ว่า Greedy algorithm ซึ่งพฤติกรรมแบบนี้ทำให้ต้องใช้เวลานานจนแทบเป็นอนันต์จึงจะหาต้นไม้ที่ดีที่สุดได้ โดยใช้เวลาถึง <script type="math/tex">O(e^m)</script> ในทางคณิตศาสตร์เรียกปัญหานี้ว่า ปัญหา NP-Complete ดังนั้นเมื่อเราใช้ Decision trees เราจึงต้องยอมรับผลลัพธ์ที่อาจจะไม่สมบูรณ์แบบ แต่ส่วนมากก็ดีพอสำหรับงานส่วนมาก</p>
+<p>บทต่อไปเราจะเรียนรู้ Random Forests ซึ่งคือการนำต้นไม้หลายๆ ต้นมารวมกันเป็นป่า เพื่อเพิ่มความแม่นยำในการ Generalise โมเดลให้ทำงานได้ดีขึ้นกับข้อมูลที่โมเดลไม่เคยเห็น</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog08.html">บทที่ 8: Support Vector Machines</a> | บทที่ 10: Random Forests</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
