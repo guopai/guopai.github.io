@@ -1,0 +1,118 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 11: Boosting</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Boosting</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
+<p>Boosting เป็นอีกเทคนิคใน Ensemble learning ที่ใช้ Classifier หลายๆ Instance มาช่วยกันสร้างโมเดลและพยากรณ์</p>
+<p>การอธิบาย Boosting ให้เข้าใจง่าย น่าจะลองเปรียบเทียบว่ามันต่างกับ Random forest อย่างไร ทั้งคู่เป็น Ensemble learning เหมือนกัน โดย Random forest จะใช้ Classifier หลาย Instance สร้างโมเดลและทำนายพร้อมกัน โดยใช้ "กฎของจำนวนขนาดใหญ่" (Law of large numbers) เป็นคุณสมบัติที่ทำให้การทำนายนั้นแม่นยำกว่าการใช้ Classifier เดี่ยวๆ</p>
+<p>ส่วน Boosting นำ Classifier หลายตัวมาทำงานเป็นโซ่ต่อกัน โดยแต่ละตัวจะแก้ไขจุดด้อยของ Classifier ตัวก่อนหน้า พอเทรนเสร็จแล้ว Classifier ทุกตัวจะพยากรณ์ร่วมกัน</p>
+<p>ในบทนี้จะแนะนำ Boosting algorithm ที่เป็นที่นิยมสองตัว คือ AdaBoost และ GradientBoosting</p>
+<h2>AdaBoost</h2>
+<p>AdaBoost เป็น Algorithm พื้นฐานของ Boosting method จึงควรลองทำความเข้าใจเพื่อเป็นฐานสำหรับ Algorithm อื่น</p>
+<p>หลักการทำงานของ AdaBoost คือการใช้ Classifier ที่ไม่ซับซ้อน เช่น Decision tree ที่มีชั้นเดียว (เรียกว่า Decision stump) หลายๆ Instance มาเทรนต่อกันเป็นลูกโซ่ โดยในการเทรนแต่ละรอบจะมีการกำหนดค่าน้ำหนักของข้อมูลแต่ละรายการ Classifier instance จะเรียนรู้จากค่าน้ำหนักเหล่านั้น โดยถ้าพยากรณ์ผิด ค่าน้ำหนักของรายการนั้นจะมีค่ามากขึ้น ส่งผลให้ Classifier instance นั้นได้รับ "คะแนน" ต่ำ แต่ในทางกลับกัน ถ้า Instance ไหนพยากรณ์ถูกเป็นสัดส่วนที่มาก ก็จะได้คะแนนมาก</p>
+<p>การพยากรณ์ของ AdaBoost คือการถ่วงคะแนนเข้ากับคำตอบของแต่ละ Instance แล้วเลือกคำตอบจาก Class ที่ได้รวมแล้วได้ค่าน้ำหนักมากที่สุด</p>
+<p>ขั้นตอนการทำงานอย่างละเอียดของ AdaBoost มีดังนี้:</p>
+<p>1) กำหนดน้ำหนัก <script type="math/tex">w^{(i)}</script> ตั้งต้นของข้อมูลแต่ละรายการเป็น <script type="math/tex">1/m</script> โดย <script type="math/tex">m</script> คือจำนวนรายการข้อมูลทั้งหมด:</p>
+<p>
+<script type="math/tex; mode=display">w^{(i)} = \frac{1}{m} \tag{1}</script>
+</p>
+<p>เช่น ถ้ามีข้อมูล 500 รายการ น้ำหนักของ <script type="math/tex">w^{(1)}, w^{(2)}, \dots, w^{(500)} = 1/500</script>
+</p>
+<p>2) เทรน Classifier instance แรกและคำนวนอัตราความคลาดเคลื่อน <script type="math/tex">r_1</script> โดยเปรียบเทียบระหว่างผลรวมของน้ำหนักของทุกๆ รายการที่ทำนายผิด กับผลรวมของน้ำหนักของทุกๆ รายการ:</p>
+<p>
+<script type="math/tex; mode=display">r_j = \frac{\sum\limits_{i = 1}^m w^{(i)}_{[\hat{y}_j^{(i)} \neq \,y^{(i)}]}}{\sum\limits_{i = 1}^m w^{(i)}} \tag{2}</script>
+</p>
+<p>เราเรียกสมการที่ (2) นี้ว่า Weighted error rate ของ Classifier <script type="math/tex">j</script>
+</p>
+<p>3) นำ Weighted error rate นี้มาคำนวนหาน้ำหนัก <script type="math/tex">\alpha_j</script> ของ Classifier <script type="math/tex">j</script> ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">\alpha_j = \eta \log \frac{1-r_j}{r_j} \tag{3}</script>
+</p>
+<ul>
+<li>
+<script type="math/tex">\eta</script> อ่านว่า Eta คือ Learning rate hyperparameter ที่ควบคุมอัตราเร็วในการเรียนรู้ ปกติมีค่าเท่ากับ 1</li>
+<li>ยิ่ง Classifier <script type="math/tex">j</script> แม่นยำมากเท่าไหร่ แปลว่า Weighted error rate <script type="math/tex">r_j</script> มีค่าน้อย ส่งผลให้น้ำหนัก <script type="math/tex">\alpha_j</script> ของ Classifier <script type="math/tex">j</script> นั้นมีค่ามาก</li>
+</ul>
+<p>4) นำน้ำหนัก <script type="math/tex">\alpha_j</script> ของ Classifier <script type="math/tex">j</script> ไปอับเดตน้ำหนัก <script type="math/tex">w^{(i)}</script> ของข้อมูลแต่ละรายการ ตามเงื่อนไขดังนี้:</p>
+<p>
+<script type="math/tex">\text{for } i = 1, 2, \dots ,m</script>
+</p>
+<p>
+<script type="math/tex; mode=display">w^{(i)} =
+\begin{cases}
+    w^{(i)} \quad \text{if } \hat{y}^{(i)} = y^{(i)}\\
+    w^{(i)} e^{\alpha_j} \quad \text{if } \hat{y}^{(i)} \neq y^{(i)}
+\end{cases} \tag{4}</script>
+</p>
+<p>แล้ว Normalise น้ำหนัก <script type="math/tex">w^{(i)}</script> ของข้อมูลแต่ละรายการ ด้วยการหารด้วยผลรวมของ <script type="math/tex">w^{(i)}</script> ทั้งหมด:</p>
+<p>
+<script type="math/tex; mode=display">w^{(i)} := \frac{w^{(i)}}{\sum\limits_{i = 1}^m w^{(i)}} \tag{5}</script>
+</p>
+<p>จากสมการที่ (4) จะเห็นว่ารายการที่ทำนายผิด จะได้รับการ Boost หรือเสริมค่าน้ำหนัก เพื่อให้ Classifier instance <script type="math/tex">j+1</script> ในรอบถัดไปเทรนซ้ำในสมการที่ (2) โดยเทรนจากค่าน้ำหนัก <script type="math/tex">w^{(i)}</script> ใหม่ของข้อมูลแต่ละรายการ</p>
+<p>AdaBoosting จะทำกระบวนการที่ (2) ถึง (4) วนซ้ำไปเรื่อยๆ โดยจะหยุดก็ต่อเมื่อ:</p>
+<ul>
+<li>วนซ้ำครบจำนวน Classifier instance ที่กำหนด โดยสามารถกำหนดได้ใน Argument <code>n_estimators</code> หรือ</li>
+<li>ไม่พบรายการที่ทำนายผิดพลาดเลยแม้แต่รายการเดียว</li>
+</ul>
+<p>5) เมื่อต้องการพยากรณ์ ก็จะคำนวนค่าพยากรณ์ <script type="math/tex">\hat{y}^{(i)}</script> ของทุกๆ Classifier instance โดยถ่วงน้ำหนักค่าพยากรณ์แต่ละ Instance ด้วยค่าน้ำหนัก <script type="math/tex">\alpha_j</script> ของ Classifier แต่ละ Instance ดังนั้น ค่าพยากรณ์ของ Instance ที่มีความแม่นยำ จะมีค่ามาก ได้รับการพิจารณามาก</p>
+<p>คำตอบสุดท้ายที่ AdaBoost พยากรณ์ คือคำตอบที่ได้รับเสียงโหวตที่ถ่วงน้ำหนักแล้วมากที่สุด</p>
+<p>สังเกตว่า AdaBoost ให้ค่ากับ Instance ที่ "เก่ง" มากกว่าที่ "ไม่เก่ง" ในขณะที่ Ensemble learning แบบ Random forest ให้ค่าน้ำหนักทุก Instance เท่ากัน</p>
+<p>ข้อสังเกตที่สำคัญอีกประการก็คือ AdaBoost ไม่ได้มีเป้าหมายที่ทำให้ Classifier instance ตัวถัดๆ ไปมีความแม่นยำขึ้น แต่ทำงานโดยการเก็บคะแนนความแม่นยำของแต่ละ Instance เอาไว้เพื่อเอามาถ่วงน้ำหนักการตัดสินใจเมื่อต้องการพยากรณ์ในภายหลัง</p>
+<p>ใน scikit-learn เราสามารถเรียกใช้ AdaBoost ได้ จาก <code>AdaBoostClassifier</code> class ในโมดูล <code>sklearn.ensemble</code></p>
+<h2>Gradient boosting</h2>
+<p>Gradient boosting เลือกวิธีการในการ Optimise อีกวิธี โดยการพยายามให้ Classifier instance ที่มาใหม่แต่ละตัว มีความแม่นยำขึ้นเรื่อยๆ โดยเรียนรู้จากค่าความคลาดเคลื่อนสะสมที่เกิดจากการทำนายของ Instance ก่อนหน้า</p>
+<p>การทำงานของ Gradient boosting เข้าใจไม่ยาก สมมุติว่าเราใช้ <code>DecisionTreeRegressor</code> เราสามารถจำลอง Algorithm นี้ได้จากโค้ดดังนี้:</p>
+<pre><code>from sklearn.tree import DecisionTreeRegressor
+
+tree_reg1 = DecisionTreeRegressor(max-depth=2)
+tree_reg1.fit(X, y)
+</code></pre>
+
+<p>จากนั้นเราเทรน <code>DecisionTreeRegressor</code> instance ที่ 2 จากความคลาดเคลื่อนสะสม ซึ่งก็คือความต่างระหว่าง <script type="math/tex">\hat{y}</script> กับ <script type="math/tex">y</script>:</p>
+<pre><code>y2 = y - tree_reg1.predict(X)
+tree_reg2 = DecisionTreeRegressor(max-depth=2)
+tree_reg2.fit(X, y2)
+</code></pre>
+
+<p>และทำแบบนี้อีกครั้ง:</p>
+<pre><code>y3 = y2 - tree_reg2.predict(X)
+tree_reg3 = DecisionTreeRegressor(max-depth=2)
+tree_reg3.fit(X, y3)
+</code></pre>
+
+<p>ส่วนเวลาพยากรณ์ เราจะเอาคำตอบของการพยากรณ์ทุกๆ Instance มาบวกกัน ซึ่งก็คือ:</p>
+<p>
+<script type="math/tex; mode=display">h(x) = h_1(x) + h_2(x) + \dots + h_J(x) \tag{6}</script>
+</p>
+<p>โดย <script type="math/tex">J</script> คือจำนวน Instance ทั้งหมด</p>
+<p>แต่ในความเป็นจริงเราไม่ต้องโค้ดเองแบบนี้ สามารถใช้ <code>GradientBoostingRegressor</code> หรือ <code>GradientBoostingClassifier</code> class ในโมดูล <code>sklearn.ensemble</code> ของ scikit-learn ได้เลย</p>
+<p>ในแต่ละรอบ Classifier instance จะเทรนจาก Input <code>X</code> เดียวกัน แต่เปลี่ยน <code>y</code> ให้เป็นความต่างของค่าพยากรณ์กับคำตอบจริง ระหว่าง Instance ก่อนหน้ากับ Instance ปัจจุบัน (Residual error)</p>
+<p>ส่วนการ Regularise นั้น Gradient boosting เป็น Algorithm ที่ค่อนข้างไม่ Overfit ง่ายจนเกินไป โดยถ้าหากเราตั้ง <code>learning_rate</code> เป็นค่าต่ำๆ จะทำให้ต้นไม้แต่ละต้นมีส่วนในการเรียนรู้น้อยลง นั่นหมายความว่าเราจะต้องใช้ต้นไม้จำนวนมากขึ้นเพื่อฟิต Train set วิธีนี้มักจะช่วยให้ Generalise ไปยังข้อมูลที่โมเดลยังไม่ได้เห็นได้ดีกว่า ดังนั้น สิ่งที่ควรรู้ก็คือ หากเราลดค่า <code>learning_rate</code> เราจะต้องเพิ่ม <code>n_estimators</code> ด้วย เพื่อลด Bias/underfit</p>
+<p>ภาพแรกแสดง <code>learning_rate=0.1, n_estimators=3</code> แสดงให้เห็นว่าโมเดลนั้น Underfit เล็กน้อย ควรแก้ด้วยการเพิ่มจำนวนต้นไม้ <code>n_estimators</code>:</p>
+<p><img alt="Cancer data decision boundary for learning_rate=0.1, n_estimators=3" src="images/ml-blog11-01.png"></p>
+<p>ภาพที่สองแสดง <code>learning_rate=0.1, n_estimators=200</code> แสดงให้เห็นว่าเมื่อเพิ่มจำนวนต้นไม้แล้ว โมเดลสามารถฟิตข้อมูลได้ดียิ่งขึ้น แต่ก็ยังไม่ Overfit จนเกินไป:</p>
+<p><img alt="Cancer data decision boundary for learning_rate=0.1, n_estimators=3" src="images/ml-blog11-02.png"></p>
+<p>โดยสรุปแล้ว Algorithm ตระกูล Gradient boosting ซึ่งรวมทั้ง XGBoost เป็นกลุ่ม Algorithm ที่ยืดหยุ่น แม่นยำ และประสิทธิภาพดีที่สุดกลุ่มหนึ่งในปัจจุบัน</p>
+<p>มาถึงจุดนี้ เราได้รู้จักกับ Supervised learning algorithm หลักๆ ครบแล้ว (ยกเว้น Neural networks ซึ่งจะเป็นหัวข้อใหญ่อีกกลุ่มหนึ่ง) บทต่อไปเราจะทำความรู้จักกับ Unsupervised learning algorithm เช่น K-Means clustering กัน</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog10.html">บทที่ 10 Random Forest</a> | บทที่ 12 K-Means Clustering</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
