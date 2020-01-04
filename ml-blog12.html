@@ -1,0 +1,135 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 12: Clustering</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Clustering</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
+<p>ที่ผ่านมา 11 บท เราได้ทำความรู้จักกับ Supervised learning ซึ่งมีเป้าหมายในการสร้างโมเดลเพื่อทำนายคำตอบ โดยมีชุดข้อมูลที่รู้คำตอบอยู่แล้วเป็นแหล่งในการเรียนรู้ของ Algorithm ในบทที่ 12 นี้ เราจะมาเรียนรู้ Unsupervised learning ซึ่งเป็นการหาคำตอบจากข้อมูลที่ยังไม่มีใครรู้ว่าคำตอบคืออะไร โดยเราจะมุ่งเน้นที่ Clustering หรือการจัดกลุ่มข้อมูล</p>
+<p>สมมุติเรามีข้อมูลที่เป็นความสัมพันธ์ระหว่างสองสิ่ง เช่นในชุดข้อมูล Iris เรามี Petal length และ Petal width ของดอก Iris จำนวน 150 รายการ เราลองโหลดและดูข้อมูล 10 รายการแรกกัน:</p>
+<pre><code>import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import datasets
+
+# Load the iris data
+iris = datasets.load_iris()
+X = iris.data[:, 2:]
+y = iris.target
+
+# Explore the data
+print(X[:10, :])
+</code></pre>
+
+<p>ได้ผลออกมาดังนี้:</p>
+<pre><code>[[1.4 0.2]
+ [1.4 0.2]
+ [1.3 0.2]
+ [1.5 0.2]
+ [1.4 0.2]
+ [1.7 0.4]
+ [1.4 0.3]
+ [1.5 0.2]
+ [1.4 0.2]
+ [1.5 0.1]]
+</code></pre>
+
+<p>สามารถพล็อตข้อมูลเป็น Scatterplot ได้ดังนี้:</p>
+<pre><code># Plot the data
+plt.figure(figsize=(7,6))
+plt.scatter(X[:, 0], X[:, 1], cmap='Paired_r')
+plt.xlabel(iris.feature_names[2])
+plt.ylabel(iris.feature_names[3])
+plt.show()
+</code></pre>
+
+<p><img alt="Iris petal length and width scatterplot" src="images/ml-blog12-01.png"></p>
+<p>เราจะมาจัดกลุ่มข้อมูลชุดนี้ออกเป็น 3 กลุ่ม โดยสมมุติว่าเราไม่รู้มาก่อนว่า 3 กลุ่มนี้คืออะไรบ้าง (อันที่จริงเรารู้ เพราะข้อมูลชุดนี้เป็น Classification dataset แต่เราไม่ได้นำคำตอบมาใช้ เพื่อจะได้เปรียบเทียบให้ดูภายหลังว่าการแบ่งกลุ่มของ Algorithm เหมือนหรือต่างกับคำตอบจริงแค่ไหน)</p>
+<p>เราจะใช้ K-Means clustering algorithm ซึ่งเรียกใช้ได้จาก Class <code>KMeans</code> ในโมดูล <code>sklearn.cluster</code>:</p>
+<pre><code># Apply K-Means
+kmeans = KMeans(n_clusters=3).fit(X)
+</code></pre>
+
+<p>สังเกตว่าเรากำหนดจำนวน Cluster เป็น 3</p>
+<p>เราสามารถแสดงผลการจัดกลุ่มได้ด้วย Method <code>.label_</code> ของ <code>KMeans</code> instance:</p>
+<pre><code># Output labels
+y_clustered = kmeans.labels_
+print(y_clustered)
+</code></pre>
+
+<p>ผลออกมาคือ:</p>
+<pre><code>[2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2
+ 2 2 2 2 2 2 2 2 2 2 2 2 2 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+ 0 0 0 1 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 0 1 1 1 1
+ 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1
+ 1 1]
+</code></pre>
+
+<p>นี่คือหมายเลข Label ขอบข้อมูลทั้ง 150 รายการที่ K-Means แบ่งให้ เรามาลองพล็อต Scatterplot ที่แบ่งสีตาม Label ใหม่นี้กัน:</p>
+<pre><code># Plot the clustered data with centroids
+plt.figure(figsize=(7,6))
+scatter = plt.scatter(X[:, 0], X[:, 1], c=y_clustered, cmap='tab10')
+plt.scatter(kmeans.cluster_centers_[:, 0], kmeans.cluster_centers_[:, 1], s=100, c='red')
+plt.xlabel(iris.feature_names[2])
+plt.ylabel(iris.feature_names[3])
+plt.legend(*scatter.legend_elements())
+plt.show()
+</code></pre>
+
+<p>ภาพที่ได้คือ:</p>
+<p><img alt="Iris petal length and width scatterplot after clustering" src="images/ml-blog12-02.png"></p>
+<p>จุดสีแดง คือจุดศูนย์กลางของแต่ละ Cluster ซึ่งเราจะอธิบายในส่วน Algorithm ว่าได้มาอย่างไร</p>
+<p>อย่างที่บอกตอนแรก คือข้อมูลชุดนี้ในความเป็นจริงเรารู้คำตอบ เพื่อความน่าสนใจจะมาลองดูว่าต้นฉบับนั้นจำแนก Label อย่างไร สิ่งที่ต้องทำก็เพียงแค่เปลี่ยน Argument <code>c=y_clustered</code> ใน <code>plt.scatter</code> เป็น <code>c=y</code> เพื่อให้ Map สีเข้ากับข้อมูล <code>y</code> ต้นฉบับ ได้ผลคือ:</p>
+<p><img alt="Iris petal length and width scatterplot with original y" src="images/ml-blog12-04.png"></p>
+<p>ดูคล้ายกันดีมาก ต่างกันเล็กน้อยตรงรอยต่อ</p>
+<p>ถ้าพิจารณาดู <code>y</code> ของข้อมูลชุดนี้ คือชื่อสายพันธุ์ของดอก Iris ซึ่งมี 3 Class คือ Setosa, Versicolor, Virginica ข้อมูลที่เก็บมาคือความยาวและความกว้างของกลีบดอก ซึ่งเรารู้ว่าโดยธรรมชาติแล้ว Iris ทั้ง 3 สายพันธุ์มีลักษณะความยาวความกว้างกลีบดอกไม่เหมือนกันดังภาพสุดท้าย การที่เราใช้ Machine จำแนกข้อมูลทั้งสองนี้ออกเป็น 3 Class แล้วได้ผลใกล้เคียงการจำแนกของธรรมชาติ ก็ดูเป็นสิ่งที่น่าทึ่งทีเดียว เพราะ Algorithm เป็นกลไกทางคณิตศาสตร์ เมื่อกลไกคณิตศาสตร์นี้ทำงานแล้วได้ผลเหมือนธรรมชาติ นั่นก็อาจจะแปลว่าธรรมชาติสร้างสิ่งต่างๆ ตามหลักคณิตศาสตร์ก็เป็นได้</p>
+<p>ทีนี้เรามองลองดูว่า K-Means clustering จำแนกข้อมูลเป็นกลุ่มๆ โดยไม่รู้มาก่อนว่าแต่ละกลุ่มคืออะไรได้อย่างไร</p>
+<h2>K-Means clustering algorithm</h2>
+<p>K-Means clustering มีขั้นตอนการทำงานดังนี้</p>
+<p>สมมุติว่าต้องการแบ่ง Cluster เป็น 2 Class:</p>
+<p>1) สุ่มเลือกข้อมูลสองจุดใน Dataset เป็นจุดศูนย์กลางเริ่มต้น เรียกว่า Centroid</p>
+<p>2) กำหนดให้รายการข้อมูลที่อยู่ใกล้แต่ละ Centroid เป็นสมาชิกของ Centroid นั้น โดยข้อมูลแต่ละรายการจะเป็นสมาชิกได้ Centroid เดียวเท่านั้น:</p>
+<p>
+<script type="math/tex; mode=display">c^{(i)} = \text{argmin}_k ||x^{(i)}-\mu_{k}||^2 \tag{1}</script>
+</p>
+<ul>
+<li>
+<script type="math/tex">c^{(i)}</script> คือรหัส Class ที่กำหนดให้ข้อมูล <script type="math/tex">x^{(i)}</script>
+</li>
+<li>
+<script type="math/tex">\mu_{k}</script> คือ Centroid <script type="math/tex">k</script>
+</li>
+</ul>
+<p>3) คำนวนค่าเฉลี่ยของสมาชิกทุกรายการในแต่ละ Centroid แล้วย้าย Centroid ไปสู่ค่าเฉลี่ยนั้น ขั้นตอนนี้จะทำให้ Centroid ขยับที่เล็กน้อย</p>
+<p>
+<script type="math/tex; mode=display">\mu_{k} = \frac{1}{n} (x^{(k_1)}+x^{(k_2)}+ \dots +x^{(k_n)}) \tag{2}</script>
+</p>
+<p>4) ทำซ้ำข้อ 2) และ 3) จนกระทั่งได้ Cluster 2 Class โดยมีเงื่อนไขว่าจะจบก็ต่อเมื่อได้รหัสของ Class <script type="math/tex">c^{(i)}</script> และ Centroid <script type="math/tex">\mu_{k}</script> ที่ทำให้ค่าเฉลี่ยของผลรวมระยะทางระหว่างรายการข้อมูลที่เป็นสมาชิก Centroid กับ Centroid นั้นๆ มีค่าน้อยที่สุด โดยคำนวนจากข้อมูลทุกรายการและ Centroid ทุก Centroid สามารถเขียนเป็น Cost function ได้ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">\text{min}_{c, \mu} J(c, \mu) = \frac{1}{m} \sum\limits_{i=1}^m ||x^{(i)}-\mu_{c^{(i)}}||^2 \tag{3}</script>
+</p>
+<ul>
+<li>
+<script type="math/tex">\mu_{c^{(i)}}</script> คือ Centroid ที่ข้อมูล <script type="math/tex">x^{(i)}</script> เป็นสมาชิก</li>
+</ul>
+<p>จริงๆ ยังมี Clustering algorithm อื่นๆ อีก แต่ K-Means นั้นเป็นที่นิยมมากที่สุด ถ้าสนใจสามารถศึกษาเพิ่มเติมเอกได้จากเอกสารของ scikit-learn</p>
+<p>ตอนต่อไปเราจะเริ่มเรียนรู้ Neural network ซึ่งเป็นหัวใจสำคัญของการเรียนรู้แบบ Deep learning กัน</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog11.html">บทที่ 11 Boosting</a> | บทที่ 13 Neural Network Algorithm</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
