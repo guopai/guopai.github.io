@@ -24,7 +24,7 @@ MathJax.Hub.Config({
 <p>บทนี้เราจะมาลองสร้างโมเดล Neural network อย่างง่ายๆ ด้วยการใช้ Deep learning framework ที่ชื่อ TensorFlow</p>
 <p>เป้าหมายของเราคือการสร้างโมเดลพยากรณ์ว่าลายมือเขียนตัวเขียน 0-9 จากฐานข้อมูล MNIST นั้น เขียนว่าตัวเลขอะไร</p>
 <p><img alt="MNIST dataset" src="images/ml-blog14-mnist.png"></p>
-<p>ตัวอย่างชุดข้อมูล MNIST, ภาพโดย<a href="https://commons.wikimedia.org/w/index.php?curid=64810040"> Josef Steppan</a> - Own work, CC BY-SA 4.0</p>
+<p>ตัวอย่างชุดข้อมูล MNIST, ภาพโดย <a href="https://commons.wikimedia.org/w/index.php?curid=64810040">Josef Steppan</a> - Own work, CC BY-SA 4.0</p>
 <p>ปัญหานี้เป็นปัญหาที่เหมาะสมกับ Deep learning เพราะข้อมูล Input เป็นภาพ ซึ่งเป็นข้อมูลที่ไม่มีโครงสร้าง (Unstructured data) และมีจำนวน Feature เยอะมาก โดยในกรณีชุดข้อมูล MNIST นี้ แต่ละภาพมีขนาด 28 x 28 Pixel นั่นคือมี 784 Feature นั่นคือ <script type="math/tex">x_0</script> จนถึง <script type="math/tex">x_{783}</script>
 </p>
 <p>เราจะเริ่มด้วยการ Import library ที่ต้องใช้ ซึ่งนอกจาก numpy และ matplotlib ตามปกติ เราจะใช้ tensorflow.keras เพื่อโหลดชุดข้อมูลจาก <code>.datasets</code>, โครงสร้างโมเดลจาก <code>.models</code>, และโครงสร้างของ Layer ต่างๆ จาก <code>.layers</code></p>
@@ -152,20 +152,20 @@ model.fit(X_train, y_train, epochs=20, batch_size=32, validation_split=0.2, verb
 <p>ผลที่ได้ออกมาดังนี้:</p>
 <pre><code>Train on 1600 samples, validate on 400 samples
 Epoch 1/20
-1600/1600 [===] - 1s 491us/sample - loss: 1.4701 - accuracy: 0.5881 - val_loss: 0.7175 - val_accuracy: 0.8275
+[===] - 1s 491us/sample - loss: 1.4701 - accuracy: 0.5881 - val_loss: 0.7175 - val_accuracy: 0.8275
 Epoch 2/20
-1600/1600 [===] - 0s 158us/sample - loss: 0.6571 - accuracy: 0.8213 - val_loss: 0.4700 - val_accuracy: 0.8600
+[===] - 0s 158us/sample - loss: 0.6571 - accuracy: 0.8213 - val_loss: 0.4700 - val_accuracy: 0.8600
 Epoch 3/20
-1600/1600 [===] - 0s 146us/sample - loss: 0.4681 - accuracy: 0.8744 - val_loss: 0.3726 - val_accuracy: 0.8925
+[===] - 0s 146us/sample - loss: 0.4681 - accuracy: 0.8744 - val_loss: 0.3726 - val_accuracy: 0.8925
 .           .           .           .           .           .           .
 .           .           .           .           .           .           .
 .           .           .           .           .           .           .
 Epoch 18/20
-1600/1600 [===] - 0s 233us/sample - loss: 0.0807 - accuracy: 0.9844 - val_loss: 0.2492 - val_accuracy: 0.9375
+[===] - 0s 233us/sample - loss: 0.0807 - accuracy: 0.9844 - val_loss: 0.2492 - val_accuracy: 0.9375
 Epoch 19/20
-1600/1600 [===] - 0s 174us/sample - loss: 0.0675 - accuracy: 0.9906 - val_loss: 0.2474 - val_accuracy: 0.9275
+[===] - 0s 174us/sample - loss: 0.0675 - accuracy: 0.9906 - val_loss: 0.2474 - val_accuracy: 0.9275
 Epoch 20/20
-1600/1600 [===] - 0s 174us/sample - loss: 0.0638 - accuracy: 0.9881 - val_loss: 0.2490 - val_accuracy: 0.9300
+[===] - 0s 174us/sample - loss: 0.0638 - accuracy: 0.9881 - val_loss: 0.2490 - val_accuracy: 0.9300
 </code></pre>
 
 <p>สังเกตว่าแต่ละ Epoch ที่เทรน Loss และ Validation loss จะลดลงเรื่อยๆ สอดคล้องกับ Accuracy และ Validation accuracy ที่เพิ่มขึ้นเรื่อยๆ ซึ่งในกรณีของเราไปหยุดที่ Validation accuracy 93% เราสามารถใช้ผลนี้เป็นตัวบ่งชี้ว่าควรจะปรับ Hyperparameter ต่างๆ ของโมเดลหรือไม่อย่างไร เพื่อทำให้โมเดลมีความแม่นยำมากขึ้น รวมทั้งสามารถวิเคราะห์ปัญหา Bias/variance ด้วยการเปรียบเทียบข้อมูลจากการเทรนกับข้อมูลจาก Validation set</p>
