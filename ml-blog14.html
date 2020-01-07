@@ -1,0 +1,238 @@
+<!doctype html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 14: Neural Network Programming</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Neural Network Programming</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
+<p>บทนี้เราจะมาลองสร้างโมเดล Neural network อย่างง่ายๆ ด้วยการใช้ Deep learning framework ที่ชื่อ TensorFlow</p>
+<p>เป้าหมายของเราคือการสร้างโมเดลพยากรณ์ว่าลายมือเขียนตัวเขียน 0-9 จากฐานข้อมูล MNIST นั้น เขียนว่าตัวเลขอะไร</p>
+<p><img alt="MNIST dataset" src="images/ml-blog14-mnist.png"></p>
+<p>ตัวอย่างชุดข้อมูล MNIST, ภาพโดย<a href="https://commons.wikimedia.org/w/index.php?curid=64810040"> Josef Steppan</a> - Own work, CC BY-SA 4.0</p>
+<p>ปัญหานี้เป็นปัญหาที่เหมาะสมกับ Deep learning เพราะข้อมูล Input เป็นภาพ ซึ่งเป็นข้อมูลที่ไม่มีโครงสร้าง (Unstructured data) และมีจำนวน Feature เยอะมาก โดยในกรณีชุดข้อมูล MNIST นี้ แต่ละภาพมีขนาด 28 x 28 Pixel นั่นคือมี 784 Feature นั่นคือ <script type="math/tex">x_0</script> จนถึง <script type="math/tex">x_{783}</script>
+</p>
+<p>เราจะเริ่มด้วยการ Import library ที่ต้องใช้ ซึ่งนอกจาก numpy และ matplotlib ตามปกติ เราจะใช้ tensorflow.keras เพื่อโหลดชุดข้อมูลจาก <code>.datasets</code>, โครงสร้างโมเดลจาก <code>.models</code>, และโครงสร้างของ Layer ต่างๆ จาก <code>.layers</code></p>
+<p>Keras คือ High-level interface ของ TensorFlow ซึ่งเป็น Low-level framework เปรียบเทียบเหมือนกับ TensorFlow เป็นวงจรสวิทช์ไฟ เราอาจควบคุมว่าจะเปิดปิดไฟดวงไหนด้วยการเชื่อมสายไฟในสวิทช์ไฟเข้าด้วยกัน แต่จะใช้เวลาและไม่สะดวก Keras เปรียบเสมือนแผนสวิทช์ไฟที่มีสวิทช์และหน้ากากเรียบร้อย ทำให้เราควบคุมการเปิดปิดไฟได้ง่ายและสะดวกกว่ามาก</p>
+<pre><code>import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Flatten
+</code></pre>
+
+<p>Class ต่างๆ ที่เราโหลดมา จะอธิบายภายหลังในส่วนการสร้างโมเดล</p>
+<p>จากนั้นเราก็โหลดชุดข้อมูล MNIST โดย TensorFlow ได้ฝัง MNIST ไว้ให้แล้ว เพราะเป็นชุดข้อมูลยอดนิยมที่เอาไว้ฝึกและทดสอบโมเดล การโหลดทำได้โดยเรียก:</p>
+<pre><code># Load the MNIST data
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+
+# Check data dimension
+print(&quot;X_train data shape is&quot;, X_train.shape)
+print(&quot;y_train data shape is&quot;, y_train.shape)
+print(&quot;X_test data shape is&quot;, X_test.shape)
+print(&quot;y_test data shape is&quot;, y_test.shape)
+
+# Check data type
+print(&quot;X_train data type is&quot;, X_train.dtype)
+print(&quot;y_train data type is&quot;, y_train.dtype)
+print(&quot;X_test data type is&quot;, X_test.dtype)
+print(&quot;y_test data type is&quot;, y_test.dtype)
+</code></pre>
+
+<p>เราควรเช็คมิติข้อมูลทุกครั้งที่โหลดข้อมูลมา พบว่า Train set มี 60,000 รายการ ขนาด 28 x 28 Pixel ส่วน Test set มี 10,000 รายการ ส่วน Data Type เป็น <code>uint8</code></p>
+<pre><code>X_train data shape is (60000, 28, 28)
+y_train data shape is (60000,)
+X_test data shape is (10000, 28, 28)
+y_test data shape is (10000,)
+X_train data type is uint8
+y_train data type is uint8
+X_test data type is uint8
+y_test data type is uint8
+</code></pre>
+
+<p>จากนั้นมาลองดูตัวอย่างข้อมูลกัน เนื่องจากเรารู้ว่าข้อมูลเป็นภาพ เราสามารถใช้ Method <code>.imshow</code> ของ matplotlib แสดงภาพได้ทันที:</p>
+<pre><code># Visualise sample data
+img_index = 999
+print(y_train[img_index])
+plt.imshow(X_train[img_index])
+</code></pre>
+
+<p>ได้ภาพขนาด 28 x 28 สังเกตว่ามีสี เพราะเป็นค่าตั้งต้นของ matplotlib เอง ในความเป็นจริงข้อมูลไม่ได้มีสี</p>
+<p><img alt="MNIST data visualised" src="images/ml-blog14-01.png"></p>
+<p>ต่อมา เราจะ Preprocess ข้อมูลให้พร้อมใช้งานขึ้น สิ่งที่จะทำมีดังนี้:</p>
+<ul>
+<li>เปลี่ยนมิติข้อมูลให้เป็น 4 มิติ คือ (จำนวนรายการ, Column, Row, จำนวน Layer สี) โดยข้อมูลของเราเป็นภาพขาวดำขนาด 28 x 28 ดังนั้นมิติคือ (จำนวนรายการ, 28, 28, 1)</li>
+<li>กำหนดตัวแปรมิติข้อมูล เพื่อเตรียมใช้ใน Argument <code>input_shape</code> ใน Layer แรกของ Model โดยไม่ต้องระบุจำนวนรายการ ดังนั้น มิติข้อมูลสำหรับ Layer แรก คือ (28, 28, 1) อนึ่งเราต้องกำหนดมิติข้อมูลสำหรับ Layer แรกเท่านั้น ส่วน Layer อื่น TensorFlow จะอนุมานให้เอง</li>
+<li>แปลง Data type ของข้อมูลให้เป็น Float เพื่อให้ Algorithm สามารถคำนวนและแสดงผลเป็นค่าทศนิยมได้</li>
+<li>เลือกข้อมูลแค่บางส่วนมาเทรนและทดสอบ เราจะไม่ใช้ทั้งหมดเพราะจะใช้เวลาเทรนนาน จึงเลือก Train set 2,000 รายการ และ Test set 400 รายการ</li>
+<li>Scale ข้อมูลโดยใช้วิธี Normalise ซึ่งก็คือการหารข้อมูลทุกรายการด้วย Range ของค่าความสว่างของแต่ละ Pixel นั่นก็คือ 255 นั่นเอง</li>
+</ul>
+<pre><code># Reshaping the array to 3-d for Keras
+X_train = X_train.reshape(X_train.shape[0], 28, 28, 1)
+X_test = X_test.reshape(X_test.shape[0], 28, 28, 1)
+input_shape = (28, 28, 1)
+
+# Convert data type to float so we can get decimal points after division
+# Also scope down X_train and X_test to 2000:400 samples
+X_train = X_train[:2000, :, :, :].astype('float32')
+X_test = X_test[:400, :, :, :].astype('float32')
+
+# Also scope down y_train and y_test to 2000:400 samples
+y_train = y_train[:2000]
+y_test = y_test[:400]
+
+# Normalizing by dividing it to the max brightness value.
+X_train /= 255
+X_test /= 255
+print('X_train shape:', X_train.shape)
+print('X_test shape:', X_test.shape)
+print('y_train shape:', y_train.shape)
+print('y_test shape:', y_test.shape)
+</code></pre>
+
+<p>เช็คมิติข้อมูลอีกทีก็จะได้จำนวนรายการและมิติตามที่ต้องการ</p>
+<pre><code>X_train shape: (2000, 28, 28, 1)
+X_test shape: (400, 28, 28, 1)
+y_train shape: (2000,)
+y_test shape: (400,)
+</code></pre>
+
+<p>ตอนนี้เราก็พร้อมจะสร้างโมเดลแล้ว ในขั้นนี้ เราต้องออกแบบว่าโมเดลของเราจะมีโครงสร้างอย่างไร ดังนั้น สิ่งที่ต้องตัดสินใจก็คือ:</p>
+<ul>
+<li>จำนวน Layer โดยนับ Hidden layer บวก Output layer</li>
+<li>คุณสมบัติของแต่ละ Layer เช่น Hidden layer แรก เป็น Dense layer (ทุก Neuron เชื่อมข้อมูลจากทุก Input จาก Layer ก่อนหน้า), จำนวน 100 Neuron, ใช้ RELU เป็น Activation function เป็นต้น เราจะอธิบายเรื่อง Activation function ในบทต่อๆ ไป</li>
+<li>Layer พิเศษ เช่น Dropout เป็นวิธีการ Regularise วิธีหนึ่ง ซึ่งจะอธิบายในบทต่อๆ ไป</li>
+<li>ตัวเลือกของ Optimisation algorithm ได้แก่ Cost function ที่ใช้ (Argument <code>loss</code>), กลไกการ Optimise ที่ใช้ (Argument <code>optimizer</code>), และวิธีการชี้วัดความแม่นยำ (Argument <code>metrics</code>) โดยตัวเลือกต่างๆ จะอธิบายภายหลังเช่นกัน</li>
+</ul>
+<p>เมื่อตัดสินใจได้แล้วว่าโมเดลจะมีโครงสร้างและคุณสมบัติอย่างไร ขั้นตอนในการสร้างโมเดลก็คือ:</p>
+<ul>
+<li>Instantiate โครงสร้างโมเดล โดยเรียก Class <code>Sequential</code> ให้อยู่ใน Instance object โดยเราจะใช้ชื่อ Instance นี้ว่า <code>model</code></li>
+<li>เรียก Method <code>.add</code> เพื่อสร้าง Layer ทีละชั้น จากซ้ายไปขวา โดยกำหนด Argument ที่สอดคล้องกับโครงสร้าง Layer ที่เราออกแบบไว้</li>
+<li>Compile โมเดลตามโครงสร้างที่เรากำหนดไว้ โดยเรียก Method <code>.compile</code></li>
+</ul>
+<pre><code># Build and compile model
+model = Sequential()
+model.add(Flatten())
+model.add(Dense(100, activation='relu', input_shape=input_shape))
+model.add(Dropout(0.2))
+model.add(Dense(10, activation='softmax'))
+
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+</code></pre>
+
+<p>สังเกต Layer สุดท้าย คือ <code>Dense(10, activation='softmax')</code> ใช้ Softmax activation function ซึ่งทำให้โมเดลสามารถ Output แบบ Multiclass ได้ โดยเราต้องกำหนดจำนวน Neuron เท่ากับจำนวน Class ที่เป็นไปได้ ซึ่งก็คือ 10 ั่นนเอง</p>
+<p>จากนั้นก็เริ่มเทรนโดยเรียก Method <code>.fit</code> พร้อมกำหนด Argument ต่างๆ ซึ่งหลักๆ ก็มี:</p>
+<ul>
+<li><code>epochs</code> จำนวนรอบของการเทรน โดยแต่ละ Epoch จะทำให้ Loss ลดลง ในขณะที่ Accuracy เพิ่ม</li>
+<li><code>batch_size</code> ขนาดของ Batch ซึ่งก็คือจำนวนรายการข้อมูลที่จะให้ Optimiser คำนวนในหนึ่งครั้ง เช่น ข้อมูลมี 2,000 รายการ ถ้ากำหนด Batch size เป็น 32 แปลว่า Optimiser จะต้องทำงาน 62.5 ครั้ง จึงจะครบทั้ง 2,000 รายการ และถ้ากำหนด Epoch เป็น 20 ก็หมายถึงการทำงาน 62.5 ครั้ง 20 รอบ การกำหนด Batch size จะมีผลโดยตรงกับความเร็วในการคำนวน ยิ่ง Batch ใหญ่ ยิ่งคำนวนเร็ว แต่ Batch ที่ใหญ่เกินไปอาจทำให้ข้อมูลที่คำนวนมีขนาดใหญ่เกินกว่า Memory ของเครื่องเราจะรองรับได้ ทั้งนี้ใน การกำหนด Batch size แบบต่างๆ จะมีชื่อเรียกเฉพาะ เช่น Batch gradient descent แปลว่า Batch size เท่ากับจำนวนรายการข้อมูล ไม่มีการแบ่ง, Mini-batch gradient descent คือการแบ่งข้อมูลออกเป็น Batch, ส่วน Stochastic gradient descent คือ Batch size เท่ากับ 1 เราจะอธิบายเรื่องนี้ละเอียดในภายหลัง</li>
+<li><code>validation split</code> เราสามารถกัน Train set ส่วนหนึ่งไว้เป็น Validation set ซึ่งก็คือข้อมูลชุดที่โมเดลไม่เคยเห็น Keras จะคำนวน Loss และความแม่นยำกับ Validation set ทุกครั้งที่คำนวนจบ 1 Epoch และแสดงผลให้เราเห็น อนึ่งการแบ่ง Validation set จะตัดเอาส่วนสุดท้ายของ Train set มาเลยโดยไม่สุ่ม ดังนั้นเราจึงควรสุ่ม Shuffle ข้อมูลให้เรียบร้อยตั้งแต่แรก รายละเอียดเกี่ยวกับการแบ่งชุดข้อมูลออกเป็น Train / Validation / Test set จะอธิบายละเอียดในบทต่อๆ ไป</li>
+</ul>
+<pre><code># Fit the model to data
+model.fit(X_train, y_train, epochs=20, batch_size=32, validation_split=0.2, verbose=1)
+</code></pre>
+
+<p>การเทรนโมเดล Neural network อาจใช้เวลานานมาก ขึ้นอยู่กับจำนวนรายการและ Feature ข้อมูล รวมทั้งโครงสร้าง Layer เช่นจำนวน Layer และจำนวน Neuron โดย TensorFlow จะช่วยเราด้วยการแสดงความก้าวหน้าของการเทรนแต่ละ Epoch เป็น Progress bar และเวลาที่ใช้ เพื่อให้เราสามารถประเมินได้ว่าจะต้องรออีกนานเท่าใด</p>
+<p>ผลที่ได้ออกมาดังนี้:</p>
+<pre><code>Train on 1600 samples, validate on 400 samples
+Epoch 1/20
+1600/1600 [===] - 1s 491us/sample - loss: 1.4701 - accuracy: 0.5881 - val_loss: 0.7175 - val_accuracy: 0.8275
+Epoch 2/20
+1600/1600 [===] - 0s 158us/sample - loss: 0.6571 - accuracy: 0.8213 - val_loss: 0.4700 - val_accuracy: 0.8600
+Epoch 3/20
+1600/1600 [===] - 0s 146us/sample - loss: 0.4681 - accuracy: 0.8744 - val_loss: 0.3726 - val_accuracy: 0.8925
+.           .           .           .           .           .           .
+.           .           .           .           .           .           .
+.           .           .           .           .           .           .
+Epoch 18/20
+1600/1600 [===] - 0s 233us/sample - loss: 0.0807 - accuracy: 0.9844 - val_loss: 0.2492 - val_accuracy: 0.9375
+Epoch 19/20
+1600/1600 [===] - 0s 174us/sample - loss: 0.0675 - accuracy: 0.9906 - val_loss: 0.2474 - val_accuracy: 0.9275
+Epoch 20/20
+1600/1600 [===] - 0s 174us/sample - loss: 0.0638 - accuracy: 0.9881 - val_loss: 0.2490 - val_accuracy: 0.9300
+</code></pre>
+
+<p>สังเกตว่าแต่ละ Epoch ที่เทรน Loss และ Validation loss จะลดลงเรื่อยๆ สอดคล้องกับ Accuracy และ Validation accuracy ที่เพิ่มขึ้นเรื่อยๆ ซึ่งในกรณีของเราไปหยุดที่ Validation accuracy 93% เราสามารถใช้ผลนี้เป็นตัวบ่งชี้ว่าควรจะปรับ Hyperparameter ต่างๆ ของโมเดลหรือไม่อย่างไร เพื่อทำให้โมเดลมีความแม่นยำมากขึ้น รวมทั้งสามารถวิเคราะห์ปัญหา Bias/variance ด้วยการเปรียบเทียบข้อมูลจากการเทรนกับข้อมูลจาก Validation set</p>
+<p>เราสามารถ Visualise ความก้าวหน้าของการฝึกโมเดลได้ โดยการใช้ matplotlib พล็อตค่าจาก <code>model.history.history</code> ซึ่งเก็บตัวเลขการเทรนไว้ใน Dictionary key:</p>
+<pre><code># Review model's progress
+plt.figure(figsize=(9,6))
+plt.plot(model.history.history['accuracy'], label='Train accuracy')
+plt.plot(model.history.history['val_accuracy'], label='Validation accuracy')
+plt.ylabel('Value')
+plt.xlabel('No. epoch')
+plt.legend()
+plt.show()
+</code></pre>
+
+<p>ภาพที่ได้คือ:</p>
+<p><img alt="MNIST accuracy vs. epoch" src="images/ml-blog14-03.png"></p>
+<p>จะเห็นว่าโมเดลของเราสามารถเพิ่ม Train accuracy ได้อย่างต่อเนื่อง อย่างไรก็ตาม ดูเหมือน Validation accuracy จะไม่ยอมเพิ่มจากจุดสูงสุด คือประมาณ 0.93 ตั้งแต่ Epoch ที่ 8 จากข้อมูลนี้เราสามารถวิเคราะห์ได้ว่าโมเดลมีปัญหา Variance ซึ่งก็คือการที่ไม่สามารถ Generalise ให้พยากรณ์ข้อมูลที่ไม่เคยเห็นได้ดีเท่าที่ควร ดังนั้นข้อมูลนี้จึงบอกเราว่าเราควรลองมาตรการต่างๆ ที่จะช่วยลดปัญหา Variance เช่น การเพิ่มขนาด Validation set การเพิ่มหรือปรับเทคนิคการ Regularisation เป็นต้น</p>
+<p>ต่อมา เราก็นำทดสอบความแม่นยำของโมเดล กับ Test set ซึ่งแยกไว้ตั้งแต่แรกอีกที โดยการใช้ Method <code>.evaluate</code>:</p>
+<pre><code># Evaluate model's accuracy
+score = model.evaluate(X_test, y_test, verbose=0)
+print(&quot;Loss is&quot;, score[0])
+print(&quot;Accuracy score is&quot;, score[1])
+</code></pre>
+
+<p>ได้ผลใกล้เคียงกับ Validation accuracy คือ 92.25%</p>
+<pre><code>Loss is 0.3142095559835434
+Accuracy score is 0.9225
+</code></pre>
+
+<p>ตรงจุดนี้อาจมีคำถาม ว่าทำไมเราต้องทดสอบกับ Test set อีก ทั้งๆ ที่ได้ทดสอบกับ Validation set แล้ว คำตอบคือ Validation set มีหน้าที่เป็นชุดทดสอบให้เราปรับแต่งค่าต่างๆ ของโมเดล ซึ่งทำให้เกิดความเสี่ยงที่เราจะปรับค่าเพื่อ "เอาใจ" Validation set ส่งผลให้เรา Overfit validation set ทำให้เราไม่รู้ว่าโมเดลของเราจะมีความสามารถในการพยากรณ์ข้อมูลจริงที่ไม่เคยมองเห็นเพียงใด ดังนั้นเราจึงต้องทดสอบโมเดลที่ปรับแต่งเสร็จแล้ว กับ Test set อีกที เพื่อให้ได้ผลที่เที่ยงธรรม ไม่หลอกตัวเอง</p>
+<p>สุดท้าย เรามาลองพยากรณ์กันเลย โดยป้อนภาพที่มี Index ที่ต้องการจาก <code>X_test</code> ลงไปใน Method <code>.predict</code> โดยอย่าลืมแปลงมิติข้อมูลให้สอดคล้องกับตอนแรก นั่นก็คือ (จำนวนรายการ, 28, 28, 1) ซึ่งก็คือ (1, 28, 28, 1) นั่นเอง</p>
+<p>Method <code>.predict</code> จะ Output ออกมาเป็น Array ของความเป็นไปได้ การตีความก็คือเราจะเลือก Index ที่มีความเป็นไปได้สูงสุดเป็นคำตอบ เราสามารถใช้ Method <code>.argmax</code> ในการ Output index ที่มีค่าสูงสุดได้:</p>
+<pre><code># Make a prediction
+image_index = 12
+plt.imshow(X_test[image_index].reshape(28, 28),cmap='Greys')
+pred = model.predict(X_test[image_index].reshape(1, 28, 28, 1))
+print(&quot;Prediction probability array is:&quot;)
+
+count = 0
+
+for i in pred.squeeze():
+    print(count, &quot;:&quot;, i)
+    count += 1
+
+print(&quot;From which the max choice is:&quot;, pred.argmax())
+</code></pre>
+
+<pre><code>Prediction probability array is:
+0 : 6.983635e-06
+1 : 1.8324994e-07
+2 : 7.03581e-05
+3 : 3.01667e-05
+4 : 0.005716639
+5 : 0.00045127788
+6 : 9.964272e-07
+7 : 0.0036463942
+8 : 3.6717152e-05
+9 : 0.99004024
+
+From which the max choice is: 9
+</code></pre>
+
+<p><img alt="MNIST prediction" src="images/ml-blog14-02.png"></p>
+<p>จะเห็นว่าภาพที่ 12 ที่เราเลือก เป็นภาพของเลข 9 โมเดลได้พยากรณ์ว่า 9 โดยให้ความเป็นไปได้ 99%</p>
+<p>การเปรียบเทียบภาพจริงกับค่าที่พยากรณ์ได้ จะช่วยเป็นข้อมูลให้เราวิเคราะห์ข้อผิดพลาดของโมเดลได้ว่าเป็นอย่างไรและน่าจะเกิดจากอะไร โดยจะอธิบายเรื่อง Error analysis เพิ่มเติมในบทต่อๆ ไป</p>
+<p>บทต่อไป เราจะมาเจาะลึกเกี่ยวกับโครงสร้างของโมเดลและตัวเลือกของ Optimisation algorithm</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog13.html">บทที่ 13 Neural Network Programming</a> | บทที่ 15</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
