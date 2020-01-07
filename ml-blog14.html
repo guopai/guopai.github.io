@@ -28,7 +28,7 @@ MathJax.Hub.Config({
 <p>ปัญหานี้เป็นปัญหาที่เหมาะสมกับ Deep learning เพราะข้อมูล Input เป็นภาพ ซึ่งเป็นข้อมูลที่ไม่มีโครงสร้าง (Unstructured data) และมีจำนวน Feature เยอะมาก โดยในกรณีชุดข้อมูล MNIST นี้ แต่ละภาพมีขนาด 28 x 28 Pixel นั่นคือมี 784 Feature นั่นคือ <script type="math/tex">x_0</script> จนถึง <script type="math/tex">x_{783}</script>
 </p>
 <p>เราจะเริ่มด้วยการ Import library ที่ต้องใช้ ซึ่งนอกจาก numpy และ matplotlib ตามปกติ เราจะใช้ tensorflow.keras เพื่อโหลดชุดข้อมูลจาก <code>.datasets</code>, โครงสร้างโมเดลจาก <code>.models</code>, และโครงสร้างของ Layer ต่างๆ จาก <code>.layers</code></p>
-<p>Keras คือ High-level interface ของ TensorFlow ซึ่งเป็น Low-level framework เปรียบเทียบเหมือนกับ TensorFlow เป็นวงจรสวิทช์ไฟ เราอาจควบคุมว่าจะเปิดปิดไฟดวงไหนด้วยการเชื่อมสายไฟในสวิทช์ไฟเข้าด้วยกัน แต่จะใช้เวลาและไม่สะดวก Keras เปรียบเสมือนแผนสวิทช์ไฟที่มีสวิทช์และหน้ากากเรียบร้อย ทำให้เราควบคุมการเปิดปิดไฟได้ง่ายและสะดวกกว่ามาก</p>
+<p>Keras คือ High-level interface ของ TensorFlow ซึ่งเป็น Low-level framework เปรียบเทียบเหมือนกับ TensorFlow เป็นวงจรสวิทช์ไฟ เราอาจควบคุมว่าจะเปิดปิดไฟดวงไหนด้วยการเชื่อมสายไฟในสวิทช์ไฟเข้าด้วยกัน แต่จะใช้เวลาและไม่สะดวก Keras เปรียบเสมือนแผงสวิทช์ไฟที่มีสวิทช์และหน้ากากเรียบร้อย ทำให้เราควบคุมการเปิดปิดไฟได้ง่ายและสะดวกกว่ามาก</p>
 <pre><code>import numpy as np
 import matplotlib.pyplot as plt
 from tensorflow.keras.datasets import mnist
@@ -85,6 +85,8 @@ plt.imshow(X_train[img_index])
 <pre><code># Reshaping the array to 3-d for Keras
 X_train = X_train.reshape(X_train.shape[0], 28, 28, 1)
 X_test = X_test.reshape(X_test.shape[0], 28, 28, 1)
+
+# Specify input shape for the mode's 1st layer
 input_shape = (28, 28, 1)
 
 # Convert data type to float so we can get decimal points after division
@@ -96,7 +98,7 @@ X_test = X_test[:400, :, :, :].astype('float32')
 y_train = y_train[:2000]
 y_test = y_test[:400]
 
-# Normalizing by dividing it to the max brightness value.
+# Normalising all data by dividing by max brightness value.
 X_train /= 255
 X_test /= 255
 print('X_train shape:', X_train.shape)
@@ -137,7 +139,7 @@ model.compile(optimizer='adam',
               metrics=['accuracy'])
 </code></pre>
 
-<p>สังเกต Layer สุดท้าย คือ <code>Dense(10, activation='softmax')</code> ใช้ Softmax activation function ซึ่งทำให้โมเดลสามารถ Output แบบ Multiclass ได้ โดยเราต้องกำหนดจำนวน Neuron เท่ากับจำนวน Class ที่เป็นไปได้ ซึ่งก็คือ 10 ั่นนเอง</p>
+<p>สังเกต Layer สุดท้าย คือ <code>Dense(10, activation='softmax')</code> ใช้ Softmax activation function ซึ่งทำให้โมเดลสามารถ Output แบบ Multiclass ได้ โดยเราต้องกำหนดจำนวน Neuron เท่ากับจำนวน Class ที่เป็นไปได้ ซึ่งก็คือ 10 นั่นเอง</p>
 <p>จากนั้นก็เริ่มเทรนโดยเรียก Method <code>.fit</code> พร้อมกำหนด Argument ต่างๆ ซึ่งหลักๆ ก็มี:</p>
 <ul>
 <li><code>epochs</code> จำนวนรอบของการเทรน โดยแต่ละ Epoch จะทำให้ Loss ลดลง ในขณะที่ Accuracy เพิ่ม</li>
