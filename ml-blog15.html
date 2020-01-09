@@ -138,7 +138,7 @@ MathJax.Hub.Config({
 <p>
 <script type="math/tex; mode=display">z_{norm}^{(i)} = \frac{z^{(i)}-\mu_B}{\sqrt{\sigma_B^2 + \epsilon}} \tag{14}</script>
 </p>
-<p>โดย <script type="math/tex">\epsilon</script> คือจำนวนขนาดเล็กมากๆ ที่บวกเข้าไปเพื่อป้องกันไม่ให้ตัวหารของสมาการเป็น 0 โดยปกติตั้งเป็น <script type="math/tex">10^{-5}</script>
+<p>โดย <script type="math/tex">\epsilon</script> อ่านว่า Epsilon คือจำนวนขนาดเล็กมากๆ ที่บวกเข้าไปเพื่อป้องกันไม่ให้ตัวหารของสมาการเป็น 0 โดยปกติตั้งเป็น <script type="math/tex">10^{-5}</script>
 </p>
 <p>3) Scale และปรับตำแหน่งชุดข้อมูลโดยการนำ <script type="math/tex">z_{norm}^{(i)}</script> ไปคำนวนร่วมกับ Scaling parameter <script type="math/tex">\gamma</script> และ Shifting parameter <script type="math/tex">\beta</script>:</p>
 <p>
@@ -147,6 +147,7 @@ MathJax.Hub.Config({
 <p>โดย Scaling parameter <script type="math/tex">\gamma</script> และ Shifting parameter <script type="math/tex">\beta</script> จะถูกใส่เข้าไปใน Backward propagation เพื่อให้ Algorithm ปรับค่าทั้งสองนี้ระหว่างเทรน</p>
 <p>มีข้อสังเกตว่าถ้าเราทำ Batch normalisation บน Hidden layer แรก ก็ไม่มีความจำเป็นต้อง Normalise input ตั้งแต่แรก</p>
 <p>อย่างไรก็ตาม Batch norm ทำให้การคำนวน Forward propagation ช้าลง ดังนั้นจึงควรพิจารณาว่าการใช้ He initialisation บวกกับ ELU activation function นั้นให้ผลดีเพียงพอแล้วหรือไม่</p>
+<p>ใน TensorFlow เราสามารถทำ Batch normalisation โดยการสร้าง Layer ชื่อ <code>BatchNormalization</code> ได้เลย</p>
 <p>เป็นอันว่าเราเรียนรู้เทคนิคที่จะลดปัญหา Vanishing gradients ได้ถึง 3 แนวทาง บทต่อไปเราจะมาทำความรู้จักกับ Optimiser ต่างๆ ที่จะช่วยเพิ่มความเร็วในการเทรนโมเดล</p>
 <p><a href="index.html">หน้าแรก</a> | <a href="ml-blog14.html">บทที่ 14 Neural Network Programming</a> | บทที่ 16 Neural Network Optimisers</p>
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
