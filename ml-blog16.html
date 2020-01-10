@@ -91,7 +91,7 @@ MathJax.Hub.Config({
 <p>สังเกตว่า Term ที่เอาไปถ่วงกับ Learning rate นั้นไม่เหมือน Momentum กล่าวคือเป็นการนำ Square root ของค่าน้ำหนักเร่งไปหารออกจากอนุพันธ์ วิธีการนี้จะช่วยจำกัดความแปรผันในทิศที่ตั้งฉากกับทิศทางที่ไปสู่จุดต่ำสุดของ Cost function ในขณะที่ Momentum สนใจในการสร้างแรงที่มุ่งไปสู่ทิศต่ำสุดของ Cost function อย่างเดียว</p>
 <h2>Adam</h2>
 <p>Adam ย่อมาจาก Adaptive Moment Estimation <strong>เป็นการรวม Momentum และ RMSProp เข้าด้วยกัน</strong> ถือว่าเป็น Optimiser ที่ดีที่สุดในปัจจุบัน มีวิธีการคำนวนดังนี้ (แสดงเฉพาะสำหรับ <script type="math/tex">w</script>):</p>
-<p>1) คำนวน Vector ของ "น้ำหนักเร่ง" <script type="math/tex">v</script> โดยใช้ EMA ตามแบบ Momentum แล้วแก้ Bias ที่เกิดจากการที่ <script type="math/tex">v</script> ถูก Initialise ด้วย 0 (ถ้าไม่แก้จะทำให้ <script type="math/tex">v</script> รอบแรกๆ มีค่าต่ำกว่าที่ควรจะเป็น):</p>
+<p>1) คำนวน Vector ของ "น้ำหนักเร่ง" <script type="math/tex">v</script> โดยใช้ EMA ตามแบบ Momentum และ Vector ของ "น้ำหนักเร่ง" <script type="math/tex">s</script> โดยใช้ EMA ตามแบบ RMSProp แล้วแก้ Bias ที่เกิดจากการที่ <script type="math/tex">v</script> และ <script type="math/tex">s</script> ถูก Initialise ด้วย 0 (ถ้าไม่แก้จะทำให้ <script type="math/tex">v</script> และ <script type="math/tex">s</script> รอบแรกๆ มีค่าต่ำกว่าที่ควรจะเป็น):</p>
 <p>
 <script type="math/tex; mode=display">v_{dW^{[l]}} = \beta_1 v_{dW^{[l]}} + (1-\beta_1)dW^{[l]} \tag{11}</script>
 </p>
