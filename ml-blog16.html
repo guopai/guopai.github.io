@@ -1,0 +1,116 @@
+<!doctype html>
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-101718744-3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-101718744-3');
+</script>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 16: Neural Network Optimisers</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Neural Network Optimisers</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
+<p>มาจนถึงตอนนี้ เรารู้ว่ากลไกที่นำเอาอนุพันธ์ของตัวแปรต่างๆ มาอัปเดตเพื่อลด Loss ใน Cost function นั้นเรียกว่า Gradient descent ซึ่งทำงานโดยการนำเอาอนุพันธ์ไปถ่วงน้ำหนักด้วย Learning rate <script type="math/tex">\alpha</script> แล้วลบออกจาก Parameter ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">W^{[l]} := W^{[l]} - \alpha (dW^{[l]}) \tag{1}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">b^{[l]} := b^{[l]} - \alpha (db^{[l]}) \tag{2}</script>
+</p>
+<p>โดย <script type="math/tex">[l]</script> คือลำดับที่ของ Layer</p>
+<p>กลไกการ Optimise แบบนี้ มักเกิดปัญหาว่าถ้าหากอนุพันธ์นั้นมีค่าน้อย (คือมีความชันน้อย) ก็จะทำให้ Parameter ถูกอัปเดตแต่ละรอบช้ามาก ส่งผลให้ใช้เวลานานกว่าโมเดลจะเทรนจนถึงจุดที่ Loss ค่ำที่สุดเท่าที่จะเป็นไปได้</p>
+<p>ปัจจุบัน มี Algorithm ชั้นสูงเพื่อเพิ่มประสิทธิภาพการ Optimise ให้เลือกใช้ โดย Optimiser เหล่านี้ล้วนมีหลักการคล้ายกัน คือนำค่าอนุพันธ์ล่าสุดไปเพิ่มน้ำหนักให้แก่การ Optimise ในรอบถัดไป เพื่อเร่งความเร็วของการอัปเดตให้มากขึ้น ในบทนี้เราจึงจะมาเรียนรู้ Optimiser ชั้นสูง 3 ตัว ได้แก่ Momentum, RMSProp, และ Adam โดยเราสามารถเรียกใช้ Optimiser เหล่านี้ได้โดยการกำหนด Argument ใน Method <code>.compile</code> เช่น:</p>
+<pre><code>model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+</code></pre>
+
+<h2>Momentum</h2>
+<p>Momentum optimiser ใช้อนุพันธ์ล่าสุดมาทำให้การเคลื่อนที่ของ Cost function นั้นพุ่งไปข้างหน้าอย่างนุ่มนวล หัวใจหลักของความสามารถนี้คือการใช้ <strong>Exponentially weighted moving average (EMA) ของอนุพันธ์</strong> มาอัปเดต Parameter</p>
+<p>วิธีการคำนวน Momentum มีดังนี้:</p>
+<p>1) คำนวน Vector ของ "น้ำหนักเร่ง" <script type="math/tex">v</script> โดยใช้ EMA:</p>
+<p>
+<script type="math/tex; mode=display">v_{dW^{[l]}} = \beta v_{dW^{[l]}} + (1-\beta)dW^{[l]} \tag{3}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">v_{db^{[l]}} = \beta v_{db^{[l]}} + (1-\beta)db^{[l]} \tag{4}</script>
+</p>
+<ul>
+<li>
+<script type="math/tex">v_{dW^{[l]}}</script> และ <script type="math/tex">v_{db^{[l]}}</script> คือ Vector ของน้ำหนักเร่งของ <script type="math/tex">dW</script> และ <script type="math/tex">db</script> ตัวที่แล้ว โดยเริ่ม Initialise ด้วย 0</li>
+<li>
+<script type="math/tex">\beta</script> คือค่าน้ำหนักของ EMA ปกติตั้งที่ 0.9 ซึ่งแปลว่า "ค่าน้ำหนักเร่งใหม่ มาจากค่าน้ำหนักเร่งเก่า 9 ส่วน และ <script type="math/tex">dW</script> 1 ส่วน"</li>
+</ul>
+<p>2) นำค่าน้ำหนักเร่ง <script type="math/tex">v_{dW^{[l]}}</script> และ <script type="math/tex">v_{db^{[l]}}</script> ที่ได้ ไปถ่วง Learning rate <script type="math/tex">\alpha</script> และลบออกจาก <script type="math/tex">W^{[l]}</script> และ <script type="math/tex">b^{[l]}</script>:</p>
+<p>
+<script type="math/tex; mode=display">W^{[l]} := W^{[l]} - \alpha (v_{dW^{[l]}}) \tag{5}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">b^{[l]} := b^{[l]} - \alpha (v_{db^{[l]}}) \tag{6}</script>
+</p>
+<p>สังเกตว่าสมการที่ (5) และ (6) นั้นก็คือการอัปเดต Parameter ตามปกติ เพียงเปลี่ยนตัวแปรที่เอาไปถ่วงน้ำหนักและลบออก จากเดิมใช้ <script type="math/tex">dW^{[l]}</script> และ <script type="math/tex">db^{[l]}</script> เป็นค่าน้ำหนักเร่ง <script type="math/tex">v_{dW^{[l]}}</script> และ <script type="math/tex">v_{db^{[l]}}</script>
+</p>
+<h2>RMSProp</h2>
+<p>RMSProp ย่อมาจาก Root Mean Square Propagation มีคุณสมบัติคล้ายกับ Momentum แต่แทนที่จะใช้ EMA ของอนุพันธ์ตัวที่ผ่านๆ มาในการอัปเดต Parameter เปลี่ยนไปใช้ <strong>EMA ของยกกำลังสองของอนุพันธ์</strong>แทน โดยมีวิธีการคำนวนดังนี้:</p>
+<p>1) คำนวน Vector ของ "น้ำหนักเร่ง" <script type="math/tex">s</script> โดยใช้ EMA ของยกกำลังสองของอนุพันธ์:</p>
+<p>
+<script type="math/tex; mode=display">s_{dW^{[l]}} = \beta s_{dW^{[l]}} + (1-\beta)dW^{[l]2} \tag{7}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">s_{db^{[l]}} = \beta s_{db^{[l]}} + (1-\beta)db^{[l]2} \tag{8}</script>
+</p>
+<p>2) นำค่าน้ำหนักเร่ง <script type="math/tex">s_{dW^{[l]}}</script> และ <script type="math/tex">s_{db^{[l]}}</script> ที่ได้ ไปประกอบกับ <script type="math/tex">dW^{[l]}</script> และ <script type="math/tex">db^{[l]}</script> และถ่วงกับ Learning rate <script type="math/tex">\alpha</script> ตามสมการด้านล่าง แล้วลบออกจาก <script type="math/tex">W^{[l]}</script> และ <script type="math/tex">b^{[l]}</script>:</p>
+<p>
+<script type="math/tex; mode=display">W^{[l]} := W^{[l]} - \alpha \left(\frac{dW^{[l]}}{\sqrt{s_{dW^{[l]}}} + \epsilon}\right) \tag{9}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">b^{[l]} := b^{[l]} - \alpha \left(\frac{db^{[l]}}{\sqrt{s_{db^{[l]}}} + \epsilon}\right) \tag{10}</script>
+</p>
+<p>โดย <script type="math/tex">\epsilon</script> คือค่าคงที่ขนาดเล็กๆ ที่ป้องกันไม่ให้ตัวหารเป็น 0</p>
+<p>สังเกตว่า Term ที่เอาไปถ่วงกับ Learning rate นั้นไม่เหมือน Momentum กล่าวคือเป็นการนำ Square root ของค่าน้ำหนักเร่งไปหารออกจากอนุพันธ์ วิธีการนี้จะช่วยจำกัดความแปรผันในทิศที่ตั้งฉากกับทิศทางที่ไปสู่จุดต่ำสุดของ Cost function ในขณะที่ Momentum สนใจในการสร้างแรงที่มุ่งไปสู่ทิศต่ำสุดของ Cost function อย่างเดียว</p>
+<h2>Adam</h2>
+<p>Adam ย่อมาจาก Adaptive Moment Estimation <strong>เป็นการรวม Momentum และ RMSProp เข้าด้วยกัน</strong> ถือว่าเป็น Optimiser ที่ดีที่สุดในปัจจุบัน มีวิธีการคำนวนดังนี้ (แสดงเฉพาะสำหรับ <script type="math/tex">w</script>):</p>
+<p>1) คำนวน Vector ของ "น้ำหนักเร่ง" <script type="math/tex">v</script> โดยใช้ EMA ตามแบบ Momentum แล้วแก้ Bias ที่เกิดจากการที่ <script type="math/tex">v</script> ถูก Initialise ด้วย 0 (ถ้าไม่แก้จะทำให้ <script type="math/tex">v</script> รอบแรกๆ มีค่าต่ำกว่าที่ควรจะเป็น):</p>
+<p>
+<script type="math/tex; mode=display">v_{dW^{[l]}} = \beta_1 v_{dW^{[l]}} + (1-\beta_1)dW^{[l]} \tag{11}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">v_{dW^{[l]}}^{corrected} = \frac{v_{dW^{[l]}}}{1-\beta_1^t} \tag{12}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">s_{dW^{[l]}} = \beta_2 s_{dW^{[l]}} + (1-\beta_2)dW^{[l]2} \tag{13}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">s_{dW^{[l]}}^{corrected} = \frac{s_{dW^{[l]}}}{1-\beta_2^t} \tag{14}</script>
+</p>
+<p>2) นำค่าน้ำหนักเร่ง <script type="math/tex">v_{dW^{[l]}}^{corrected}</script> และ <script type="math/tex">s_{dW^{[l]}}^{corrected}</script> ไปประกอบกันในลักษณะเดียวกับ RMSProp คือ <script type="math/tex">v_{dW^{[l]}}^{corrected}</script> เป็นตัวตั้ง หารด้วย Square root ของ <script type="math/tex">s_{dW^{[l]}}^{corrected}</script> เพื่อจำกัดความแปรผันในทิศที่ตั้งฉากกับทิศทางที่ไปสู่จุดต่ำสุดของ Cost function แล้วถ่วงกับ Learning rate <script type="math/tex">\alpha</script> แล้วลบออกจาก <script type="math/tex">W^{[l]}</script> และ <script type="math/tex">b^{[l]}</script>:</p>
+<p>
+<script type="math/tex; mode=display">W^{[l]} := W^{[l]} - \alpha \left(\frac{v_{dW^{[l]}}^{corrected}}{\sqrt{s_{dW^{[l]}}^{corrected}} + \epsilon}\right) \tag{15}</script>
+</p>
+<p>ในทางปฏิบัติ แนะนำให้ใช้ Adam ไปเลย เว้นแต่จะมีปัญหาก็สามารถลองใช้ Momentum ได้</p>
+<p>ในบทต่อไปจะพูดถึงเทคนิคการ Regularise deep neural network ซึ่งรวมทั้ง Dropout layer</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog15.html">บทที่ 15 Neural Network Vanishing Gradients</a> | บทที่ 17 Neural Network Regularisation</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
