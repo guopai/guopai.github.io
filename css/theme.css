@@ -10,6 +10,10 @@ body {
     text-align: center;
 }
 
+h2 {
+    margin-top: 10px;
+}
+
 a:link {
     color: #808080;
 }
