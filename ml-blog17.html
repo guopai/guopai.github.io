@@ -42,20 +42,20 @@ MathJax.Hub.Config({
 <p>ค่าของ Regularisation term นี้ จะแปรผันตามความซับซ้อนของโมเดล ด้วยการใช้ <script type="math/tex">l^2</script> norm ของ <script type="math/tex">W</script> เป็นพื้นฐาน</p>
 <p>Cost function ที่รวม Regularisation term แล้ว มีสมการรูปทั่วไปดังนี้:</p>
 <p>
-<script type="math/tex; mode=display">J = \frac{1}{m} \sum\limits_{i=1}^m L(\hat{y}^{(i)}, y^{(i)}) + \frac{\lambda}{2m} \sum\limits_{l=1}^L \Vert{W^{[l]}}\Vert_F^2 </script>
+<script type="math/tex; mode=display">J = \frac{1}{m} \sum\limits_{i=1}^m L(\hat{y}^{(i)}, y^{(i)}) + \frac{\lambda}{2m} \sum\limits_{l=1}^L \Vert{W^{[l]}}\Vert_F^2 \tag{1}</script>
 </p>
 <p>โดย <script type="math/tex">\Vert{W^{[l]}}\Vert_F^2</script> คือ Frobenius norm ของ Matrix W คำนวนจากผลรวมของ <script type="math/tex">w</script> ยกกำลังสองทุกตัวของทุก Layer ตั้งแต่ Hidden layer ไปจนถึง Output layer สามารถแทนเป็นสมการดังนี้:</p>
 <p>
-<script type="math/tex; mode=display">\Vert{W^{[l]}}\Vert_F^2 = \sum\limits_{i=1}^{n^{l-1}} \sum\limits_{l=1}^{n^l} (W_{i,j}^{[l]})^2</script>
+<script type="math/tex; mode=display">\Vert{W^{[l]}}\Vert_F^2 = \sum\limits_{i=1}^{n^{l-1}} \sum\limits_{l=1}^{n^l} (W_{i,j}^{[l]})^2 \tag{2}</script>
 </p>
 <p>โดย <script type="math/tex">W</script> เป็น Matrix ขนาด <script type="math/tex">n^{l-1}</script> คูณ <script type="math/tex">n^{l}</script>
 </p>
 <p>สิ่งที่ Regularisation term นี้ทำ ก็คือการกดดันให้ค่าน้ำหนัก <script type="math/tex">w</script> มีค่าน้อยลง โดยการทำงานคู่กับการที่เราบวก <script type="math/tex">\frac{\lambda}{m} W^{[l]}</script> เข้าไปในอนุพันธ์ของ <script type="math/tex">w</script> ทำให้ <script type="math/tex">dW^{[l]}</script> มีค่ามากขึ้น ส่งผลให้ <script type="math/tex">W^{[l]}</script> มีค่าน้อยลง ดังนี้:</p>
 <p>
-<script type="math/tex; mode=display">dW^{[l]} = \text{from backprop} + \frac{\lambda}{m} W^{[l]}</script>
+<script type="math/tex; mode=display">dW^{[l]} = \text{from backprop} + \frac{\lambda}{m} W^{[l]} \tag{3}</script>
 </p>
 <p>
-<script type="math/tex; mode=display">W^{[l]} := W^{[l]} - \alpha(dW^{[l]})</script>
+<script type="math/tex; mode=display">W^{[l]} := W^{[l]} - \alpha(dW^{[l]}) \tag{4}</script>
 </p>
 <p>โดยการลดลงของ <script type="math/tex">w</script> นี้ จะแปรผันตามขนาดที่แท้จริงของ <script type="math/tex">W</script> เราเรียกพฤติกรรมนี้ว่าการถดถอยน้ำหนัก หรือ Weight decay</p>
 <p>สังเกตว่าการทำ <script type="math/tex">l^2</script> regularisation นี้ เราต้องกำหนด Hyperparameter <script type="math/tex">\lambda</script> ที่ควบคุมว่า Regularisation term จะมีผลต่อการถดถอยของน้ำหนักเพียงใด</p>
@@ -130,20 +130,20 @@ model.fit(X_train, y_train, epochs=20, batch_size=32, validation_split=0.2, verb
 <p>ระหว่างเทรน จะได้ผลออกมาดังนี้:</p>
 <pre><code>Train on 1600 samples, validate on 400 samples
 Epoch 1/20
-1600/1600 [===] - 1s 491us/sample - loss: 1.4701 - accuracy: 0.5881 - val_loss: 0.7175 - val_accuracy: 0.8275
+[===] - 1s 491us/sample - loss: 1.4701 - accuracy: 0.5881 - val_loss: 0.7175 - val_accuracy: 0.8275
 Epoch 2/20
-1600/1600 [===] - 0s 158us/sample - loss: 0.6571 - accuracy: 0.8213 - val_loss: 0.4700 - val_accuracy: 0.8600
+[===] - 0s 158us/sample - loss: 0.6571 - accuracy: 0.8213 - val_loss: 0.4700 - val_accuracy: 0.8600
 Epoch 3/20
-1600/1600 [===] - 0s 146us/sample - loss: 0.4681 - accuracy: 0.8744 - val_loss: 0.3726 - val_accuracy: 0.8925
+[===] - 0s 146us/sample - loss: 0.4681 - accuracy: 0.8744 - val_loss: 0.3726 - val_accuracy: 0.8925
 .           .           .           .           .           .           .
 .           .           .           .           .           .           .
 .           .           .           .           .           .           .
 Epoch 18/20
-1600/1600 [===] - 0s 233us/sample - loss: 0.0807 - accuracy: 0.9844 - val_loss: 0.2492 - val_accuracy: 0.9375
+[===] - 0s 233us/sample - loss: 0.0807 - accuracy: 0.9844 - val_loss: 0.2492 - val_accuracy: 0.9375
 Epoch 19/20
-1600/1600 [===] - 0s 174us/sample - loss: 0.0675 - accuracy: 0.9906 - val_loss: 0.2474 - val_accuracy: 0.9275
+[===] - 0s 174us/sample - loss: 0.0675 - accuracy: 0.9906 - val_loss: 0.2474 - val_accuracy: 0.9275
 Epoch 20/20
-1600/1600 [===] - 0s 174us/sample - loss: 0.0638 - accuracy: 0.9881 - val_loss: 0.2490 - val_accuracy: 0.9300
+[===] - 0s 174us/sample - loss: 0.0638 - accuracy: 0.9881 - val_loss: 0.2490 - val_accuracy: 0.9300
 </code></pre>
 
 <p>ให้สังเกต Validation accuracy ซึ่งจะเพิ่มขึ้นเรื่อยๆ แต่ถึงจุดหนึ่ง จะวกกลับเป็นมีค่าลดลง เช่น Epoch 18 ได้ 93.75% ส่วน Epoch 19 กลับแม่นยำลดลงเป็น 92.75% ดังนั้น เราอาจเลือกหยุดการเทรนที่ Epoch 18 แทนที่จะเป็น Epoch 20 เป็นต้น</p>
