@@ -1,0 +1,155 @@
+<!doctype html>
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-101718744-3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-101718744-3');
+</script>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 17: Neural Network Regularisation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Neural Network Regularisation</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
+<p>Regularisation คือเทคนิคในการลดปัญหา Variance ของโมเดล นั่นก็คือการที่โมเดลถูกเทรนแล้วฟิตกับข้อมูลชุด Train set ได้ดี แต่พยากรณ์ไม่แม่นยำเมื่อนำไปใช้กับ Test set หรือข้อมูลจริงที่โมเดลไม่เคยเห็น บางทีเราเรียกปัญหานี้ว่า Generalisation error</p>
+<p>ภาพด้านล่างนี้แสดงปัญหา Generalisation error ซึ่งเกิดขึ้นจากการที่โมเดลฟิต Parameter เข้ากับ Train set อย่างรัดกุมเกินไป จนกระทั่งไม่สามารถพยากรณ์ข้อมูลที่มองไม่เห็นได้อย่างเที่ยงตรงเท่าที่ควร</p>
+<p><img alt="Generalisation error" src="images/ml-blog07-03.png"></p>
+<p>ซึ่งถ้าหากเราดำเนินการเพื่อลด Generalisation error ก็จะได้โมเดลที่มีความซับซ้อนน้อยลง ทำให้สามารถ Generalise ไปยังข้อมูลชุดใหม่ๆ ได้ดียิ่งขึ้น ดังภาพนี้:</p>
+<p><img alt="Just right model" src="images/ml-blog07-02.png"></p>
+<p>เทคนิคการลด Generalisation error ที่จะนำเสนอ คือ <script type="math/tex">l^2</script> regularisation, Dropout regularisation, และ Early stopping</p>
+<h2>L2 regularisation</h2>
+<p>แนวทางพื้นฐานในการแก้ปัญหา Generalisation error คือการเพิ่ม Regularisation term เข้าไปใน Cost function และในการอัปเดต Parameter เพื่อกดค่า <script type="math/tex">w</script> ให้น้อยลง</p>
+<p>ค่าของ Regularisation term นี้ จะแปรผันตามความซับซ้อนของโมเดล ด้วยการใช้ <script type="math/tex">l^2</script> norm ของ <script type="math/tex">W</script> เป็นพื้นฐาน</p>
+<p>Cost function ที่รวม Regularisation term แล้ว มีสมการรูปทั่วไปดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">J = \frac{1}{m} \sum\limits_{i=1}^m L(\hat{y}^{(i)}, y^{(i)}) + \frac{\lambda}{2m} \sum\limits_{l=1}^L \Vert{W^{[l]}}\Vert_F^2 </script>
+</p>
+<p>โดย <script type="math/tex">\Vert{W^{[l]}}\Vert_F^2</script> คือ Frobenius norm ของ Matrix W คำนวนจากผลรวมของ <script type="math/tex">w</script> ยกกำลังสองทุกตัวของทุก Layer ตั้งแต่ Hidden layer ไปจนถึง Output layer สามารถแทนเป็นสมการดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">\Vert{W^{[l]}}\Vert_F^2 = \sum\limits_{i=1}^{n^{l-1}} \sum\limits_{l=1}^{n^l} (W_{i,j}^{[l]})^2</script>
+</p>
+<p>โดย <script type="math/tex">W</script> เป็น Matrix ขนาด <script type="math/tex">n^{l-1}</script> คูณ <script type="math/tex">n^{l}</script>
+</p>
+<p>สิ่งที่ Regularisation term นี้ทำ ก็คือการกดดันให้ค่าน้ำหนัก <script type="math/tex">w</script> มีค่าน้อยลง โดยการทำงานคู่กับการที่เราบวก <script type="math/tex">\frac{\lambda}{m} W^{[l]}</script> เข้าไปในอนุพันธ์ของ <script type="math/tex">w</script> ทำให้ <script type="math/tex">dW^{[l]}</script> มีค่ามากขึ้น ส่งผลให้ <script type="math/tex">W^{[l]}</script> มีค่าน้อยลง ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">dW^{[l]} = \text{from backprop} + \frac{\lambda}{m} W^{[l]}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">W^{[l]} := W^{[l]} - \alpha(dW^{[l]})</script>
+</p>
+<p>โดยการลดลงของ <script type="math/tex">w</script> นี้ จะแปรผันตามขนาดที่แท้จริงของ <script type="math/tex">W</script> เราเรียกพฤติกรรมนี้ว่าการถดถอยน้ำหนัก หรือ Weight decay</p>
+<p>สังเกตว่าการทำ <script type="math/tex">l^2</script> regularisation นี้ เราต้องกำหนด Hyperparameter <script type="math/tex">\lambda</script> ที่ควบคุมว่า Regularisation term จะมีผลต่อการถดถอยของน้ำหนักเพียงใด</p>
+<p>ใน TensorFlow เราสามารถทำ <script type="math/tex">l^2</script> regularisation โดยการกำหนด Argument ใน Layer ดังนี้:</p>
+<pre><code>from keras import regularizers
+model.add(Dense(64, input_dim=64,
+                kernel_regularizer=regularizers.l2(0.01)))
+</code></pre>
+
+<p>การ Regularise ด้วยวิธีนี้ เป็นวิธีทั่วไปที่ใช้ในสถิติและ Machine learning algorithm อื่นๆ อย่างไรก็ตาม เมื่อใช้กับ Deep neural network <script type="math/tex">l^2</script> regularisation มีปัญหาอันหนึ่ง คือปรากฏการณ์ Co-adaptation กล่าวคือมันทำให้ค่าน้ำหนักที่มีค่ามาก ยิ่งขยายขนาด ส่วนค่าน้ำหนักที่มีค่าน้อย ยิ่งลดขนาด นั่นก็คือการขยายความต่างนั่นเอง ปรากฏการณ์นี้ทำให้เราไม่สามารถใช้ประโยชน์จากโมเดลที่มีความซับซ้อนมากขึ้นได้เต็มที่ เพราะเมื่อเราทำให้โมเดลซับซ้อนขึ้น ผลที่ได้กลับเป็นโมเดลที่เน้นสิ่งที่มีค่ามาก และกดสิ่งที่มีค่าน้อยลงอย่างเป็นระบบ ดังนั้นเราจึงมีวิธีการ Regularise พิเศษสำหรับ Neural network ที่เรียกว่า Dropout</p>
+<h2>Dropout regularisation</h2>
+<p>หลักคิดของ Dropout นั้นเรียบง่ายมาก สมมุติเรามีโมเดลโครงสร้างดังนี้:</p>
+<p><img alt="4-layer deep learning model" src="images/ml-blog17-01.png"></p>
+<p>เราจะ "ปิด" Neuron บางตัวในระบบ ไม่ให้รับข้อมูลใดๆ ดังนั้น Neuron ที่ถูกปิดก็จะไม่ส่งข้อมูลออกไปยัง Neuron ตัวอื่นเช่นเดียวกัน ดังภาพนี้:</p>
+<p><img alt="4-layer deep learning model with dropout" src="images/ml-blog17-02.png"></p>
+<p>ในระบบนี้ แสดงการกำหนด Dropout เท่าเท่ากับ 0.25 บน Layer ที่ 2 และ 3 นั่นคือ ให้ปิด Neuron 25% ของ Layer ดังกล่าว</p>
+<p>การ "ปิด" Neuron บางตัวในเครือข่ายแต่ละชั้น เป็นการเลือกปิดแบบสุ่ม ซึ่งฟังเผินๆ อาจจะดูเหมือนเป็นความคิดที่ไม่ดี แต่ในความจริงเทคนิคนี้ใช้งานได้ดี เพราะเราไม่ได้ไปปิด Input <script type="math/tex">x</script> แต่ไปปิดหน่วยประมวลผลบางตัว การเลือกปิดแบบสุ่มนี้จะป้องกันการเกิด Co-adaptation และได้ผลในการลด Overfitting เพราะทำให้โมเดลนั้น "ง่าย" ลง แต่ไม่ได้จงใจกดข้อมูลลักษณะใดลักษณะหนึ่งลง เป็นการสุ่มกดเพื่อลดความซับซ้อนของทั้งระบบ</p>
+<p>ในทางเทคนิค วิธีการทำ Dropout คือการสร้าง Boolean matrix มิติเท่ากับ Matrix ของ Activation ที่ต้องการใช้ Dropout โดยสุ่มค่า Yes/No ตามสัดส่วนที่เรากำหนด เช่น ถ้ากำหนดให้ปิด 25% ก็คือให้ทั้ง Matrix มีค่า True 75% ค่า False 25% จากนั้นนำ Dropout matrix นี้ไปคูณแบบ Element-wise เข้ากับ Activation matrix ก็จะได้ Activation matrix ใหม่ที่บาง Element มีค่าเท่ากับศูนย์ในตำแหน่งเดียวกับที่ใน Dropout matrix มีค่าเป็น False จากนั้นนำสัดส่วนการปิดไปหารแบบ Element-wise ออกจาก Activation matrix ใหม่ เพื่อทำการ Normalise</p>
+<p>แสดงวิธีการทำ Dropout ใน iPython ได้ดังนี้:</p>
+<pre><code>In [1]: keep_prob = 0.75
+
+In [2]: import numpy as np
+
+In [3]: d = np.random.rand(3,4) &lt; keep_prob
+
+In [4]: d
+Out[4]:
+array([[False,  True,  True,  True],
+       [ True,  True,  True,  True],
+       [ True, False,  True,  True]])
+
+In [5]: a = np.random.randn(3,4)
+
+In [6]: a
+Out[6]:
+array([[-0.37998077, -0.96594641,  0.54147094, -0.35392546],
+       [-0.34891998, -0.53428796, -1.03811021, -2.36410892],
+       [-0.26496699,  0.21605195, -1.11321207,  0.53065364]])
+
+In [7]: a_dropped = np.multiply(a,d)
+
+In [8]: a_dropped
+Out[8]:
+array([[-0.        , -0.96594641,  0.54147094, -0.35392546],
+       [-0.34891998, -0.53428796, -1.03811021, -2.36410892],
+       [-0.26496699,  0.        , -1.11321207,  0.53065364]])
+
+In [9]: a_dropped /= keep_prob
+
+In [10]: a_dropped
+Out[10]:
+array([[-0.        , -1.28792855,  0.72196126, -0.47190062],
+       [-0.46522664, -0.71238394, -1.38414694, -3.15214523],
+       [-0.35328932,  0.        , -1.48428276,  0.70753819]])
+</code></pre>
+
+<p>ใน TensorFlow เราสามารถทำ Dropout ได้อย่างง่ายดาย โดยการเพิ่ม Dropout layer ลงไปก่อนหน้า Layer ที่เราต้องการทำ Dropout ดังนี้:</p>
+<pre><code>model.add(Dropout(0.25))
+</code></pre>
+
+<p>ในปัจจุบัน แนะนำให้ใช้ Dropout ก่อน สำหรับ Deep neural network</p>
+<h2>Early stopping</h2>
+<p>Early stopping คือการหยุดการเทรนก่อนที่ Optimiser จะ Converge หา Loss ที่ต่ำที่สุด โดยมีสมมุติฐานว่ายิ่งเทรนไป โมเดลจะยิ่งซับซ้อนขึ้น จนอาจจะเกินจากที่จะสามารถ Generalise ได้ดี</p>
+<p>ลองดูภาพนี้ประกอบ:</p>
+<p><img alt="Early stopping" src="images/ml-blog17-03.png"></p>
+<p>จะเห็นว่า ตามปกติ Optimiser จะเทรนเพื่อให้ได้ Train error ต่ำที่สุด แต่บางครั้ง Test error จะเริ่มวกกลับไปมีค่าสูงขึ้นก่อนที่จะพบจุดต่ำสุดของ Cost function ดังนั้น เราควรจะหยุดการเทรนที่จุดที่ Test error ต่ำที่สุด ไม่ใช่ Train error ต่ำที่สุด</p>
+<p>วิธีการในทางปฏิบัติ คือเมื่อเราเทรนโมเดลด้วยการเรียก Method <code>.fit</code> ให้เราแยกข้อมูลเทรนส่วนหนึ่งออกมาเป็น Validation set เพื่อให้ Optimiser ทดสอบความแม่นยำทุกๆ Epoch ดังนี้:</p>
+<pre><code># Fit the model to data
+model.fit(X_train, y_train, epochs=20, batch_size=32, validation_split=0.2, verbose=1)
+</code></pre>
+
+<p>ระหว่างเทรน จะได้ผลออกมาดังนี้:</p>
+<pre><code>Train on 1600 samples, validate on 400 samples
+Epoch 1/20
+1600/1600 [===] - 1s 491us/sample - loss: 1.4701 - accuracy: 0.5881 - val_loss: 0.7175 - val_accuracy: 0.8275
+Epoch 2/20
+1600/1600 [===] - 0s 158us/sample - loss: 0.6571 - accuracy: 0.8213 - val_loss: 0.4700 - val_accuracy: 0.8600
+Epoch 3/20
+1600/1600 [===] - 0s 146us/sample - loss: 0.4681 - accuracy: 0.8744 - val_loss: 0.3726 - val_accuracy: 0.8925
+.           .           .           .           .           .           .
+.           .           .           .           .           .           .
+.           .           .           .           .           .           .
+Epoch 18/20
+1600/1600 [===] - 0s 233us/sample - loss: 0.0807 - accuracy: 0.9844 - val_loss: 0.2492 - val_accuracy: 0.9375
+Epoch 19/20
+1600/1600 [===] - 0s 174us/sample - loss: 0.0675 - accuracy: 0.9906 - val_loss: 0.2474 - val_accuracy: 0.9275
+Epoch 20/20
+1600/1600 [===] - 0s 174us/sample - loss: 0.0638 - accuracy: 0.9881 - val_loss: 0.2490 - val_accuracy: 0.9300
+</code></pre>
+
+<p>ให้สังเกต Validation accuracy ซึ่งจะเพิ่มขึ้นเรื่อยๆ แต่ถึงจุดหนึ่ง จะวกกลับเป็นมีค่าลดลง เช่น Epoch 18 ได้ 93.75% ส่วน Epoch 19 กลับแม่นยำลดลงเป็น 92.75% ดังนั้น เราอาจเลือกหยุดการเทรนที่ Epoch 18 แทนที่จะเป็น Epoch 20 เป็นต้น</p>
+<p>เราสามารถเลือกใช้เทคนิคการ Regularise แบบต่างๆ นี้ได้ตามสถานการณ์ อย่างไรก็ตาม ก่อนที่จะใช้เทคนิคการ Regularisation เพื่อลด Generalisation error ขอให้พิจารณาดูก่อนว่า Validation set หรือ Test set ที่เราเอามาทดสอบ มีขนาดเล็กเกินไป หรือมาจาก Distribution ที่ต่างจาก Train set หรือไม่ ซึ่งเป็นสิ่งที่ควรจะแก้ไขก่อน</p>
+<p>ตอนนี้เรารู้จักหลักการและเทคนิคพื้นฐานของ Deep learning แล้ว ในบทต่อไปจะพูดถึงโครงสร้าง Deep learning model สำหรับงานเฉพาะด้าน เช่นการจำแนกภาพ โดยใช้ Convolutional Neural Network หรือ CNN</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog16.html">บทที่ 16 Neural Network Optimisers</a> | บทที่ 18 Convolutional Neural Network</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
