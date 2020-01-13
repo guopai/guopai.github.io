@@ -13,8 +13,8 @@
 
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="generator" content="ReText 7.0.4">
-<title>Machine Learning บทที่ 15: Neural Network Vanishing Gradients</title>
-<meta name="description" content="Deep learning อธิบายปัญหา Vanishing gradients และแนะนำแนวทางแก้ไขด้วย Xavier / He initialization, ReLU / ELU activation function, และ Batch normalization">
+<title>Machine Learning บทที่ 15: Neural Network Programming</title>
+<meta name="description" content="Deep learning แนะนำขั้นตอนการสร้างโมเดล Neural network บนฐานข้อมูล MNIST โดยใช้ TensorFlow และ Keras">
 <meta name="keywords" content="Machine learning, Deep learning, AI">
 <meta name="author" content="ชิตพงษ์ กิตตินราดร">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,137 +32,222 @@ MathJax.Hub.Config({
 </script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
 <body>
-<h1>Neural Network Vanishing Gradients Problem</h1>
+<h1>Neural Network Programming</h1>
 <p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
-<p>หลังจากที่เราสามารถสร้างโมเดล Deep learning แบบพื้นฐานแล้ว เราจะมาสำรวจปัญหาต่างๆ ในการเทรน Neural network และแนวทางแก้ไข โดยในบทนี้จะพูดถึงปัญหา Vanishing gradients</p>
-<p>ในการเทรน Deep neural network เราอาจพบว่าโมเดลเทรนจบจนได้ Loss ที่ต่ำที่สุด แต่ก็ไม่ต่ำเท่าที่ควร นั่นคือเกิดปัญหา Bias ทั้งๆ ที่เราได้วางโครงสร้าง Layers, จำนวน Neuron, และจำนวนรายการเนื้อหาเหมาะสมเพียงพอแล้ว</p>
-<p>บ่อยครั้งที่ Bias นี้ เกิดจากปัญหาที่เรียกว่า Vanishing gradients นั่นคือการที่เมื่อเราเทรนโมเดลโดยการอัปเดต Parameter ซ้ำๆ ในกระบวนการ Gradient descent อนุพันธ์ <script type="math/tex">\delta w</script> บางตัวจะมีค่าน้อยลงจนเหลือน้อยมากๆ โดยเฉพาะในตัวที่อยู่ใน Layer ชั้นแรกๆ ที่ใกล้กับ Input layer ส่งผลให้การอัปเดต Parameter ครั้งถัดไป Loss จะเปลี่ยนแปลงน้อยลงมากจนไม่เกิดผลในการ Optimise หรือต้องใช้เวลา (จำนวนรอบ) สูงมากๆ ในการเทรน อนึ่ง ในทางกลับกัน หากอนุพันธ์เพิ่มขึ้นสูงเกินไป ก็จะเกิดปัญหาที่เรียกว่า Exploding gradients ซึ่งก็ส่งผลให้ Optimise ไม่สามารถ Converge หาคำตอบที่ดีได้เช่นกัน</p>
-<p>ปัญหา Vanishing gradients นี้มีแนวทางในการแก้ 3 แนวทางด้วยกัน ได้แก่:</p>
-<ul>
-<li>การเปลี่ยนวิธีการตั้งค่าตั้งต้นของ Parameter</li>
-<li>การเปลี่ยน Activation function</li>
-<li>การใช้เทคนิค Batch normalisation</li>
-</ul>
-<p>ซึ่งเราจะอธิบายทีละแนวทาง</p>
-<h2>Xavier and He initialisation</h2>
-<p>ถ้าเราตั้งค่าตั้งต้นให้กับน้ำหนัก <script type="math/tex">w</script> เป็น 0 เราจะแทบไม่สามารถเทรนอะไรได้เลย เพราะทุก Neuron ใน Layer แรกจะส่งค่า Activation เดียวกันออกไปยัง Layer ถัดไป ดังนั้นเราจึงต้องตั้งค่าตั้งต้นน้ำหนัก <script type="math/tex">w</script> ให้ไม่ใช่ 0 และไม่ใช่ตัวเลขที่เท่ากัน</p>
-<p>แต่ถ้าเราตั้งค่าตั้งต้นของ <script type="math/tex">w</script> เป็นตัวเลขสุ่มทั่วไป จะพบว่าบางตัวเลขอาจทำให้เกิดปัญหา Vanishing gradients ดังนั้น เราจึงต้องมีวิธีที่ดีในการสุ่มค่าตั้งต้นของ <script type="math/tex">w</script>
+<p>บทนี้เราจะมาลองสร้างโมเดล Neural network อย่างง่ายๆ ด้วยการใช้ Deep learning framework ที่ชื่อ TensorFlow</p>
+<p>เป้าหมายของเราคือการสร้างโมเดลพยากรณ์ว่าลายมือเขียนตัวเขียน 0-9 จากฐานข้อมูล MNIST นั้น เขียนว่าตัวเลขอะไร</p>
+<p><img alt="MNIST dataset" src="images/ml-blog14-mnist.png"></p>
+<p>ตัวอย่างชุดข้อมูล MNIST, ภาพโดย <a href="https://commons.wikimedia.org/w/index.php?curid=64810040">Josef Steppan</a> - Own work, CC BY-SA 4.0</p>
+<p>ปัญหานี้เป็นปัญหาที่เหมาะสมกับ Deep learning เพราะข้อมูล Input เป็นภาพ ซึ่งเป็นข้อมูลที่ไม่มีโครงสร้าง (Unstructured data) และมีจำนวน Feature เยอะมาก โดยในกรณีชุดข้อมูล MNIST นี้ แต่ละภาพมีขนาด 28 x 28 Pixel นั่นคือมี 784 Feature นั่นคือ <script type="math/tex">x_0</script> จนถึง <script type="math/tex">x_{783}</script>
 </p>
-<p>วิธีดังกล่าว เรียกว่า Xavier initialisation มีหลักการคือจะต้องสุ่มค่าที่ทำให้ Variance ของ Output เท่ากับ Variance ของ Input ใน Layer เดียวกัน และต้องทำให้อนุพันธ์ <script type="math/tex">\delta w</script> ในแต่ละ Layer มี Variance เท่ากันทั้งขาเข้าและขาออกเมื่อทำ Backward propagation ด้วย อย่างไรก็ตามข้อกำหนดนี้เป็นไปไม่ได้ที่จะทำจริง เพราะจะทำได้ก็ต่อเมื่อแต่ละ Layer มีจำนวนการเชื่อมต่อขาเข้าเท่ากับขาออก ดังนั้นวิธีที่ดีที่สุดในการจำลองผลลัพธ์นี้ให้เกิดขึ้นได้ คือการใช้สมการต่อไปนี้:</p>
-<p>
-<script type="math/tex; mode=display">r = \sqrt{\frac{6}{n_i + n_{i+1}}} \tag{1}</script>
-</p>
-<p>โดย <script type="math/tex">n_i</script> คือจำนวนการเชื่อมต่อขาเข้าของ Layer นั้น ส่วน <script type="math/tex">n_{i+1}</script> คือจำนวนการเชื่อมต่อที่ออกจาก Layer นั้น</p>
-<p>วิธี Initialisation นี้เรียกว่า Xavier initialisation ตามชื่อของผู้คิดค้น ถูกออกแบบให้ใช้กับ Tanh activation function ซึ่งจะอธิบายในส่วนถัดไป</p>
-<p>อย่างไรก็ตาม ในปัจจุบันเรามักใช้ Activation function ตระกูล ReLU แทน Sigmoid และ Tanh ดังนั้นเราจึงต้องเปลี่ยนแปลงวิธี Initialise ของ Xavier ให้อยู่ในรูปนี้:</p>
-<p>
-<script type="math/tex; mode=display">r = \sqrt{\frac{6}{n_i}} \tag{2}</script>
-</p>
-<p>วิธีนี้เรียกว่า He initialisation ตามชื่อผู้คิดค้น ความแตกต่างกับ Xavier คือวิธีของ He พิจารณาเฉพาะจำนวนการเชื่อมต่อขาเข้าเท่านั้น</p>
-<p>ทั้งสองวิธีเป็นวิธีสุ่มจาก Uniform distribution คือกระจายตัวออกเท่าๆ กันตลอด Range ของข้อมูล เราสามารถจะเลือกสุ่มแบบ Normal distribution คือกระจายการสุ่มให้กระจุกตัวเยอะตรงกลางๆ ของ Range ก็ได้ โดยการเปลี่ยนแปลงสมการเล็กน้อย ทั้งนี้ใน TensorFlow เราสามารถกำหนดวิธีการ Initialise ค่าน้ำหนักได้โดยใช้ Argument <code>kernel_initializer</code> ใน Layer เช่น:</p>
-<pre><code>model.add(Dense(64,
-                kernel_initializer='he_uniform',
-                bias_initializer='zeros'))
+<p>เราจะเริ่มด้วยการ Import library ที่ต้องใช้ ซึ่งนอกจาก numpy และ matplotlib ตามปกติ เราจะใช้ tensorflow.keras เพื่อโหลดชุดข้อมูลจาก <code>.datasets</code>, โครงสร้างโมเดลจาก <code>.models</code>, และโครงสร้างของ Layer ต่างๆ จาก <code>.layers</code></p>
+<p>Keras คือ High-level interface ของ TensorFlow ซึ่งเป็น Low-level framework เปรียบเทียบเหมือนกับ TensorFlow เป็นวงจรสวิทช์ไฟ เราอาจควบคุมว่าจะเปิดปิดไฟดวงไหนด้วยการเชื่อมสายไฟในสวิทช์ไฟเข้าด้วยกัน แต่จะใช้เวลาและไม่สะดวก Keras เปรียบเสมือนแผงสวิทช์ไฟที่มีสวิทช์และหน้ากากเรียบร้อย ทำให้เราควบคุมการเปิดปิดไฟได้ง่ายและสะดวกกว่ามาก</p>
+<pre><code>import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.datasets import mnist
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, Flatten
 </code></pre>
 
-<p>อนึ่ง ค่าน้ำหนักของ <script type="math/tex">b</script> สามารถเริ่มด้วย 0 ได้ ไม่มีปัญหาอะไร</p>
-<p><strong>ปัจจุบัน แนะนำให้ใช้ He initialiser</strong> เพราะออกแบบมาให้ใช้กับ Activation function ตระกูล ReLU และ ELU ซึ่งแนะนำให้ใช้แทน Sigmoid หรือ Tanh โดยจะพูดถึงเรื่องนี้ในส่วนถัดไป</p>
-<h2>Activation functions</h2>
-<p>ทบทวนอีกครั้ง ว่าการคำนวนของแต่ละ Neuron ประกอบด้วยการรับ Input <script type="math/tex">a^{[l-1]}</script> มาถ่วงน้ำหนักกับ <script type="math/tex">W^l</script> และ <script type="math/tex">b^l</script> จะได้ Linear function <script type="math/tex">z^l</script> จากนั้นจะนำ <script type="math/tex">z^l</script> ไปเป็น Input ของ Activation function <script type="math/tex">g</script> ซึ่งได้ผลเป็น <script type="math/tex">a^l</script> เขียนรวมได้ทั้งหมดดังนี้:</p>
-<p>
-<script type="math/tex; mode=display">z^{[l](i)} = W^{[l]}a^{[l-1](i)} + b^{[l]} \tag{3}</script>
-</p>
-<p>
-<script type="math/tex; mode=display">a^{[l](i)} = g(z^{[l](i)}) \tag{4}</script>
-</p>
-<p>หน้าที่ของ Activation function <script type="math/tex">g</script> คือการควบคุม Output ของ Neuron ให้อยู่ใน Range ที่ Neuron ชั้นถัดไปจะคำนวนได้ง่าย และถ้าหาก Activation นั้นอยู่ใน Hidden layer ชั้นสุดท้าย ก็จะมีหน้าที่ควบคุม Range ของ Output ให้สามารถตีความเป็นคำตอบได้ง่าย</p>
-<p>ยกตัวอย่างเช่นเมื่อใช้ Sigmoid function แทน <script type="math/tex">g</script> ตามสมการด้านล่าง ค่า Activation ที่ได้จะอยู่ในช่วง 0 ถึง 1 เท่านั้น ซึ่งสะดวกในการตีความแบบ Classification (มากกว่า 0.5 คือ "ใช่" น้อยกว่าคือ "ไม่ใช่"):</p>
-<p>
-<script type="math/tex; mode=display">\sigma(z) = \frac{1}{1+e^{(-z)}} \tag{5}</script>
-</p>
-<p>หากดูภาพ Sigmoid function ก็จะเห็นว่าหาก <script type="math/tex">z</script> สูงมากๆ Activation ก็จะได้ผลเข้าใกล้ 1 ในทางกลับกัน หาก <script type="math/tex">z</script> น้อยมากๆ Activation ก็จะได้ผลเข้าใกล้ 0:</p>
-<p><img alt="Sigmoid activation function" src="images/ml-blog04-02.png"></p>
-<p>นอกจาก Sigmoid ยังมี Activation function ที่คล้ายกัน คือ Tanh ย่อมาจาก Hyperbolic Tangent ซึ่งอยู่ในรูปนี้:</p>
-<p>
-<script type="math/tex; mode=display">\text{tanh}(z) = \frac{1-e^{-2z}}{1+e^{-2z}} \tag{6}</script>
-</p>
-<p>Tanh ต่างจาก Sigmoid ตรงที่ Output จะอยู่ใน Range -1 และ 1 ซึ่งส่งผลให้การตีความแตกต่างออกไป โดยมีจุดตัดการตัดสินใจที่ 0 ไม่ใช่ 0.5 ตามที่เห็นในภาพ:</p>
-<p><img alt="Tanh activation function" src="images/ml-blog15-01.png"></p>
-<p>สังเกตว่า Output range ของ Tanh คือ 2 สูงกว่า Range ของ Sigmoid ที่เท่ากับ 1 อยู่ 2 เท่า</p>
-<p>ทั้ง Sigmoid และ Tanh ต่างมีปัญหาหลักอยู่ 2 อย่าง ดังนี้:</p>
+<p>Class ต่างๆ ที่เราโหลดมา จะอธิบายภายหลังในส่วนการสร้างโมเดล</p>
+<p>จากนั้นเราก็โหลดชุดข้อมูล MNIST โดย TensorFlow ได้ฝัง MNIST ไว้ให้แล้ว เพราะเป็นชุดข้อมูลยอดนิยมที่เอาไว้ฝึกและทดสอบโมเดล การโหลดทำได้โดยเรียก:</p>
+<pre><code># Load the MNIST data
+(X_train, y_train), (X_test, y_test) = mnist.load_data()
+
+# Check data dimension
+print(&quot;X_train data shape is&quot;, X_train.shape)
+print(&quot;y_train data shape is&quot;, y_train.shape)
+print(&quot;X_test data shape is&quot;, X_test.shape)
+print(&quot;y_test data shape is&quot;, y_test.shape)
+
+# Check data type
+print(&quot;X_train data type is&quot;, X_train.dtype)
+print(&quot;y_train data type is&quot;, y_train.dtype)
+print(&quot;X_test data type is&quot;, X_test.dtype)
+print(&quot;y_test data type is&quot;, y_test.dtype)
+</code></pre>
+
+<p>เราควรเช็คมิติข้อมูลทุกครั้งที่โหลดข้อมูลมา พบว่า Train set มี 60,000 รายการ ขนาด 28 x 28 Pixel ส่วน Test set มี 10,000 รายการ ส่วน Data Type เป็น <code>uint8</code></p>
+<pre><code>X_train data shape is (60000, 28, 28)
+y_train data shape is (60000,)
+X_test data shape is (10000, 28, 28)
+y_test data shape is (10000,)
+X_train data type is uint8
+y_train data type is uint8
+X_test data type is uint8
+y_test data type is uint8
+</code></pre>
+
+<p>จากนั้นมาลองดูตัวอย่างข้อมูลกัน เนื่องจากเรารู้ว่าข้อมูลเป็นภาพ เราสามารถใช้ Method <code>.imshow</code> ของ matplotlib แสดงภาพได้ทันที:</p>
+<pre><code># Visualise sample data
+img_index = 999
+print(y_train[img_index])
+plt.imshow(X_train[img_index])
+</code></pre>
+
+<p>ได้ภาพขนาด 28 x 28 สังเกตว่ามีสี เพราะเป็นค่าตั้งต้นของ matplotlib เอง ในความเป็นจริงข้อมูลไม่ได้มีสี</p>
+<p><img alt="MNIST data visualised" src="images/ml-blog14-01.png"></p>
+<p>ต่อมา เราจะ Preprocess ข้อมูลให้พร้อมใช้งานขึ้น สิ่งที่จะทำมีดังนี้:</p>
 <ul>
-<li>ใช้ Exponential ในการคำนวน ทำให้เปลืองพลังการประมวลผล</li>
-<li>เป็นหนึ่งในปัจจัยที่ทำให้เกิดปัญหา Vanishing gradients เพราะถ้าหาก Activation ของ Sigmoid / Tanh ออกมาเป็นค่าน้อยๆ หรือมากๆ อนุพันธ์ (ความชัน) ของ Sigmoid function ก็จะมีค่าน้อยมากเข้าใกล้ 0 เราต้องใช้อนุพันธ์ของ Sigmoid function ในการคำนวนอนุพันธ์ของ <script type="math/tex">z^{[1]}</script> ซึ่งจะถูกนำไปคำนวนอนุพันธ์ของ <script type="math/tex">w^{[1]}</script> และ <script type="math/tex">b^{[1]}</script> อีกต่อหนึ่ง นั่นหมายความว่า Neuron ที่ให้ค่า Activation สูงหรือต่ำเกินไป จะส่งผลให้การอัปเดต Parameter รอบถัดไปมีการเปลี่ยนแปลงน้อยลงกว่าที่ควรจะเป็น ซึ่งส่งผลให้กระบวนการ Optimisation ไม่สามารถหา Loss ที่ต่ำที่สุดได้</li>
+<li>เปลี่ยนมิติข้อมูลให้เป็น 4 มิติ คือ (จำนวนรายการ, Column, Row, จำนวน Layer สี) โดยข้อมูลของเราเป็นภาพขาวดำขนาด 28 x 28 ดังนั้นมิติคือ (จำนวนรายการ, 28, 28, 1)</li>
+<li>กำหนดตัวแปรมิติข้อมูล เพื่อเตรียมใช้ใน Argument <code>input_shape</code> ใน Layer แรกของ Model โดยไม่ต้องระบุจำนวนรายการ ดังนั้น มิติข้อมูลสำหรับ Layer แรก คือ (28, 28, 1) อนึ่งเราต้องกำหนดมิติข้อมูลสำหรับ Layer แรกเท่านั้น ส่วน Layer อื่น TensorFlow จะอนุมานให้เอง</li>
+<li>แปลง Data type ของข้อมูลให้เป็น Float เพื่อให้ Algorithm สามารถคำนวนและแสดงผลเป็นค่าทศนิยมได้</li>
+<li>เลือกข้อมูลแค่บางส่วนมาเทรนและทดสอบ เราจะไม่ใช้ทั้งหมดเพราะจะใช้เวลาเทรนนาน จึงเลือก Train set 2,000 รายการ และ Test set 400 รายการ</li>
+<li>Scale ข้อมูลโดยใช้วิธี Normalise ซึ่งก็คือการหารข้อมูลทุกรายการด้วย Range ของค่าความสว่างของแต่ละ Pixel นั่นก็คือ 255 นั่นเอง</li>
 </ul>
-<p>ปัญหาทั้งสองนี้แก้ได้โดยการเปลี่ยน Activation function เป็น ReLU</p>
-<p>ReLU ย่อมาจาก Rectified Linear Unit เป็นฟังก์ชันที่เรียบง่ายมาก เรียกว่า Ramp function คือถ้า Input มีค่าตั้งแต่ 0 ขึ้นไป Output ก็จะมีค่าเท่ากัน ส่วน Input ที่น้อยกว่า 0 จะกำหนด Output เป็น 0 ตลอด ลองดูภาพประกอบ:</p>
-<p><img alt="ReLU activation function" src="images/ml-blog15-02.png"></p>
-<p>ภาพโดย <a href="https://commons.wikimedia.org/w/index.php?curid=4310272">Qef</a> - Own work by uploader, hand-written SVG., Public Domain</p>
-<p>สามารถเขียน ReLU เป็นสมการได้ดังนี้:</p>
-<p>
-<script type="math/tex; mode=display">\text{relu}(z) =
-\begin{cases}
-    z \quad \text{if } z \geq 0 \\
-    0 \quad \text{if } z < 0
-\end{cases}\tag{7}</script>
-</p>
-<p>หรือเขียนได้อีกอย่างว่า:</p>
-<p>
-<script type="math/tex; mode=display">\text{relu}(z) = \text{max}(0, x)\tag{8}</script>
-</p>
-<p>ดูเผินๆ เหมือนว่า ReLU ไม่น่าจะช่วยให้โมเดลทำงานได้ดี เพราะ Output เป็น Linear function ที่แทบไม่ได้ดัดแปลงแก้ไขอะไร แต่ในความเป็นจริงพบว่า การใช้ ReLU ใน Hidden layer นอกจากจะทำให้การเทรนทำได้รวดเร็วกว่า Sigmoid หลายเท่าแล้ว ยังช่วยแก้ปัญหา Vanishing gradients ได้เป็นอย่างมาก เพราะความชันของฟังก์ชันจะเป็นค่าคงตัว คือ 1 เสมอ</p>
-<p>จะเห็นว่าการทำงานของ ReLU คือการ "ส่งต่อ" Linear function ออกไป โดยเลือกปิด Neuron บางตัวออกไปเลยหาก Neuron นั้นมีค่าน้อย ซึ่งพฤติกรรมนี้อาจส่งผลให้ Optimiser ไม่สามารถ Converge หา Loss ที่ต่ำเท่าที่ควร แต่ในความเป็นจริง ปัญหานี้ไม่ได้เกิดขึ้นตลอดเวลา เพราะ Activation function ใน Neuron หนึ่งๆ คือผลรวมของ Input ทุก Feature ดังนี้:</p>
-<p>
-<script type="math/tex; mode=display">a_1^{[1](1)} = g(w_1^{[1](1)} x_1^{[1](1)} + w_2^{[1](1)} x_2^{[1](1)} + \dots + w_n^{[1](1)} x_n^{[1](1)} + b_1^{[1](1)})  \tag{9}</script>
-</p>
-<p>นั่นแปลว่าต่อให้มี <script type="math/tex">wx</script> บางคู่ที่ให้ผลลบ แต่โดยรวมแล้ว <script type="math/tex">wx</script> ทุกคู่บวกรวมกัน ก็มีโอกาสที่จะเป็นบวกสูงกว่าเป็นลบมาก ดังนั้นจึงมีโอกาสน้อยที่ ReLU จะให้ผลออกมาเป็น 0</p>
-<p>แต่ก็ไม่ใช่ว่าจะไม่มีโอกาสที่ ReLU จะให้ผลลบเลย ในบางโมเดล Neuron หลายสิบเปอร์เซ็นถูกปิดเพราะ ReLU ทางแก้คือใช้ Activation function ที่ดัดแปลงส่วนแบนของ ReLU ให้มีความลาดเอียงเล็กน้อย เรียกว่า Leaky ReLU:</p>
-<p>
-<script type="math/tex; mode=display">\text{relu}(z) = \text{max}(0.01, x)\tag{10}</script>
-</p>
-<p>หน้าตาของกราฟจะคล้าย ReLU แต่ส่วนบนจะลาดลงเล็กน้อย เช่นถ้า Input เท่ากับ -1 จะส่งผลให้ Output เท่ากับ -0.01 เป็นต้น</p>
-<p>ล่าสุด ในปี 2015 มีคณะนักวิจัยเสนอ Activation function ใหม่ที่ชื่อ ELU หรือ Exponential Linear Unit ที่ทดสอบแล้วได้ผลเหนือกว่า ReLU และ Leaky ReLU ทุกด้าน เช่น เวลาที่ใช้เทรนโดยรวมสั้นกว่า และได้ความแม่นยำสูงกว่า ELU มีสมการดังนี้:</p>
-<p>
-<script type="math/tex; mode=display">\text{ELU}_{\alpha}(z) =
-\begin{cases}
-    \alpha(e^z-1) \quad \text{if } z < 0 \\
-    z \quad \text{if } z \geq 0
-\end{cases}\tag{11}</script>
-</p>
-<p><img alt="ELU activation function" src="images/ml-blog15-03.png"></p>
-<p>ภาพโดย <a href="https://commons.wikimedia.org/w/index.php?curid=46839702">Laughsinthestocks</a> at English Wikipedia - Transferred from en.wikipedia to Commons., CC0</p>
-<p>ELU มีคุณสมบัติที่อุดช่องว่างของ Activation function อื่นๆ ที่ผ่านมา ช่วยลดปัญหา Vanishing gradients เพราะอนุพันธ์ของฟังก์ชันยังมีค่าบวกอยู่ถึงแม้ Input จะมีค่าน้อยกว่า 0 ไปจนถึง -2 โดยเราสามารถปรับค่า Hyperparameter <script type="math/tex">\alpha</script> เพื่อกำหนดว่า Output จะมีค่าเท่าใดเมื่อ Input มีค่าติดลบมากๆ โดยปกติตั้งไว้ที่ 1</p>
-<p>ข้อเสียของ ELU คือต้องใช้พลังประมวลผลมาก แต่ก็แลกกับการที่ทำให้ Optimiser นั้น Converge เร็วขึ้น อย่างไรก็ตามในเวลาทดสอบกับ Test set หรือเวลาใช้โมเดลพยากรณ์จริง (Forward propagation ขาเดียว) ELU จะใช้เวลานานกว่า ReLU ดังนั้นใน Application ที่ความเร็วในการได้ผลลัพธ์เป็นสิ่งสำคัญ ก็ควรพิจารณาให้ดีว่ายอมรับความช้าลงได้หรือไม่</p>
-<p><strong>ปัจจุบันแนะนำให้ใช้ ELU เป็นอันดับแรก</strong> ตามด้วย Leaky ReLU, ReLU, Tanh, และ Sigmoid</p>
-<p>ใน TensorFlow เราสามารถเลือกใช้ Activation function ใดก็ได้ เพียงแค่เปลี่ยนค่าของ Argument <code>activation</code> ใน Model layer</p>
-<p>ต่อมาเป็นเทคนิคสุดท้ายเพื่อลดปัญหา Vanishing gradients นั่นคือ Batch normalisation</p>
-<h2>Batch normalisation</h2>
-<p>เวลาเทรนโมเดลหลายๆ ครั้ง ค่าเฉลี่ยและการกระจายตัวของ Input สำหรับแต่ละ Neuron ในแต่ละ Layer จะมีแนวโน้มที่จะเปลี่ยนไปเรื่อยๆ ซึ่งทำให้ Gradient descent ทำงานได้ไม่เต็มประสิทธิภาพ เช่น ใช้เวลานานในการคำนวน และต้องใช้จำนวนรอบมากกว่าจะ Converge ได้ เรียกปัญหานี้ว่า Internal covariate shift ดังนั้นเมื่อพิจารณาว่าข้อมูล Input เริ่มแรกต้องถูก Scale ให้เรียบร้อยเสียก่อน ทำไมเราจึงไม่ Scale และ Normalise ข้อมูล Input ของแต่ละ Layer ระหว่างการเทรนไปด้วยเสียเลย</p>
-<p>Batch normalisation คือการปรับ Mean และ Variance ของ Input สำหรับแต่ละ Layer ให้เป็นมาตรฐาน แล้วปรับ Scale และตำแหน่งของ Input ทั้งชุดให้ เทคนิคนี้เพิ่งถูกเสนอเมื่อปี 2015 นี้เอง การทำ Batch normalisation นอกจากจะทำช่วยลดปัญหา Vanishing gradient ลงเกือบทั้งหมดแล้ว ยังทำให้เราสามารถตั้ง Learning rate ได้เร็วขึ้น หรือลดจำนวน Epoch ที่ต้องเทรน (เพราะ Input ไม่ใหญ่เกินไป) ส่งผลให้เทรนโมเดลได้เร็วขึ้น นอกจากนี้ยังให้ผลในการ Regularise ด้วยระดับหนึ่ง</p>
-<p>ขั้นตอนในการทำ Batch normalisation มีดังนี้:</p>
-<p>1) หา Mean <script type="math/tex">\mu_B</script> และ Variance <script type="math/tex">\sigma_B^2</script> ของ Mini-batch <script type="math/tex">B</script>:</p>
-<p>
-<script type="math/tex; mode=display">\mu_B = \frac{1}{m_B} \sum\limits_{i=1}^{m_B} x^{(i)} \tag{12}</script>
-</p>
-<p>
-<script type="math/tex; mode=display">\sigma_B^2 = \frac{1}{m_B} \sum\limits_{i=1}^{m_B} (x^{(i)} - \mu_B)^2 \tag{13}</script>
-</p>
-<p>2) Normalise <script type="math/tex">z</script> ด้วยการนำ Input <script type="math/tex">z</script> ไปลบกับ Mean ของ Mini-batch และหารส่วนเบี่ยงเบนมาตรฐานของ Mini-batch:</p>
-<p>
-<script type="math/tex; mode=display">z_{norm}^{(i)} = \frac{z^{(i)}-\mu_B}{\sqrt{\sigma_B^2 + \epsilon}} \tag{14}</script>
-</p>
-<p>โดย <script type="math/tex">\epsilon</script> อ่านว่า Epsilon คือจำนวนขนาดเล็กมากๆ ที่บวกเข้าไปเพื่อป้องกันไม่ให้ตัวหารของสมาการเป็น 0 โดยปกติตั้งเป็น <script type="math/tex">10^{-5}</script>
-</p>
-<p>3) Scale และปรับตำแหน่งชุดข้อมูลโดยการนำ <script type="math/tex">z_{norm}^{(i)}</script> ไปคำนวนร่วมกับ Scaling parameter <script type="math/tex">\gamma</script> และ Shifting parameter <script type="math/tex">\beta</script>:</p>
-<p>
-<script type="math/tex; mode=display">\tilde{z}^{(i)} = \gamma z_{norm}^{(i)} + \beta \tag{15}</script>
-</p>
-<p>โดย Scaling parameter <script type="math/tex">\gamma</script> และ Shifting parameter <script type="math/tex">\beta</script> จะถูกใส่เข้าไปใน Backward propagation เพื่อให้ Algorithm ปรับค่าทั้งสองนี้ระหว่างเทรน</p>
-<p>มีข้อสังเกตว่าถ้าเราทำ Batch normalisation บน Hidden layer แรก ก็ไม่มีความจำเป็นต้อง Normalise input ตั้งแต่แรก</p>
-<p>อย่างไรก็ตาม Batch norm ทำให้การคำนวน Forward propagation ช้าลง ดังนั้นจึงควรพิจารณาว่าการใช้ He initialisation บวกกับ ELU activation function นั้นให้ผลดีเพียงพอแล้วหรือไม่</p>
-<p>ใน TensorFlow เราสามารถทำ Batch normalisation โดยการสร้าง Layer ชื่อ <code>BatchNormalization</code> ได้เลย</p>
-<p>เป็นอันว่าเราเรียนรู้เทคนิคที่จะลดปัญหา Vanishing gradients ได้ถึง 3 แนวทาง บทต่อไปเราจะมาทำความรู้จักกับ Optimiser ต่างๆ ที่จะช่วยเพิ่มความเร็วในการเทรนโมเดล</p>
-<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog14.html">บทที่ 14 Neural Network Programming</a> | <a href="ml-blog16.html">บทที่ 16 Neural Network Optimisers</a></p>
+<pre><code># Reshaping the array to 3-d for Keras
+X_train = X_train.reshape(X_train.shape[0], 28, 28, 1)
+X_test = X_test.reshape(X_test.shape[0], 28, 28, 1)
+
+# Specify input shape for the mode's 1st layer
+input_shape = (28, 28, 1)
+
+# Convert data type to float so we can get decimal points after division
+# Also scope down X_train and X_test to 2000:400 samples
+X_train = X_train[:2000, :, :, :].astype('float32')
+X_test = X_test[:400, :, :, :].astype('float32')
+
+# Also scope down y_train and y_test to 2000:400 samples
+y_train = y_train[:2000]
+y_test = y_test[:400]
+
+# Normalising all data by dividing by max brightness value.
+X_train /= 255
+X_test /= 255
+print('X_train shape:', X_train.shape)
+print('X_test shape:', X_test.shape)
+print('y_train shape:', y_train.shape)
+print('y_test shape:', y_test.shape)
+</code></pre>
+
+<p>เช็คมิติข้อมูลอีกทีก็จะได้จำนวนรายการและมิติตามที่ต้องการ</p>
+<pre><code>X_train shape: (2000, 28, 28, 1)
+X_test shape: (400, 28, 28, 1)
+y_train shape: (2000,)
+y_test shape: (400,)
+</code></pre>
+
+<p>ตอนนี้เราก็พร้อมจะสร้างโมเดลแล้ว ในขั้นนี้ เราต้องออกแบบว่าโมเดลของเราจะมีโครงสร้างอย่างไร ดังนั้น สิ่งที่ต้องตัดสินใจก็คือ:</p>
+<ul>
+<li>จำนวน Layer โดยนับ Hidden layer บวก Output layer</li>
+<li>คุณสมบัติของแต่ละ Layer เช่น Hidden layer แรก เป็น Dense layer (ทุก Neuron เชื่อมข้อมูลจากทุก Input จาก Layer ก่อนหน้า), จำนวน 100 Neuron, ใช้ RELU เป็น Activation function เป็นต้น เราจะอธิบายเรื่อง Activation function ในบทต่อๆ ไป</li>
+<li>Layer พิเศษ เช่น Dropout เป็นวิธีการ Regularise วิธีหนึ่ง ซึ่งจะอธิบายในบทต่อๆ ไป</li>
+<li>ตัวเลือกของ Optimisation algorithm ได้แก่ Cost function ที่ใช้ (Argument <code>loss</code>), กลไกการ Optimise ที่ใช้ (Argument <code>optimizer</code>), และวิธีการชี้วัดความแม่นยำ (Argument <code>metrics</code>) โดยตัวเลือกต่างๆ จะอธิบายภายหลังเช่นกัน</li>
+</ul>
+<p>เมื่อตัดสินใจได้แล้วว่าโมเดลจะมีโครงสร้างและคุณสมบัติอย่างไร ขั้นตอนในการสร้างโมเดลก็คือ:</p>
+<ul>
+<li>Instantiate โครงสร้างโมเดล โดยเรียก Class <code>Sequential</code> ให้อยู่ใน Instance object โดยเราจะใช้ชื่อ Instance นี้ว่า <code>model</code></li>
+<li>เรียก Method <code>.add</code> เพื่อสร้าง Layer ทีละชั้น จากซ้ายไปขวา โดยกำหนด Argument ที่สอดคล้องกับโครงสร้าง Layer ที่เราออกแบบไว้</li>
+<li>Compile โมเดลตามโครงสร้างที่เรากำหนดไว้ โดยเรียก Method <code>.compile</code></li>
+</ul>
+<pre><code># Build and compile model
+model = Sequential()
+model.add(Flatten())
+model.add(Dense(100, activation='relu', input_shape=input_shape))
+model.add(Dropout(0.2))
+model.add(Dense(10, activation='softmax'))
+
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+</code></pre>
+
+<p>สังเกต Layer สุดท้าย คือ <code>Dense(10, activation='softmax')</code> ใช้ Softmax activation function ซึ่งทำให้โมเดลสามารถ Output แบบ Multiclass ได้ โดยเราต้องกำหนดจำนวน Neuron เท่ากับจำนวน Class ที่เป็นไปได้ ซึ่งก็คือ 10 นั่นเอง</p>
+<p>จากนั้นก็เริ่มเทรนโดยเรียก Method <code>.fit</code> พร้อมกำหนด Argument ต่างๆ ซึ่งหลักๆ ก็มี:</p>
+<ul>
+<li><code>epochs</code> จำนวนรอบของการเทรน โดยแต่ละ Epoch จะทำให้ Loss ลดลง ในขณะที่ Accuracy เพิ่ม</li>
+<li><code>batch_size</code> ขนาดของ Batch ซึ่งก็คือจำนวนรายการข้อมูลที่จะให้ Optimiser คำนวนในหนึ่งครั้ง เช่น ข้อมูลมี 2,000 รายการ ถ้ากำหนด Batch size เป็น 32 แปลว่า Optimiser จะต้องทำงาน 62.5 ครั้ง จึงจะครบทั้ง 2,000 รายการ และถ้ากำหนด Epoch เป็น 20 ก็หมายถึงการทำงาน 62.5 ครั้ง 20 รอบ การกำหนด Batch size จะมีผลโดยตรงกับความเร็วในการคำนวน ยิ่ง Batch ใหญ่ ยิ่งคำนวนเร็ว แต่ Batch ที่ใหญ่เกินไปอาจทำให้ข้อมูลที่คำนวนมีขนาดใหญ่เกินกว่า Memory ของเครื่องเราจะรองรับได้ ทั้งนี้ใน การกำหนด Batch size แบบต่างๆ จะมีชื่อเรียกเฉพาะ เช่น Batch gradient descent แปลว่า Batch size เท่ากับจำนวนรายการข้อมูล ไม่มีการแบ่ง, Mini-batch gradient descent คือการแบ่งข้อมูลออกเป็น Batch, ส่วน Stochastic gradient descent คือ Batch size เท่ากับ 1 เราจะอธิบายเรื่องนี้ละเอียดในภายหลัง</li>
+<li><code>validation split</code> เราสามารถกัน Train set ส่วนหนึ่งไว้เป็น Validation set ซึ่งก็คือข้อมูลชุดที่โมเดลไม่เคยเห็น Keras จะคำนวน Loss และความแม่นยำกับ Validation set ทุกครั้งที่คำนวนจบ 1 Epoch และแสดงผลให้เราเห็น อนึ่งการแบ่ง Validation set จะตัดเอาส่วนสุดท้ายของ Train set มาเลยโดยไม่สุ่ม ดังนั้นเราจึงควรสุ่ม Shuffle ข้อมูลให้เรียบร้อยตั้งแต่แรก รายละเอียดเกี่ยวกับการแบ่งชุดข้อมูลออกเป็น Train / Validation / Test set จะอธิบายละเอียดในบทต่อๆ ไป</li>
+</ul>
+<pre><code># Fit the model to data
+model.fit(X_train, y_train, epochs=20, batch_size=32, validation_split=0.2, verbose=1)
+</code></pre>
+
+<p>การเทรนโมเดล Neural network อาจใช้เวลานานมาก ขึ้นอยู่กับจำนวนรายการและ Feature ข้อมูล รวมทั้งโครงสร้าง Layer เช่นจำนวน Layer และจำนวน Neuron โดย TensorFlow จะช่วยเราด้วยการแสดงความก้าวหน้าของการเทรนแต่ละ Epoch เป็น Progress bar และเวลาที่ใช้ เพื่อให้เราสามารถประเมินได้ว่าจะต้องรออีกนานเท่าใด</p>
+<p>ผลที่ได้ออกมาดังนี้:</p>
+<pre><code>Train on 1600 samples, validate on 400 samples
+Epoch 1/20
+[===] - 1s 491us/sample - loss: 1.4701 - accuracy: 0.5881 - val_loss: 0.7175 - val_accuracy: 0.8275
+Epoch 2/20
+[===] - 0s 158us/sample - loss: 0.6571 - accuracy: 0.8213 - val_loss: 0.4700 - val_accuracy: 0.8600
+Epoch 3/20
+[===] - 0s 146us/sample - loss: 0.4681 - accuracy: 0.8744 - val_loss: 0.3726 - val_accuracy: 0.8925
+.           .           .           .           .           .           .
+.           .           .           .           .           .           .
+.           .           .           .           .           .           .
+Epoch 18/20
+[===] - 0s 233us/sample - loss: 0.0807 - accuracy: 0.9844 - val_loss: 0.2492 - val_accuracy: 0.9375
+Epoch 19/20
+[===] - 0s 174us/sample - loss: 0.0675 - accuracy: 0.9906 - val_loss: 0.2474 - val_accuracy: 0.9275
+Epoch 20/20
+[===] - 0s 174us/sample - loss: 0.0638 - accuracy: 0.9881 - val_loss: 0.2490 - val_accuracy: 0.9300
+</code></pre>
+
+<p>สังเกตว่าแต่ละ Epoch ที่เทรน Loss และ Validation loss จะลดลงเรื่อยๆ สอดคล้องกับ Accuracy และ Validation accuracy ที่เพิ่มขึ้นเรื่อยๆ ซึ่งในกรณีของเราไปหยุดที่ Validation accuracy 93% เราสามารถใช้ผลนี้เป็นตัวบ่งชี้ว่าควรจะปรับ Hyperparameter ต่างๆ ของโมเดลหรือไม่อย่างไร เพื่อทำให้โมเดลมีความแม่นยำมากขึ้น รวมทั้งสามารถวิเคราะห์ปัญหา Bias/variance ด้วยการเปรียบเทียบข้อมูลจากการเทรนกับข้อมูลจาก Validation set</p>
+<p>เราสามารถ Visualise ความก้าวหน้าของการฝึกโมเดลได้ โดยการใช้ matplotlib พล็อตค่าจาก <code>model.history.history</code> ซึ่งเก็บตัวเลขการเทรนไว้ใน Dictionary key:</p>
+<pre><code># Review model's progress
+plt.figure(figsize=(9,6))
+plt.plot(model.history.history['accuracy'], label='Train accuracy')
+plt.plot(model.history.history['val_accuracy'], label='Validation accuracy')
+plt.ylabel('Value')
+plt.xlabel('No. epoch')
+plt.legend()
+plt.show()
+</code></pre>
+
+<p>ภาพที่ได้คือ:</p>
+<p><img alt="MNIST accuracy vs. epoch" src="images/ml-blog14-03.png"></p>
+<p>จะเห็นว่าโมเดลของเราสามารถเพิ่ม Train accuracy ได้อย่างต่อเนื่อง อย่างไรก็ตาม ดูเหมือน Validation accuracy จะไม่ยอมเพิ่มจากจุดสูงสุด คือประมาณ 0.93 ตั้งแต่ Epoch ที่ 8 จากข้อมูลนี้เราสามารถวิเคราะห์ได้ว่าโมเดลมีปัญหา Variance ซึ่งก็คือการที่ไม่สามารถ Generalise ให้พยากรณ์ข้อมูลที่ไม่เคยเห็นได้ดีเท่าที่ควร ดังนั้นข้อมูลนี้จึงบอกเราว่าเราควรลองมาตรการต่างๆ ที่จะช่วยลดปัญหา Variance เช่น การเพิ่มขนาด Validation set การเพิ่มหรือปรับเทคนิคการ Regularisation เป็นต้น</p>
+<p>ต่อมา เราก็นำทดสอบความแม่นยำของโมเดล กับ Test set ซึ่งแยกไว้ตั้งแต่แรกอีกที โดยการใช้ Method <code>.evaluate</code>:</p>
+<pre><code># Evaluate model's accuracy
+score = model.evaluate(X_test, y_test, verbose=0)
+print(&quot;Loss is&quot;, score[0])
+print(&quot;Accuracy score is&quot;, score[1])
+</code></pre>
+
+<p>ได้ผลใกล้เคียงกับ Validation accuracy คือ 92.25%</p>
+<pre><code>Loss is 0.3142095559835434
+Accuracy score is 0.9225
+</code></pre>
+
+<p>ตรงจุดนี้อาจมีคำถาม ว่าทำไมเราต้องทดสอบกับ Test set อีก ทั้งๆ ที่ได้ทดสอบกับ Validation set แล้ว คำตอบคือ Validation set มีหน้าที่เป็นชุดทดสอบให้เราปรับแต่งค่าต่างๆ ของโมเดล ซึ่งทำให้เกิดความเสี่ยงที่เราจะปรับค่าเพื่อ "เอาใจ" Validation set ส่งผลให้เรา Overfit validation set ทำให้เราไม่รู้ว่าโมเดลของเราจะมีความสามารถในการพยากรณ์ข้อมูลจริงที่ไม่เคยมองเห็นเพียงใด ดังนั้นเราจึงต้องทดสอบโมเดลที่ปรับแต่งเสร็จแล้ว กับ Test set อีกที เพื่อให้ได้ผลที่เที่ยงธรรม ไม่หลอกตัวเอง</p>
+<p>สุดท้าย เรามาลองพยากรณ์กันเลย โดยป้อนภาพที่มี Index ที่ต้องการจาก <code>X_test</code> ลงไปใน Method <code>.predict</code> โดยอย่าลืมแปลงมิติข้อมูลให้สอดคล้องกับตอนแรก นั่นก็คือ (จำนวนรายการ, 28, 28, 1) ซึ่งก็คือ (1, 28, 28, 1) นั่นเอง</p>
+<p>Method <code>.predict</code> จะ Output ออกมาเป็น Array ของความเป็นไปได้ การตีความก็คือเราจะเลือก Index ที่มีความเป็นไปได้สูงสุดเป็นคำตอบ เราสามารถใช้ Method <code>.argmax</code> ในการ Output index ที่มีค่าสูงสุดได้:</p>
+<pre><code># Make a prediction
+image_index = 12
+plt.imshow(X_test[image_index].reshape(28, 28),cmap='Greys')
+pred = model.predict(X_test[image_index].reshape(1, 28, 28, 1))
+print(&quot;Prediction probability array is:&quot;)
+
+count = 0
+
+for i in pred.squeeze():
+    print(count, &quot;:&quot;, i)
+    count += 1
+
+print(&quot;From which the max choice is:&quot;, pred.argmax())
+</code></pre>
+
+<pre><code>Prediction probability array is:
+0 : 6.983635e-06
+1 : 1.8324994e-07
+2 : 7.03581e-05
+3 : 3.01667e-05
+4 : 0.005716639
+5 : 0.00045127788
+6 : 9.964272e-07
+7 : 0.0036463942
+8 : 3.6717152e-05
+9 : 0.99004024
+
+From which the max choice is: 9
+</code></pre>
+
+<p><img alt="MNIST prediction" src="images/ml-blog14-02.png"></p>
+<p>จะเห็นว่าภาพที่ 12 ที่เราเลือก เป็นภาพของเลข 9 โมเดลได้พยากรณ์ว่า 9 โดยให้ความเป็นไปได้ 99%</p>
+<p>การเปรียบเทียบภาพจริงกับค่าที่พยากรณ์ได้ จะช่วยเป็นข้อมูลให้เราวิเคราะห์ข้อผิดพลาดของโมเดลได้ว่าเป็นอย่างไรและน่าจะเกิดจากอะไร โดยจะอธิบายเรื่อง Error analysis เพิ่มเติมในบทต่อๆ ไป</p>
+<p>บทต่อไป เราจะมาเจาะลึกเกี่ยวกับโครงสร้างของโมเดลและตัวเลือกของ Optimisation algorithm</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog14.html">บทที่ 14 Neural Network Algorithm</a> | <a href="ml-blog16.html">บทที่ 16 Neural Network Vanishing Gradients</a></p>
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 </body>
 </html>

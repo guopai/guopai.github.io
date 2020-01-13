@@ -13,8 +13,8 @@
 
 <meta http-equiv="content-type" content="text/html; charset=utf-8">
 <meta name="generator" content="ReText 7.0.4">
-<title>Machine Learning บทที่ 16: Neural Network Optimisers</title>
-<meta name="description" content="Deep learning แนะนำ Optimizer ประสิทธิภาพสูงเพื่อเพิ่มความเร็วในการเทรน Neural network เช่น Momentum, RMSProp, และ Adam">
+<title>Machine Learning บทที่ 16: Neural Network Vanishing Gradients</title>
+<meta name="description" content="Deep learning อธิบายปัญหา Vanishing gradients และแนะนำแนวทางแก้ไขด้วย Xavier / He initialization, ReLU / ELU activation function, และ Batch normalization">
 <meta name="keywords" content="Machine learning, Deep learning, AI">
 <meta name="author" content="ชิตพงษ์ กิตตินราดร">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,88 +32,137 @@ MathJax.Hub.Config({
 </script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
 <body>
-<h1>Neural Network Optimisers</h1>
+<h1>Neural Network Vanishing Gradients Problem</h1>
 <p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
-<p>มาจนถึงตอนนี้ เรารู้ว่ากลไกที่นำเอาอนุพันธ์ของตัวแปรต่างๆ มาอัปเดตเพื่อลด Loss ใน Cost function นั้นเรียกว่า Gradient descent ซึ่งทำงานโดยการนำเอาอนุพันธ์ไปถ่วงน้ำหนักด้วย Learning rate <script type="math/tex">\alpha</script> แล้วลบออกจาก Parameter ดังนี้:</p>
-<p>
-<script type="math/tex; mode=display">W^{[l]} := W^{[l]} - \alpha (dW^{[l]}) \tag{1}</script>
+<p>หลังจากที่เราสามารถสร้างโมเดล Deep learning แบบพื้นฐานแล้ว เราจะมาสำรวจปัญหาต่างๆ ในการเทรน Neural network และแนวทางแก้ไข โดยในบทนี้จะพูดถึงปัญหา Vanishing gradients</p>
+<p>ในการเทรน Deep neural network เราอาจพบว่าโมเดลเทรนจบจนได้ Loss ที่ต่ำที่สุด แต่ก็ไม่ต่ำเท่าที่ควร นั่นคือเกิดปัญหา Bias ทั้งๆ ที่เราได้วางโครงสร้าง Layers, จำนวน Neuron, และจำนวนรายการเนื้อหาเหมาะสมเพียงพอแล้ว</p>
+<p>บ่อยครั้งที่ Bias นี้ เกิดจากปัญหาที่เรียกว่า Vanishing gradients นั่นคือการที่เมื่อเราเทรนโมเดลโดยการอัปเดต Parameter ซ้ำๆ ในกระบวนการ Gradient descent อนุพันธ์ <script type="math/tex">\delta w</script> บางตัวจะมีค่าน้อยลงจนเหลือน้อยมากๆ โดยเฉพาะในตัวที่อยู่ใน Layer ชั้นแรกๆ ที่ใกล้กับ Input layer ส่งผลให้การอัปเดต Parameter ครั้งถัดไป Loss จะเปลี่ยนแปลงน้อยลงมากจนไม่เกิดผลในการ Optimise หรือต้องใช้เวลา (จำนวนรอบ) สูงมากๆ ในการเทรน อนึ่ง ในทางกลับกัน หากอนุพันธ์เพิ่มขึ้นสูงเกินไป ก็จะเกิดปัญหาที่เรียกว่า Exploding gradients ซึ่งก็ส่งผลให้ Optimise ไม่สามารถ Converge หาคำตอบที่ดีได้เช่นกัน</p>
+<p>ปัญหา Vanishing gradients นี้มีแนวทางในการแก้ 3 แนวทางด้วยกัน ได้แก่:</p>
+<ul>
+<li>การเปลี่ยนวิธีการตั้งค่าตั้งต้นของ Parameter</li>
+<li>การเปลี่ยน Activation function</li>
+<li>การใช้เทคนิค Batch normalisation</li>
+</ul>
+<p>ซึ่งเราจะอธิบายทีละแนวทาง</p>
+<h2>Xavier and He initialisation</h2>
+<p>ถ้าเราตั้งค่าตั้งต้นให้กับน้ำหนัก <script type="math/tex">w</script> เป็น 0 เราจะแทบไม่สามารถเทรนอะไรได้เลย เพราะทุก Neuron ใน Layer แรกจะส่งค่า Activation เดียวกันออกไปยัง Layer ถัดไป ดังนั้นเราจึงต้องตั้งค่าตั้งต้นน้ำหนัก <script type="math/tex">w</script> ให้ไม่ใช่ 0 และไม่ใช่ตัวเลขที่เท่ากัน</p>
+<p>แต่ถ้าเราตั้งค่าตั้งต้นของ <script type="math/tex">w</script> เป็นตัวเลขสุ่มทั่วไป จะพบว่าบางตัวเลขอาจทำให้เกิดปัญหา Vanishing gradients ดังนั้น เราจึงต้องมีวิธีที่ดีในการสุ่มค่าตั้งต้นของ <script type="math/tex">w</script>
 </p>
+<p>วิธีดังกล่าว เรียกว่า Xavier initialisation มีหลักการคือจะต้องสุ่มค่าที่ทำให้ Variance ของ Output เท่ากับ Variance ของ Input ใน Layer เดียวกัน และต้องทำให้อนุพันธ์ <script type="math/tex">\delta w</script> ในแต่ละ Layer มี Variance เท่ากันทั้งขาเข้าและขาออกเมื่อทำ Backward propagation ด้วย อย่างไรก็ตามข้อกำหนดนี้เป็นไปไม่ได้ที่จะทำจริง เพราะจะทำได้ก็ต่อเมื่อแต่ละ Layer มีจำนวนการเชื่อมต่อขาเข้าเท่ากับขาออก ดังนั้นวิธีที่ดีที่สุดในการจำลองผลลัพธ์นี้ให้เกิดขึ้นได้ คือการใช้สมการต่อไปนี้:</p>
 <p>
-<script type="math/tex; mode=display">b^{[l]} := b^{[l]} - \alpha (db^{[l]}) \tag{2}</script>
+<script type="math/tex; mode=display">r = \sqrt{\frac{6}{n_i + n_{i+1}}} \tag{1}</script>
 </p>
-<p>โดย <script type="math/tex">[l]</script> คือลำดับที่ของ Layer</p>
-<p>กลไกการ Optimise แบบนี้ มักเกิดปัญหาว่าถ้าหากอนุพันธ์นั้นมีค่าน้อย (คือมีความชันน้อย) ก็จะทำให้ Parameter ถูกอัปเดตแต่ละรอบช้ามาก ส่งผลให้ใช้เวลานานกว่าโมเดลจะเทรนจนถึงจุดที่ Loss ค่ำที่สุดเท่าที่จะเป็นไปได้</p>
-<p>ปัจจุบัน มี Algorithm ชั้นสูงเพื่อเพิ่มประสิทธิภาพการ Optimise ให้เลือกใช้ โดย Optimiser เหล่านี้ล้วนมีหลักการคล้ายกัน คือนำค่าอนุพันธ์ล่าสุดไปเพิ่มน้ำหนักให้แก่การ Optimise ในรอบถัดไป เพื่อเร่งความเร็วของการอัปเดตให้มากขึ้น ในบทนี้เราจึงจะมาเรียนรู้ Optimiser ชั้นสูง 3 ตัว ได้แก่ Momentum, RMSProp, และ Adam โดยเราสามารถเรียกใช้ Optimiser เหล่านี้ได้โดยการกำหนด Argument ใน Method <code>.compile</code> เช่น:</p>
-<pre><code>model.compile(optimizer='adam',
-              loss='sparse_categorical_crossentropy',
-              metrics=['accuracy'])
+<p>โดย <script type="math/tex">n_i</script> คือจำนวนการเชื่อมต่อขาเข้าของ Layer นั้น ส่วน <script type="math/tex">n_{i+1}</script> คือจำนวนการเชื่อมต่อที่ออกจาก Layer นั้น</p>
+<p>วิธี Initialisation นี้เรียกว่า Xavier initialisation ตามชื่อของผู้คิดค้น ถูกออกแบบให้ใช้กับ Tanh activation function ซึ่งจะอธิบายในส่วนถัดไป</p>
+<p>อย่างไรก็ตาม ในปัจจุบันเรามักใช้ Activation function ตระกูล ReLU แทน Sigmoid และ Tanh ดังนั้นเราจึงต้องเปลี่ยนแปลงวิธี Initialise ของ Xavier ให้อยู่ในรูปนี้:</p>
+<p>
+<script type="math/tex; mode=display">r = \sqrt{\frac{6}{n_i}} \tag{2}</script>
+</p>
+<p>วิธีนี้เรียกว่า He initialisation ตามชื่อผู้คิดค้น ความแตกต่างกับ Xavier คือวิธีของ He พิจารณาเฉพาะจำนวนการเชื่อมต่อขาเข้าเท่านั้น</p>
+<p>ทั้งสองวิธีเป็นวิธีสุ่มจาก Uniform distribution คือกระจายตัวออกเท่าๆ กันตลอด Range ของข้อมูล เราสามารถจะเลือกสุ่มแบบ Normal distribution คือกระจายการสุ่มให้กระจุกตัวเยอะตรงกลางๆ ของ Range ก็ได้ โดยการเปลี่ยนแปลงสมการเล็กน้อย ทั้งนี้ใน TensorFlow เราสามารถกำหนดวิธีการ Initialise ค่าน้ำหนักได้โดยใช้ Argument <code>kernel_initializer</code> ใน Layer เช่น:</p>
+<pre><code>model.add(Dense(64,
+                kernel_initializer='he_uniform',
+                bias_initializer='zeros'))
 </code></pre>
 
-<h2>Momentum</h2>
-<p>Momentum optimiser ใช้อนุพันธ์ล่าสุดมาทำให้การเคลื่อนที่ของ Cost function นั้นพุ่งไปข้างหน้าอย่างนุ่มนวล หัวใจหลักของความสามารถนี้คือการใช้ <strong>Exponentially weighted moving average (EMA) ของอนุพันธ์</strong> มาอัปเดต Parameter</p>
-<p>วิธีการคำนวน Momentum มีดังนี้:</p>
-<p>1) คำนวน Vector ของ "น้ำหนักเร่ง" <script type="math/tex">v</script> โดยใช้ EMA:</p>
+<p>อนึ่ง ค่าน้ำหนักของ <script type="math/tex">b</script> สามารถเริ่มด้วย 0 ได้ ไม่มีปัญหาอะไร</p>
+<p><strong>ปัจจุบัน แนะนำให้ใช้ He initialiser</strong> เพราะออกแบบมาให้ใช้กับ Activation function ตระกูล ReLU และ ELU ซึ่งแนะนำให้ใช้แทน Sigmoid หรือ Tanh โดยจะพูดถึงเรื่องนี้ในส่วนถัดไป</p>
+<h2>Activation functions</h2>
+<p>ทบทวนอีกครั้ง ว่าการคำนวนของแต่ละ Neuron ประกอบด้วยการรับ Input <script type="math/tex">a^{[l-1]}</script> มาถ่วงน้ำหนักกับ <script type="math/tex">W^l</script> และ <script type="math/tex">b^l</script> จะได้ Linear function <script type="math/tex">z^l</script> จากนั้นจะนำ <script type="math/tex">z^l</script> ไปเป็น Input ของ Activation function <script type="math/tex">g</script> ซึ่งได้ผลเป็น <script type="math/tex">a^l</script> เขียนรวมได้ทั้งหมดดังนี้:</p>
 <p>
-<script type="math/tex; mode=display">v_{dW^{[l]}} = \beta v_{dW^{[l]}} + (1-\beta)dW^{[l]} \tag{3}</script>
+<script type="math/tex; mode=display">z^{[l](i)} = W^{[l]}a^{[l-1](i)} + b^{[l]} \tag{3}</script>
 </p>
 <p>
-<script type="math/tex; mode=display">v_{db^{[l]}} = \beta v_{db^{[l]}} + (1-\beta)db^{[l]} \tag{4}</script>
+<script type="math/tex; mode=display">a^{[l](i)} = g(z^{[l](i)}) \tag{4}</script>
 </p>
+<p>หน้าที่ของ Activation function <script type="math/tex">g</script> คือการควบคุม Output ของ Neuron ให้อยู่ใน Range ที่ Neuron ชั้นถัดไปจะคำนวนได้ง่าย และถ้าหาก Activation นั้นอยู่ใน Hidden layer ชั้นสุดท้าย ก็จะมีหน้าที่ควบคุม Range ของ Output ให้สามารถตีความเป็นคำตอบได้ง่าย</p>
+<p>ยกตัวอย่างเช่นเมื่อใช้ Sigmoid function แทน <script type="math/tex">g</script> ตามสมการด้านล่าง ค่า Activation ที่ได้จะอยู่ในช่วง 0 ถึง 1 เท่านั้น ซึ่งสะดวกในการตีความแบบ Classification (มากกว่า 0.5 คือ "ใช่" น้อยกว่าคือ "ไม่ใช่"):</p>
+<p>
+<script type="math/tex; mode=display">\sigma(z) = \frac{1}{1+e^{(-z)}} \tag{5}</script>
+</p>
+<p>หากดูภาพ Sigmoid function ก็จะเห็นว่าหาก <script type="math/tex">z</script> สูงมากๆ Activation ก็จะได้ผลเข้าใกล้ 1 ในทางกลับกัน หาก <script type="math/tex">z</script> น้อยมากๆ Activation ก็จะได้ผลเข้าใกล้ 0:</p>
+<p><img alt="Sigmoid activation function" src="images/ml-blog04-02.png"></p>
+<p>นอกจาก Sigmoid ยังมี Activation function ที่คล้ายกัน คือ Tanh ย่อมาจาก Hyperbolic Tangent ซึ่งอยู่ในรูปนี้:</p>
+<p>
+<script type="math/tex; mode=display">\text{tanh}(z) = \frac{1-e^{-2z}}{1+e^{-2z}} \tag{6}</script>
+</p>
+<p>Tanh ต่างจาก Sigmoid ตรงที่ Output จะอยู่ใน Range -1 และ 1 ซึ่งส่งผลให้การตีความแตกต่างออกไป โดยมีจุดตัดการตัดสินใจที่ 0 ไม่ใช่ 0.5 ตามที่เห็นในภาพ:</p>
+<p><img alt="Tanh activation function" src="images/ml-blog15-01.png"></p>
+<p>สังเกตว่า Output range ของ Tanh คือ 2 สูงกว่า Range ของ Sigmoid ที่เท่ากับ 1 อยู่ 2 เท่า</p>
+<p>ทั้ง Sigmoid และ Tanh ต่างมีปัญหาหลักอยู่ 2 อย่าง ดังนี้:</p>
 <ul>
-<li>
-<script type="math/tex">v_{dW^{[l]}}</script> และ <script type="math/tex">v_{db^{[l]}}</script> คือ Vector ของน้ำหนักเร่งของ <script type="math/tex">dW</script> และ <script type="math/tex">db</script> ตัวที่แล้ว โดยเริ่ม Initialise ด้วย 0</li>
-<li>
-<script type="math/tex">\beta</script> คือค่าน้ำหนักของ EMA ปกติตั้งที่ 0.9 ซึ่งแปลว่า "ค่าน้ำหนักเร่งใหม่ มาจากค่าน้ำหนักเร่งเก่า 9 ส่วน และ <script type="math/tex">dW</script> 1 ส่วน"</li>
+<li>ใช้ Exponential ในการคำนวน ทำให้เปลืองพลังการประมวลผล</li>
+<li>เป็นหนึ่งในปัจจัยที่ทำให้เกิดปัญหา Vanishing gradients เพราะถ้าหาก Activation ของ Sigmoid / Tanh ออกมาเป็นค่าน้อยๆ หรือมากๆ อนุพันธ์ (ความชัน) ของ Sigmoid function ก็จะมีค่าน้อยมากเข้าใกล้ 0 เราต้องใช้อนุพันธ์ของ Sigmoid function ในการคำนวนอนุพันธ์ของ <script type="math/tex">z^{[1]}</script> ซึ่งจะถูกนำไปคำนวนอนุพันธ์ของ <script type="math/tex">w^{[1]}</script> และ <script type="math/tex">b^{[1]}</script> อีกต่อหนึ่ง นั่นหมายความว่า Neuron ที่ให้ค่า Activation สูงหรือต่ำเกินไป จะส่งผลให้การอัปเดต Parameter รอบถัดไปมีการเปลี่ยนแปลงน้อยลงกว่าที่ควรจะเป็น ซึ่งส่งผลให้กระบวนการ Optimisation ไม่สามารถหา Loss ที่ต่ำที่สุดได้</li>
 </ul>
-<p>2) นำค่าน้ำหนักเร่ง <script type="math/tex">v_{dW^{[l]}}</script> และ <script type="math/tex">v_{db^{[l]}}</script> ที่ได้ ไปถ่วง Learning rate <script type="math/tex">\alpha</script> และลบออกจาก <script type="math/tex">W^{[l]}</script> และ <script type="math/tex">b^{[l]}</script>:</p>
+<p>ปัญหาทั้งสองนี้แก้ได้โดยการเปลี่ยน Activation function เป็น ReLU</p>
+<p>ReLU ย่อมาจาก Rectified Linear Unit เป็นฟังก์ชันที่เรียบง่ายมาก เรียกว่า Ramp function คือถ้า Input มีค่าตั้งแต่ 0 ขึ้นไป Output ก็จะมีค่าเท่ากัน ส่วน Input ที่น้อยกว่า 0 จะกำหนด Output เป็น 0 ตลอด ลองดูภาพประกอบ:</p>
+<p><img alt="ReLU activation function" src="images/ml-blog15-02.png"></p>
+<p>ภาพโดย <a href="https://commons.wikimedia.org/w/index.php?curid=4310272">Qef</a> - Own work by uploader, hand-written SVG., Public Domain</p>
+<p>สามารถเขียน ReLU เป็นสมการได้ดังนี้:</p>
 <p>
-<script type="math/tex; mode=display">W^{[l]} := W^{[l]} - \alpha (v_{dW^{[l]}}) \tag{5}</script>
+<script type="math/tex; mode=display">\text{relu}(z) =
+\begin{cases}
+    z \quad \text{if } z \geq 0 \\
+    0 \quad \text{if } z < 0
+\end{cases}\tag{7}</script>
+</p>
+<p>หรือเขียนได้อีกอย่างว่า:</p>
+<p>
+<script type="math/tex; mode=display">\text{relu}(z) = \text{max}(0, x)\tag{8}</script>
+</p>
+<p>ดูเผินๆ เหมือนว่า ReLU ไม่น่าจะช่วยให้โมเดลทำงานได้ดี เพราะ Output เป็น Linear function ที่แทบไม่ได้ดัดแปลงแก้ไขอะไร แต่ในความเป็นจริงพบว่า การใช้ ReLU ใน Hidden layer นอกจากจะทำให้การเทรนทำได้รวดเร็วกว่า Sigmoid หลายเท่าแล้ว ยังช่วยแก้ปัญหา Vanishing gradients ได้เป็นอย่างมาก เพราะความชันของฟังก์ชันจะเป็นค่าคงตัว คือ 1 เสมอ</p>
+<p>จะเห็นว่าการทำงานของ ReLU คือการ "ส่งต่อ" Linear function ออกไป โดยเลือกปิด Neuron บางตัวออกไปเลยหาก Neuron นั้นมีค่าน้อย ซึ่งพฤติกรรมนี้อาจส่งผลให้ Optimiser ไม่สามารถ Converge หา Loss ที่ต่ำเท่าที่ควร แต่ในความเป็นจริง ปัญหานี้ไม่ได้เกิดขึ้นตลอดเวลา เพราะ Activation function ใน Neuron หนึ่งๆ คือผลรวมของ Input ทุก Feature ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">a_1^{[1](1)} = g(w_1^{[1](1)} x_1^{[1](1)} + w_2^{[1](1)} x_2^{[1](1)} + \dots + w_n^{[1](1)} x_n^{[1](1)} + b_1^{[1](1)})  \tag{9}</script>
+</p>
+<p>นั่นแปลว่าต่อให้มี <script type="math/tex">wx</script> บางคู่ที่ให้ผลลบ แต่โดยรวมแล้ว <script type="math/tex">wx</script> ทุกคู่บวกรวมกัน ก็มีโอกาสที่จะเป็นบวกสูงกว่าเป็นลบมาก ดังนั้นจึงมีโอกาสน้อยที่ ReLU จะให้ผลออกมาเป็น 0</p>
+<p>แต่ก็ไม่ใช่ว่าจะไม่มีโอกาสที่ ReLU จะให้ผลลบเลย ในบางโมเดล Neuron หลายสิบเปอร์เซ็นถูกปิดเพราะ ReLU ทางแก้คือใช้ Activation function ที่ดัดแปลงส่วนแบนของ ReLU ให้มีความลาดเอียงเล็กน้อย เรียกว่า Leaky ReLU:</p>
+<p>
+<script type="math/tex; mode=display">\text{relu}(z) = \text{max}(0.01, x)\tag{10}</script>
+</p>
+<p>หน้าตาของกราฟจะคล้าย ReLU แต่ส่วนบนจะลาดลงเล็กน้อย เช่นถ้า Input เท่ากับ -1 จะส่งผลให้ Output เท่ากับ -0.01 เป็นต้น</p>
+<p>ล่าสุด ในปี 2015 มีคณะนักวิจัยเสนอ Activation function ใหม่ที่ชื่อ ELU หรือ Exponential Linear Unit ที่ทดสอบแล้วได้ผลเหนือกว่า ReLU และ Leaky ReLU ทุกด้าน เช่น เวลาที่ใช้เทรนโดยรวมสั้นกว่า และได้ความแม่นยำสูงกว่า ELU มีสมการดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">\text{ELU}_{\alpha}(z) =
+\begin{cases}
+    \alpha(e^z-1) \quad \text{if } z < 0 \\
+    z \quad \text{if } z \geq 0
+\end{cases}\tag{11}</script>
+</p>
+<p><img alt="ELU activation function" src="images/ml-blog15-03.png"></p>
+<p>ภาพโดย <a href="https://commons.wikimedia.org/w/index.php?curid=46839702">Laughsinthestocks</a> at English Wikipedia - Transferred from en.wikipedia to Commons., CC0</p>
+<p>ELU มีคุณสมบัติที่อุดช่องว่างของ Activation function อื่นๆ ที่ผ่านมา ช่วยลดปัญหา Vanishing gradients เพราะอนุพันธ์ของฟังก์ชันยังมีค่าบวกอยู่ถึงแม้ Input จะมีค่าน้อยกว่า 0 ไปจนถึง -2 โดยเราสามารถปรับค่า Hyperparameter <script type="math/tex">\alpha</script> เพื่อกำหนดว่า Output จะมีค่าเท่าใดเมื่อ Input มีค่าติดลบมากๆ โดยปกติตั้งไว้ที่ 1</p>
+<p>ข้อเสียของ ELU คือต้องใช้พลังประมวลผลมาก แต่ก็แลกกับการที่ทำให้ Optimiser นั้น Converge เร็วขึ้น อย่างไรก็ตามในเวลาทดสอบกับ Test set หรือเวลาใช้โมเดลพยากรณ์จริง (Forward propagation ขาเดียว) ELU จะใช้เวลานานกว่า ReLU ดังนั้นใน Application ที่ความเร็วในการได้ผลลัพธ์เป็นสิ่งสำคัญ ก็ควรพิจารณาให้ดีว่ายอมรับความช้าลงได้หรือไม่</p>
+<p><strong>ปัจจุบันแนะนำให้ใช้ ELU เป็นอันดับแรก</strong> ตามด้วย Leaky ReLU, ReLU, Tanh, และ Sigmoid</p>
+<p>ใน TensorFlow เราสามารถเลือกใช้ Activation function ใดก็ได้ เพียงแค่เปลี่ยนค่าของ Argument <code>activation</code> ใน Model layer</p>
+<p>ต่อมาเป็นเทคนิคสุดท้ายเพื่อลดปัญหา Vanishing gradients นั่นคือ Batch normalisation</p>
+<h2>Batch normalisation</h2>
+<p>เวลาเทรนโมเดลหลายๆ ครั้ง ค่าเฉลี่ยและการกระจายตัวของ Input สำหรับแต่ละ Neuron ในแต่ละ Layer จะมีแนวโน้มที่จะเปลี่ยนไปเรื่อยๆ ซึ่งทำให้ Gradient descent ทำงานได้ไม่เต็มประสิทธิภาพ เช่น ใช้เวลานานในการคำนวน และต้องใช้จำนวนรอบมากกว่าจะ Converge ได้ เรียกปัญหานี้ว่า Internal covariate shift ดังนั้นเมื่อพิจารณาว่าข้อมูล Input เริ่มแรกต้องถูก Scale ให้เรียบร้อยเสียก่อน ทำไมเราจึงไม่ Scale และ Normalise ข้อมูล Input ของแต่ละ Layer ระหว่างการเทรนไปด้วยเสียเลย</p>
+<p>Batch normalisation คือการปรับ Mean และ Variance ของ Input สำหรับแต่ละ Layer ให้เป็นมาตรฐาน แล้วปรับ Scale และตำแหน่งของ Input ทั้งชุดให้ เทคนิคนี้เพิ่งถูกเสนอเมื่อปี 2015 นี้เอง การทำ Batch normalisation นอกจากจะทำช่วยลดปัญหา Vanishing gradient ลงเกือบทั้งหมดแล้ว ยังทำให้เราสามารถตั้ง Learning rate ได้เร็วขึ้น หรือลดจำนวน Epoch ที่ต้องเทรน (เพราะ Input ไม่ใหญ่เกินไป) ส่งผลให้เทรนโมเดลได้เร็วขึ้น นอกจากนี้ยังให้ผลในการ Regularise ด้วยระดับหนึ่ง</p>
+<p>ขั้นตอนในการทำ Batch normalisation มีดังนี้:</p>
+<p>1) หา Mean <script type="math/tex">\mu_B</script> และ Variance <script type="math/tex">\sigma_B^2</script> ของ Mini-batch <script type="math/tex">B</script>:</p>
+<p>
+<script type="math/tex; mode=display">\mu_B = \frac{1}{m_B} \sum\limits_{i=1}^{m_B} x^{(i)} \tag{12}</script>
 </p>
 <p>
-<script type="math/tex; mode=display">b^{[l]} := b^{[l]} - \alpha (v_{db^{[l]}}) \tag{6}</script>
+<script type="math/tex; mode=display">\sigma_B^2 = \frac{1}{m_B} \sum\limits_{i=1}^{m_B} (x^{(i)} - \mu_B)^2 \tag{13}</script>
 </p>
-<p>สังเกตว่าสมการที่ (5) และ (6) นั้นก็คือการอัปเดต Parameter ตามปกติ เพียงเปลี่ยนตัวแปรที่เอาไปถ่วงน้ำหนักและลบออก จากเดิมใช้ <script type="math/tex">dW^{[l]}</script> และ <script type="math/tex">db^{[l]}</script> เป็นค่าน้ำหนักเร่ง <script type="math/tex">v_{dW^{[l]}}</script> และ <script type="math/tex">v_{db^{[l]}}</script>
-</p>
-<h2>RMSProp</h2>
-<p>RMSProp ย่อมาจาก Root Mean Square Propagation มีคุณสมบัติคล้ายกับ Momentum แต่แทนที่จะใช้ EMA ของอนุพันธ์ตัวที่ผ่านๆ มาในการอัปเดต Parameter เปลี่ยนไปใช้ <strong>EMA ของยกกำลังสองของอนุพันธ์</strong>แทน โดยมีวิธีการคำนวนดังนี้:</p>
-<p>1) คำนวน Vector ของ "น้ำหนักเร่ง" <script type="math/tex">s</script> โดยใช้ EMA ของยกกำลังสองของอนุพันธ์:</p>
+<p>2) Normalise <script type="math/tex">z</script> ด้วยการนำ Input <script type="math/tex">z</script> ไปลบกับ Mean ของ Mini-batch และหารส่วนเบี่ยงเบนมาตรฐานของ Mini-batch:</p>
 <p>
-<script type="math/tex; mode=display">s_{dW^{[l]}} = \beta s_{dW^{[l]}} + (1-\beta)dW^{[l]2} \tag{7}</script>
+<script type="math/tex; mode=display">z_{norm}^{(i)} = \frac{z^{(i)}-\mu_B}{\sqrt{\sigma_B^2 + \epsilon}} \tag{14}</script>
 </p>
+<p>โดย <script type="math/tex">\epsilon</script> อ่านว่า Epsilon คือจำนวนขนาดเล็กมากๆ ที่บวกเข้าไปเพื่อป้องกันไม่ให้ตัวหารของสมาการเป็น 0 โดยปกติตั้งเป็น <script type="math/tex">10^{-5}</script>
+</p>
+<p>3) Scale และปรับตำแหน่งชุดข้อมูลโดยการนำ <script type="math/tex">z_{norm}^{(i)}</script> ไปคำนวนร่วมกับ Scaling parameter <script type="math/tex">\gamma</script> และ Shifting parameter <script type="math/tex">\beta</script>:</p>
 <p>
-<script type="math/tex; mode=display">s_{db^{[l]}} = \beta s_{db^{[l]}} + (1-\beta)db^{[l]2} \tag{8}</script>
+<script type="math/tex; mode=display">\tilde{z}^{(i)} = \gamma z_{norm}^{(i)} + \beta \tag{15}</script>
 </p>
-<p>2) นำค่าน้ำหนักเร่ง <script type="math/tex">s_{dW^{[l]}}</script> และ <script type="math/tex">s_{db^{[l]}}</script> ที่ได้ ไปประกอบกับ <script type="math/tex">dW^{[l]}</script> และ <script type="math/tex">db^{[l]}</script> และถ่วงกับ Learning rate <script type="math/tex">\alpha</script> ตามสมการด้านล่าง แล้วลบออกจาก <script type="math/tex">W^{[l]}</script> และ <script type="math/tex">b^{[l]}</script>:</p>
-<p>
-<script type="math/tex; mode=display">W^{[l]} := W^{[l]} - \alpha \left(\frac{dW^{[l]}}{\sqrt{s_{dW^{[l]}}} + \epsilon}\right) \tag{9}</script>
-</p>
-<p>
-<script type="math/tex; mode=display">b^{[l]} := b^{[l]} - \alpha \left(\frac{db^{[l]}}{\sqrt{s_{db^{[l]}}} + \epsilon}\right) \tag{10}</script>
-</p>
-<p>โดย <script type="math/tex">\epsilon</script> คือค่าคงที่ขนาดเล็กๆ ที่ป้องกันไม่ให้ตัวหารเป็น 0</p>
-<p>สังเกตว่า Term ที่เอาไปถ่วงกับ Learning rate นั้นไม่เหมือน Momentum กล่าวคือเป็นการนำ Square root ของค่าน้ำหนักเร่งไปหารออกจากอนุพันธ์ วิธีการนี้จะช่วยจำกัดความแปรผันในทิศที่ตั้งฉากกับทิศทางที่ไปสู่จุดต่ำสุดของ Cost function ในขณะที่ Momentum สนใจในการสร้างแรงที่มุ่งไปสู่ทิศต่ำสุดของ Cost function อย่างเดียว</p>
-<h2>Adam</h2>
-<p>Adam ย่อมาจาก Adaptive Moment Estimation <strong>เป็นการรวม Momentum และ RMSProp เข้าด้วยกัน</strong> ถือว่าเป็น Optimiser ที่ดีที่สุดในปัจจุบัน มีวิธีการคำนวนดังนี้ (แสดงเฉพาะสำหรับ <script type="math/tex">w</script>):</p>
-<p>1) คำนวน Vector ของ "น้ำหนักเร่ง" <script type="math/tex">v</script> โดยใช้ EMA ตามแบบ Momentum และ Vector ของ "น้ำหนักเร่ง" <script type="math/tex">s</script> โดยใช้ EMA ตามแบบ RMSProp แล้วแก้ Bias ที่เกิดจากการที่ <script type="math/tex">v</script> และ <script type="math/tex">s</script> ถูก Initialise ด้วย 0 (ถ้าไม่แก้จะทำให้ <script type="math/tex">v</script> และ <script type="math/tex">s</script> รอบแรกๆ มีค่าต่ำกว่าที่ควรจะเป็น):</p>
-<p>
-<script type="math/tex; mode=display">v_{dW^{[l]}} = \beta_1 v_{dW^{[l]}} + (1-\beta_1)dW^{[l]} \tag{11}</script>
-</p>
-<p>
-<script type="math/tex; mode=display">v_{dW^{[l]}}^{corrected} = \frac{v_{dW^{[l]}}}{1-\beta_1^t} \tag{12}</script>
-</p>
-<p>
-<script type="math/tex; mode=display">s_{dW^{[l]}} = \beta_2 s_{dW^{[l]}} + (1-\beta_2)dW^{[l]2} \tag{13}</script>
-</p>
-<p>
-<script type="math/tex; mode=display">s_{dW^{[l]}}^{corrected} = \frac{s_{dW^{[l]}}}{1-\beta_2^t} \tag{14}</script>
-</p>
-<p>2) นำค่าน้ำหนักเร่ง <script type="math/tex">v_{dW^{[l]}}^{corrected}</script> และ <script type="math/tex">s_{dW^{[l]}}^{corrected}</script> ไปประกอบกันในลักษณะเดียวกับ RMSProp คือ <script type="math/tex">v_{dW^{[l]}}^{corrected}</script> เป็นตัวตั้ง หารด้วย Square root ของ <script type="math/tex">s_{dW^{[l]}}^{corrected}</script> เพื่อจำกัดความแปรผันในทิศที่ตั้งฉากกับทิศทางที่ไปสู่จุดต่ำสุดของ Cost function แล้วถ่วงกับ Learning rate <script type="math/tex">\alpha</script> แล้วลบออกจาก <script type="math/tex">W^{[l]}</script> และ <script type="math/tex">b^{[l]}</script>:</p>
-<p>
-<script type="math/tex; mode=display">W^{[l]} := W^{[l]} - \alpha \left(\frac{v_{dW^{[l]}}^{corrected}}{\sqrt{s_{dW^{[l]}}^{corrected}} + \epsilon}\right) \tag{15}</script>
-</p>
-<p>ในทางปฏิบัติ แนะนำให้ใช้ Adam ไปเลย เว้นแต่จะมีปัญหาก็สามารถลองใช้ Momentum ได้</p>
-<p>ในบทต่อไปจะพูดถึงเทคนิคการ Regularise deep neural network ซึ่งรวมทั้ง Dropout layer</p>
-<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog15.html">บทที่ 15 Neural Network Vanishing Gradients</a> | <a href="ml-blog17.html">บทที่ 17 Neural Network Regularisation</a></p>
+<p>โดย Scaling parameter <script type="math/tex">\gamma</script> และ Shifting parameter <script type="math/tex">\beta</script> จะถูกใส่เข้าไปใน Backward propagation เพื่อให้ Algorithm ปรับค่าทั้งสองนี้ระหว่างเทรน</p>
+<p>มีข้อสังเกตว่าถ้าเราทำ Batch normalisation บน Hidden layer แรก ก็ไม่มีความจำเป็นต้อง Normalise input ตั้งแต่แรก</p>
+<p>อย่างไรก็ตาม Batch norm ทำให้การคำนวน Forward propagation ช้าลง ดังนั้นจึงควรพิจารณาว่าการใช้ He initialisation บวกกับ ELU activation function นั้นให้ผลดีเพียงพอแล้วหรือไม่</p>
+<p>ใน TensorFlow เราสามารถทำ Batch normalisation โดยการสร้าง Layer ชื่อ <code>BatchNormalization</code> ได้เลย</p>
+<p>เป็นอันว่าเราเรียนรู้เทคนิคที่จะลดปัญหา Vanishing gradients ได้ถึง 3 แนวทาง บทต่อไปเราจะมาทำความรู้จักกับ Optimiser ต่างๆ ที่จะช่วยเพิ่มความเร็วในการเทรนโมเดล</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog15.html">บทที่ 15 Neural Network Programming</a> | <a href="ml-blog17.html">บทที่ 17 Neural Network Optimisers</a></p>
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 </body>
 </html>
