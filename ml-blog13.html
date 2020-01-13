@@ -96,7 +96,7 @@ plt.show()
 <p><img alt="Elliptic envelope on random dataset" src="images/ml-blog13-002.png"></p>
 <p>จะเห็นว่า Elliptic envelope ได้จำแนกข้อมูล 10% ที่อยู่นอกการกระจายตัวแบบวงรีออกจากข้อมูลทั้งหมด</p>
 <h2>Isolation forest</h2>
-<p>Isolation forest ใช้เทคนิคแบบ Random forest โดยสุ่มเลือกจุดบนข้อมูล และสร้าง Tree แยกข้อมูลเป็นสาขา โดยมีสมมุติฐานว่า ข้อมูลปกติจะสามารถแต่งกิ่งสาขาเป็นจำนวนพอๆ กัน ดังนั้น หากพบ Node ที่แตกสาขาน้อยกว่าค่าเฉลี่ยอย่างมีนัยสำคัญ ก็จะถือว่าเป็นข้อมูลที่ผิดปกติ</p>
+<p>Isolation forest ใช้เทคนิคแบบ Random forest โดยสุ่มเลือกจุดบนข้อมูล และสร้าง Tree แยกข้อมูลเป็นสาขา โดยมีสมมุติฐานว่า ข้อมูลปกติจะสามารถแตกกิ่งสาขาเป็นจำนวนพอๆ กัน ดังนั้น หากพบ Node ที่แตกสาขาน้อยกว่าค่าเฉลี่ยอย่างมีนัยสำคัญ ก็จะถือว่าเป็นข้อมูลที่ผิดปกติ</p>
 <pre><code># Call and fit the Isolation Forest detector
 
 if_detector = IsolationForest(n_estimators=10, contamination=0.1).fit(X)
@@ -117,7 +117,7 @@ lof_detect = lof_detector.fit_predict(X)
 
 <p>ภาพที่ได้คือ:</p>
 <p><img alt="Local outlier factor on random dataset" src="images/ml-blog13-004.png"></p>
-<p>อนึ่ง LOF สามารถใช้กับ Novelty detection หรือการตรวจหาข้อมูลใหม่ที่ผิดปกติ เมื่อรู้ข้อมูลปัจจุบัน โดยใส่ Argument <code>novelty=True</code> แล้วใช้ <code>.fit(X)</code> เข้ากับข้อมูลปัจจุบัน ตามด้วย <code>.predict(X_new)</code> บนข้อมูลใหม่</p>
+<p>อนึ่ง LOF สามารถใช้กับ Novelty detection หรือการตรวจหาข้อมูลใหม่ที่ผิดปกติเมื่อรู้ข้อมูลปัจจุบัน โดยใส่ Argument <code>novelty=True</code> แล้วใช้ <code>.fit(X)</code> เข้ากับข้อมูลปัจจุบัน ตามด้วย <code>.predict(X_new)</code> บนข้อมูลใหม่</p>
 <p>เราสามารถเรียกใช้ Local Outlier Factor จาก Class <code>LocalOutlierFactor</code> ในโมดูล <code>sklearn.neighbors</code></p>
 <h2>One Class SVM</h2>
 <p>One Class SVM ทำงานโดยการสร้าง Support Vector ด้วย RBF Kernel เพื่อเป็นเส้นขอบเขตการตัดสินใจ ใช้สำหรับ Novelty detection เท่านั้น</p>
@@ -134,7 +134,7 @@ svm_detect
 <pre><code>array([-1,  1])
 </code></pre>
 
-<p>แปลว่าข้อมูลใหม่รายการที่ 1 ไม่ปกติ ส่วนรายการที่ 2 นั้นปกติ</p>
+<p>แปลว่าข้อมูลใหม่รายการที่ 1 นั้นผิดปกติ ส่วนรายการที่ 2 นั้นปกติ</p>
 <p>เรามาลองพล็อตขอบเขตการตัดสินใจดู สังเกตว่าข้อมูลรายการที่ 1 คือจุดสีแดง ส่วนรายการ 2 คือจุดสีดำ:</p>
 <pre><code># Plot the data with decision boundaries
 def plot_decision_boundary(clf, X, y, cmap='Paired_r'):
