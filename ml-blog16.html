@@ -87,7 +87,7 @@ MathJax.Hub.Config({
 <script type="math/tex; mode=display">\text{tanh}(z) = \frac{1-e^{-2z}}{1+e^{-2z}} \tag{6}</script>
 </p>
 <p>Tanh ต่างจาก Sigmoid ตรงที่ Output จะอยู่ใน Range -1 และ 1 ซึ่งส่งผลให้การตีความแตกต่างออกไป โดยมีจุดตัดการตัดสินใจที่ 0 ไม่ใช่ 0.5 ตามที่เห็นในภาพ:</p>
-<p><img alt="Tanh activation function" src="images/ml-blog15-01.png"></p>
+<p><img alt="Tanh activation function" src="images/ml-blog16-01.png"></p>
 <p>สังเกตว่า Output range ของ Tanh คือ 2 สูงกว่า Range ของ Sigmoid ที่เท่ากับ 1 อยู่ 2 เท่า</p>
 <p>ทั้ง Sigmoid และ Tanh ต่างมีปัญหาหลักอยู่ 2 อย่าง ดังนี้:</p>
 <ul>
@@ -96,7 +96,7 @@ MathJax.Hub.Config({
 </ul>
 <p>ปัญหาทั้งสองนี้แก้ได้โดยการเปลี่ยน Activation function เป็น ReLU</p>
 <p>ReLU ย่อมาจาก Rectified Linear Unit เป็นฟังก์ชันที่เรียบง่ายมาก เรียกว่า Ramp function คือถ้า Input มีค่าตั้งแต่ 0 ขึ้นไป Output ก็จะมีค่าเท่ากัน ส่วน Input ที่น้อยกว่า 0 จะกำหนด Output เป็น 0 ตลอด ลองดูภาพประกอบ:</p>
-<p><img alt="ReLU activation function" src="images/ml-blog15-02.png"></p>
+<p><img alt="ReLU activation function" src="images/ml-blog16-02.png"></p>
 <p>ภาพโดย <a href="https://commons.wikimedia.org/w/index.php?curid=4310272">Qef</a> - Own work by uploader, hand-written SVG., Public Domain</p>
 <p>สามารถเขียน ReLU เป็นสมการได้ดังนี้:</p>
 <p>
@@ -129,7 +129,7 @@ MathJax.Hub.Config({
     z \quad \text{if } z \geq 0
 \end{cases}\tag{11}</script>
 </p>
-<p><img alt="ELU activation function" src="images/ml-blog15-03.png"></p>
+<p><img alt="ELU activation function" src="images/ml-blog16-03.png"></p>
 <p>ภาพโดย <a href="https://commons.wikimedia.org/w/index.php?curid=46839702">Laughsinthestocks</a> at English Wikipedia - Transferred from en.wikipedia to Commons., CC0</p>
 <p>ELU มีคุณสมบัติที่อุดช่องว่างของ Activation function อื่นๆ ที่ผ่านมา ช่วยลดปัญหา Vanishing gradients เพราะอนุพันธ์ของฟังก์ชันยังมีค่าบวกอยู่ถึงแม้ Input จะมีค่าน้อยกว่า 0 ไปจนถึง -2 โดยเราสามารถปรับค่า Hyperparameter <script type="math/tex">\alpha</script> เพื่อกำหนดว่า Output จะมีค่าเท่าใดเมื่อ Input มีค่าติดลบมากๆ โดยปกติตั้งไว้ที่ 1</p>
 <p>ข้อเสียของ ELU คือต้องใช้พลังประมวลผลมาก แต่ก็แลกกับการที่ทำให้ Optimiser นั้น Converge เร็วขึ้น อย่างไรก็ตามในเวลาทดสอบกับ Test set หรือเวลาใช้โมเดลพยากรณ์จริง (Forward propagation ขาเดียว) ELU จะใช้เวลานานกว่า ReLU ดังนั้นใน Application ที่ความเร็วในการได้ผลลัพธ์เป็นสิ่งสำคัญ ก็ควรพิจารณาให้ดีว่ายอมรับความช้าลงได้หรือไม่</p>

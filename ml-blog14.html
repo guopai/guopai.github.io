@@ -39,17 +39,17 @@ MathJax.Hub.Config({
 <p>อะไรคือสิ่งที่ทำให้ Neural network สามารถเรียนรู้จากข้อมูลที่ไม่มีโครงสร้างได้ดีกว่าวิธีอื่นๆ คำตอบอยู่ที่โครงสร้างการเรียนรู้ (Learning architecture) ของ Neural network ต่างจากโครงสร้างการเรียนรู้ของ Machine learning algorithm แบบทั่วไป</p>
 <p>เรามาลองทำความเข้าใจโครงสร้างของการเรียนรู้ทั้งสองแบบกันว่าต่างกันอย่างไร</p>
 <p>ใน Machine learning algorithm ทั่วไป เช่น Linear regression และ logistic regression โครงสร้างการเรียนรู้เป็นดังนี้:</p>
-<p><img alt="Classical ML learning architecture" src="images/ml-blog13-01.png"></p>
+<p><img alt="Classical ML learning architecture" src="images/ml-blog14-01.png"></p>
 <p>จะเห็นว่ามี 3 ส่วน คือ Input, Classifier, และ Prediction</p>
 <p>1) Input คือข้อมูลที่ป้อนเข้า Algorithm เช่นในกรณีนี้มี 3 Feature ได้แก่ <script type="math/tex">x_1</script>, <script type="math/tex">x_2</script>, และ <script type="math/tex">x_3</script>
 </p>
 <p>2) Classifier คือฟังก์ชันที่นำเอา Input <script type="math/tex">x</script> มาคำนวนร่วมกับค่าน้ำหนัก <script type="math/tex">w</script> ของ <script type="math/tex">x</script> แต่ละตัว ผลที่ได้เรียกว่า <script type="math/tex">z</script> แล้วป้อน <script type="math/tex">z</script> เข้าสู่ฟังก์ชันตัดสินใจ <script type="math/tex">\sigma</script> เช่น Sigmoid function เพื่อคำนวนความเป็นไปได้ของคำตอบ</p>
 <p>3) Prediction คือการตีความคำตอบของ Classifier แล้วนำเสนอผลลัพธ์ให้ผู้ใช้ เช่นคำถาม Binary classification ก็ให้คำตอบว่า "ใช่" หรือ "ไม่ใช่"</p>
 <p>ในขณะที่ Neural network มีโครงสร้างการเรียนรู้ดังนี้:</p>
-<p><img alt="Neural network learning architecture" src="images/ml-blog13-02.png"></p>
+<p><img alt="Neural network learning architecture" src="images/ml-blog14-02.png"></p>
 <p>จะเห็นว่ามี 4 ส่วน คือ Input layer, Hidden layer, Output layer, และ Prediction โดยเราจะอธิบายการทำงานทีละส่วน อนึ่ง เราเรียกกระบวนการที่ทั้ง 4 ส่วนนี้ทำงานต่อเนื่องกันจากด้านซ้ายไปด้านขวาของโครงสร้าง Neural network ว่ากระบวนการแผ่กระจายเดินหน้า หรือ Forward propagation ซึ่งทำงานร่วมกับการแผ่กระจายย้อนกลับ หรือ Backward propagation ซึ่งจะอธิบายภายหลัง</p>
 <p>แต่ก่อนที่จะรู้จัก Forward propagation หลายคนอาจจะเคยได้ยินหรือเคยตั้งคำถามว่า Artificial neural network นี้มีความเหมือนหรือต่างกับการทำงานของสมองหรือไม่อย่างไร เราลองมาดูภาพ Neuron ในสมอง ซึ่งเป็นหน่วยที่รับ ประมวลผล และส่งข้อมูลไปยังส่วนอื่นๆ:</p>
-<p><img alt="Brain neuron" src="images/ml-blog13-brain-neuron.png"></p>
+<p><img alt="Brain neuron" src="images/ml-blog14-brain-neuron.png"></p>
 <p>ภาพจาก <a href="https://commons.wikimedia.org/w/index.php?curid=28761830">BruceBlaus</a> - Own work, CC BY 3.0</p>
 <p>หากจะเปรียบเทียบ โครงสร้างที่เห็นคือ Neuron ซึ่งรับข้อมูลมาจาก Dendrite แล้วส่งข้อมูลออกไปยัง Neuron ตัวถัดไปผ่าน Axon โดย Neuron แต่ละตัวจะรับและส่งข้อมูลกับ Neuron อื่นๆ หลายตัว ปัจจุบันเรายังไม่มีความเข้าใจดีนักว่าโครงสร้างนี้มีความหมายต่อกระบวนการเรียนรู้ของมนุษย์อย่างไร แต่ถ้าจะให้คาดเดา ก็ดูเหมือนว่าโครงสร้างที่มีการเชื่อมโยงกันเป็นเครือข่ายแบบนี้น่าจะทำให้สมองมีความสามารถในการประมวลผลข้อมูลที่รับมา กลายเป็นการตัดสินใจทั้งระดับร่างกายและจิตใจได้ Artificial neural network ได้รับแรงบันดาลใจมาจากโครงสร้างนี้ ถึงแม้กลไกการทำงานไม่จำเป็นต้องเหมือนกันก็ตาม</p>
 <h2>Forward propagation</h2>

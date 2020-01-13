@@ -36,7 +36,7 @@ MathJax.Hub.Config({
 <p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
 <p>บทนี้เราจะมาลองสร้างโมเดล Neural network อย่างง่ายๆ ด้วยการใช้ Deep learning framework ที่ชื่อ TensorFlow</p>
 <p>เป้าหมายของเราคือการสร้างโมเดลพยากรณ์ว่าลายมือเขียนตัวเขียน 0-9 จากฐานข้อมูล MNIST นั้น เขียนว่าตัวเลขอะไร</p>
-<p><img alt="MNIST dataset" src="images/ml-blog14-mnist.png"></p>
+<p><img alt="MNIST dataset" src="images/ml-blog15-mnist.png"></p>
 <p>ตัวอย่างชุดข้อมูล MNIST, ภาพโดย <a href="https://commons.wikimedia.org/w/index.php?curid=64810040">Josef Steppan</a> - Own work, CC BY-SA 4.0</p>
 <p>ปัญหานี้เป็นปัญหาที่เหมาะสมกับ Deep learning เพราะข้อมูล Input เป็นภาพ ซึ่งเป็นข้อมูลที่ไม่มีโครงสร้าง (Unstructured data) และมีจำนวน Feature เยอะมาก โดยในกรณีชุดข้อมูล MNIST นี้ แต่ละภาพมีขนาด 28 x 28 Pixel นั่นคือมี 784 Feature นั่นคือ <script type="math/tex">x_0</script> จนถึง <script type="math/tex">x_{783}</script>
 </p>
@@ -86,7 +86,7 @@ plt.imshow(X_train[img_index])
 </code></pre>
 
 <p>ได้ภาพขนาด 28 x 28 สังเกตว่ามีสี เพราะเป็นค่าตั้งต้นของ matplotlib เอง ในความเป็นจริงข้อมูลไม่ได้มีสี</p>
-<p><img alt="MNIST data visualised" src="images/ml-blog14-01.png"></p>
+<p><img alt="MNIST data visualised" src="images/ml-blog15-01.png"></p>
 <p>ต่อมา เราจะ Preprocess ข้อมูลให้พร้อมใช้งานขึ้น สิ่งที่จะทำมีดังนี้:</p>
 <ul>
 <li>เปลี่ยนมิติข้อมูลให้เป็น 4 มิติ คือ (จำนวนรายการ, Column, Row, จำนวน Layer สี) โดยข้อมูลของเราเป็นภาพขาวดำขนาด 28 x 28 ดังนั้นมิติคือ (จำนวนรายการ, 28, 28, 1)</li>
@@ -196,7 +196,7 @@ plt.show()
 </code></pre>
 
 <p>ภาพที่ได้คือ:</p>
-<p><img alt="MNIST accuracy vs. epoch" src="images/ml-blog14-03.png"></p>
+<p><img alt="MNIST accuracy vs. epoch" src="images/ml-blog15-03.png"></p>
 <p>จะเห็นว่าโมเดลของเราสามารถเพิ่ม Train accuracy ได้อย่างต่อเนื่อง อย่างไรก็ตาม ดูเหมือน Validation accuracy จะไม่ยอมเพิ่มจากจุดสูงสุด คือประมาณ 0.93 ตั้งแต่ Epoch ที่ 8 จากข้อมูลนี้เราสามารถวิเคราะห์ได้ว่าโมเดลมีปัญหา Variance ซึ่งก็คือการที่ไม่สามารถ Generalise ให้พยากรณ์ข้อมูลที่ไม่เคยเห็นได้ดีเท่าที่ควร ดังนั้นข้อมูลนี้จึงบอกเราว่าเราควรลองมาตรการต่างๆ ที่จะช่วยลดปัญหา Variance เช่น การเพิ่มขนาด Validation set การเพิ่มหรือปรับเทคนิคการ Regularisation เป็นต้น</p>
 <p>ต่อมา เราก็นำทดสอบความแม่นยำของโมเดล กับ Test set ซึ่งแยกไว้ตั้งแต่แรกอีกที โดยการใช้ Method <code>.evaluate</code>:</p>
 <pre><code># Evaluate model's accuracy
@@ -243,7 +243,7 @@ print(&quot;From which the max choice is:&quot;, pred.argmax())
 From which the max choice is: 9
 </code></pre>
 
-<p><img alt="MNIST prediction" src="images/ml-blog14-02.png"></p>
+<p><img alt="MNIST prediction" src="images/ml-blog15-02.png"></p>
 <p>จะเห็นว่าภาพที่ 12 ที่เราเลือก เป็นภาพของเลข 9 โมเดลได้พยากรณ์ว่า 9 โดยให้ความเป็นไปได้ 99%</p>
 <p>การเปรียบเทียบภาพจริงกับค่าที่พยากรณ์ได้ จะช่วยเป็นข้อมูลให้เราวิเคราะห์ข้อผิดพลาดของโมเดลได้ว่าเป็นอย่างไรและน่าจะเกิดจากอะไร โดยจะอธิบายเรื่อง Error analysis เพิ่มเติมในบทต่อๆ ไป</p>
 <p>บทต่อไป เราจะมาเจาะลึกเกี่ยวกับโครงสร้างของโมเดลและตัวเลือกของ Optimisation algorithm</p>
