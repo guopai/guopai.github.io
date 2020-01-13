@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-101718744-3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-101718744-3');
+</script>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 13: Anomaly Detection</title>
+<meta name="description" content="Machine learning อธิบายการตรวจหาข้อมูลที่ผิดปกติแบบ Unsupervised learning ด้วย Elliptic envelope, Isolation forest, Local Outlier Factor (LOF), และ One Class SVM">
+<meta name="keywords" content="Machine learning, Deep learning, AI">
+<meta name="author" content="ชิตพงษ์ กิตตินราดร">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+</head>
+<body>
+<h1>Anomaly Detection</h1>
+<p>หากเรามีชุดข้อมูลที่จะเทรนเพื่อสร้างโมเดล แล้วข้อมูลบางรายการมีค่าผิดปกติไปจากพวก Algorithm จะนำความผิดปกติเหล่านั้นไปคำนวนเป็นส่วนหนึ่งของโมเดล ซึ่งหมายความว่าเราอาจจะได้โมเดลที่ไม่ได้เป็นภาพสะท้อนที่แม่นยำของข้อมูลที่น่าจะนำมาใช้พยากรณ์จริง นั่นคือเกิดปัญหา Overfitting หรือ Variance นั่นเอง</p>
+<p>เราเรียกปัญหานี้ว่าปัญหา Outlier หรือข้อมูล Input ที่ผิดแผกไปจวกพวก ซึ่งสามารถตรวจจับได้ด้วย Unsupervised learning algorithm ประเภท Outlier detection โดยเมื่อตรวจเจอแล้ว เราสามารถพิจารณาจัดการกับข้อมูลเหล่านั้น เช่นการลบออกไป เพื่อจะสามารถสร้างโมเดลที่เป็นตัวแทนที่ดีของข้อมูลส่วนมาก</p>
+<p>ในอีกด้านหนึ่ง หากเรามีชุดข้อมูลที่เรารู้ว่า "ปกติ" อยู่ เราอาจต้องการตรวจจับข้อมูลใหม่ที่อยู่นอกกรอบของความ "ปกติ" โจทย์แบบนี้มีประโยชน์มากมาย เช่น การตรวจหาความผิดปกติของธุรกรรมการเงินเพื่อเฝ้าระวังการทุจริตคอร์รัปชัน หรือการตรวจการทำงานของเครื่องจักรต่างๆ ในระบบที่มีหลายเครื่อง เพื่อรู้ได้ทันทีเมื่อมีเครื่องที่ผิดปกติ เราเรียกกระบวนการแบบนี้ว่า Novelty detection ซึ่งก็คือการพยากรณ์ว่าข้อมูลใหม่นั้นเป็น Outlier เมื่อเทียบกับข้อมูลที่มีอยู่แล้วหรือไม่นั่นเอง</p>
+<p>ในบทนี้เราจะมาเรียนรู้ Unsupervised learning algorithm สำหรับการตรวจจับความผิดปกติ โดยจะนำเสนอ Elliptic envelope, Isolation forest, และ Local Outlier Factor (LOF) สำหรับ Outlier detection ส่วน Novelty detection จะนำเสนอ One Class SVM</p>
+<h2>Elliptic envelope</h2>
+<p>สมมุติว่าเรามีข้อมูลที่มีการกระจายตัวแบบ "มาตรฐาน" เช่นแบบ Gaussian distribution ดังภาพนี้:</p>
+<p><img alt="Multivariate normal random dataset" src="images/ml-blog13-001.png"></p>
+<p>เราสามารถใช้ Elliptic envelope หาจุดศูนย์กลางของข้อมูล แล้วตรวจหาข้อมูลที่อยู่นอกการกระจายเป็นวงรีแบบ Gaussian โดยจะพิจารณารูปร่างของวงรีตาม Covariance ของการกระจายตัวใน Matrix ข้อมูล</p>
+<p>เราสามารถเรียกใช้ Elliptic envelope จาก Class <code>EllipticEnvelope</code> ในโมดูล <code>sklearn.covariance</code></p>
+<pre><code>import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.covariance import EllipticEnvelope
+from sklearn.ensemble import IsolationForest
+from sklearn.neighbors import LocalOutlierFactor
+from sklearn.svm import OneClassSVM
+
+# Generate 2-D random data
+cov = np.array([[1, .6],
+                [.6, 1]])
+X = np.random.RandomState(0).multivariate_normal(mean=[0, 0],
+                                                 cov=cov, size=500)
+
+# Call and fit the Elliptic Envelope detector
+
+ee_detector = EllipticEnvelope(contamination=0.1).fit(X)
+ee_detect = ee_detector.predict(X)
+ee_detect
+</code></pre>
+
+<p>ตอนเราเรียก <code>EllipticEnvelope</code> instance (รวมทั้ง Anomaly detection algorithm อื่นๆ) เราสามารถกำหนด Argument <code>contamination</code> เพื่อระบุว่าเราจะตรวจหา Anomaly เป็นสัดส่วนเท่าใดเมื่อเทียบกับข้อมูลทั้งหมด เช่น 0.1 คือ 10%</p>
+<p>ผลจากการเรียก Method <code>.predict</code> จะได้เป็น Array ที่มี Label ของข้อมูลแต่ละรายการ โดย 1 คือปกติ ส่วน -1 คือไม่ปกติ:</p>
+<pre><code>array([ 1, -1, -1,  1,  1,  1,  1,  1,  1,  1, -1,  1, -1,  1,  1,  1,  1,
+        1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1, -1,
+        1, -1,  1, -1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1, -1,  1,  1,
+        1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1,  1, -1,
+        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1, -1,
+        1,  1,  1, -1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1, -1,  1,  1,
+        1,  1,  1,  1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1, -1,  1,  1,
+        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1, -1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1, -1,  1, -1,  1,  1,  1,
+        1,  1,  1,  1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1,
+        1, -1,  1,  1,  1,  1,  1,  1,  1, -1, -1,  1,  1,  1,  1,  1,  1,
+        1, -1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1, -1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1, -1, -1, -1,  1, -1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1,
+       -1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1, -1,  1, -1,  1,  1,  1,  1,  1,  1, -1,  1,  1,
+        1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1,  1, -1,  1,  1,  1,  1,
+        1,  1,  1, -1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,
+        1,  1,  1,  1,  1,  1,  1])
+</code></pre>
+
+<p>เราสามารถพล็อต Scatterplot โดยแยกสีข้อมูลที่ปกติและไม่ปกติ ดังนี้:</p>
+<pre><code># Plot the data
+plt.figure(figsize=(9,7))
+plt.scatter(X[:, 0], X[:, 1], c=ee_detect, cmap=&quot;flag&quot;, alpha=0.5)
+plt.title(&quot;Elliptic Envelope&quot;)
+plt.show()
+</code></pre>
+
+<p><img alt="Elliptic envelope on random dataset" src="images/ml-blog13-002.png"></p>
+<p>จะเห็นว่า Elliptic envelope ได้จำแนกข้อมูล 10% ที่อยู่นอกการกระจายตัวแบบวงรีออกจากข้อมูลทั้งหมด</p>
+<h2>Isolation forest</h2>
+<p>Isolation forest ใช้เทคนิคแบบ Random forest โดยสุ่มเลือกจุดบนข้อมูล และสร้าง Tree แยกข้อมูลเป็นสาขา โดยมีสมมุติฐานว่า ข้อมูลปกติจะสามารถแต่งกิ่งสาขาเป็นจำนวนพอๆ กัน ดังนั้น หากพบ Node ที่แตกสาขาน้อยกว่าค่าเฉลี่ยอย่างมีนัยสำคัญ ก็จะถือว่าเป็นข้อมูลที่ผิดปกติ</p>
+<pre><code># Call and fit the Isolation Forest detector
+
+if_detector = IsolationForest(n_estimators=10, contamination=0.1).fit(X)
+if_detect = if_detector.predict(X)
+</code></pre>
+
+<p>สังเกตว่า Hyperparameter ที่กำหนดได้ คือจำนวนต้นไม้ที่จะมาช่วยกันสุ่ม ซึ่งก็คือ Argument <code>n_estimators</code></p>
+<p>ภาพที่ได้ออกมาดังนี้:</p>
+<p><img alt="Isolation forest on random dataset" src="images/ml-blog13-003.png"></p>
+<p>เราสามารถเรียกใช้ Isolation forest จาก Class <code>IsolationForest</code> ในโมดูล <code>sklearn.ensemble</code></p>
+<h2>Local Outlier Factor (LOF)</h2>
+<p>Local Outlier Factor หรือ LOF เปรียบเทียบความหนาแน่นของข้อมูลจุดต่างๆ แล้วแยกจุดที่มีความหนาแน่นน้อยออกเป็น Anomaly โดยความหนาแน่นจะคำนวนจาก K-Nearest neighbors ซึ่งก็คือระยะห่างระหว่างจุดที่เราสนใจ กับจุด "เพื่อนบ้าน" ที่ใกล้ที่สุดจำนวน K จุดตามที่เรากำหนด</p>
+<pre><code># Call and fit the Local Outlier Factor detector
+
+lof_detector = LocalOutlierFactor(n_neighbors=20, contamination=0.1)
+lof_detect = lof_detector.fit_predict(X)
+</code></pre>
+
+<p>ภาพที่ได้คือ:</p>
+<p><img alt="Local outlier factor on random dataset" src="images/ml-blog13-004.png"></p>
+<p>อนึ่ง LOF สามารถใช้กับ Novelty detection หรือการตรวจหาข้อมูลใหม่ที่ผิดปกติ เมื่อรู้ข้อมูลปัจจุบัน โดยใส่ Argument <code>novelty=True</code> แล้วใช้ <code>.fit(X)</code> เข้ากับข้อมูลปัจจุบัน ตามด้วย <code>.predict(X_new)</code> บนข้อมูลใหม่</p>
+<p>เราสามารถเรียกใช้ Local Outlier Factor จาก Class <code>LocalOutlierFactor</code> ในโมดูล <code>sklearn.neighbors</code></p>
+<h2>One Class SVM</h2>
+<p>One Class SVM ทำงานโดยการสร้าง Support Vector ด้วย RBF Kernel เพื่อเป็นเส้นขอบเขตการตัดสินใจ ใช้สำหรับ Novelty detection เท่านั้น</p>
+<pre><code># Call and fit the One Class SVM detector
+X_new = np.array([[-1, 2],
+                 [-.1, 1]])
+
+svm_detector = OneClassSVM(tol=0.1, nu=0.1, gamma=0.1).fit(X)
+svm_detect = svm_detector.predict(X_new)
+svm_detect
+</code></pre>
+
+<p>ทบทวนว่า Novelty detection คือการตรวจหาว่าข้อมูลใหม่ผิดปกติหรือไม่ ดังนั้นเราจะป้อนข้อมูลใหม่ลงไปใน <code>.predict</code> ซึ่งจากตัวอย่างมี 2 รายการ คือ [-1, 2] และ [-0.1, 1] ซึ่งได้ผลคือ:</p>
+<pre><code>array([-1,  1])
+</code></pre>
+
+<p>แปลว่าข้อมูลใหม่รายการที่ 1 ไม่ปกติ ส่วนรายการที่ 2 นั้นปกติ</p>
+<p>เรามาลองพล็อตขอบเขตการตัดสินใจดู สังเกตว่าข้อมูลรายการที่ 1 คือจุดสีแดง ส่วนรายการ 2 คือจุดสีดำ:</p>
+<pre><code># Plot the data with decision boundaries
+def plot_decision_boundary(clf, X, y, cmap='Paired_r'):
+    h = 0.005  # Boundary lines' resolution
+    x_min, x_max = X[:,0].min() - 10*h, X[:,0].max() + 10*h
+    y_min, y_max = X[:,1].min() - 10*h, X[:,1].max() + 10*h
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                         np.arange(y_min, y_max, h))
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    plt.figure(figsize=(9,7))
+    plt.contourf(xx, yy, Z, cmap=cmap, alpha=0.2)  # Background
+    plt.contour(xx, yy, Z, colors='k', linewidths=0.2)  # Boundary lines
+    plt.scatter(X[:, 0], X[:, 1], c=&quot;gray&quot;, cmap=&quot;flag&quot;, alpha=0.4)
+    plt.scatter(X_new[:, 0], X_new[:, 1], s=100, c=svm_detect, cmap=&quot;flag&quot;, alpha=0.8)
+    plt.xlabel(&quot;x1&quot;)
+    plt.ylabel(&quot;x2&quot;)
+    plt.title(&quot;One Class SVM with Decision Boundary&quot;)
+
+plot_decision_boundary(svm_detector, X, svm_detect)
+</code></pre>
+
+<p><img alt="One Class SVM with decision function on random dataset" src="images/ml-blog13-005.png"></p>
+<p>ข้อด้อยอย่างหนึ่งของ SVM คือมี Hyperparameter ที่ต้องปรับแต่งค่อนข้างมาก เช่นจากตัวอย่าง มี <code>tol=0.1, nu=0.1, gamma=0.1</code> อย่างไรก็ตาม ข้อด้อยนี้ก็อาจกลายเป็นข้อดีได้ เพราะเราจะสามารถปรับจูนเส้นขอบเขตการตัดสินใจได้ละเอียดตามที่ต้องการ ความหมายของ Hyperparameter แต่ละตัวสามารถดูได้จากคู่มือของ scikit-learn</p>
+<p>การเรียกใช้ One Class SVM สามารถเรียกได้จาก Class <code>OneClassSVM</code> ในโมดูล <code>sklearn.svm</code></p>
+<p>บทต่อไปเราจะเริ่มเรียนรู้ Deep learning กัน โดยเริ่มด้วยการทำความเข้าใจ Neural network ซึ่งเป็นหัวใจของ Deep learning</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog12.html">บทที่ 12 Clustering</a> | <a href="ml-blog14.html">บทที่ 14 Neural Network Algorithm</a></p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
