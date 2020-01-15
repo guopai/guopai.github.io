@@ -32,6 +32,9 @@ MathJax.Hub.Config({
 </script>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
 <body>
+<div class="navbar">
+    <a href="/index.html">สารบัญ</a>
+</div>
 <h1>Linear Regression Algorithm</h1>
 <p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | ธันวาคม 2562</p>
 <p>วิธีที่ดีที่สุดในการทำความเข้าใจ Machine learning คือการอธิบายพร้อมกับตัวอย่าง โดยเราจะเริ่มที่ Algorithm ที่ง่ายที่สุด นั่นคือ Linear regression</p>
@@ -134,6 +137,9 @@ MathJax.Hub.Config({
 </ul>
 <p>ทีนี้ดูเหมือนกับว่า ถ้าเรากำหนด Learning rate สูงๆ ก็จะทำให้ได้ค่า Global minimum ของ Cost function เร็วขึ้น อย่างไรก็ตามถ้าค่า Learning rate สูงเกินไป อาจจะทำให้โมเดลหา Global minimum ไม่เจอ เพราะในขั้นท้ายๆ ของ Gradient descent ตัวแปรอาจจะกระโดดเลยจุดต่ำสุดของ J ไปอีกด้านหนึ่ง เพื่อความเข้าใจลองดูภาพประกอบ:</p>
 <p><img alt="Alt text" src="images/ml-blog02-04.png"></p>
+<p>นอกจากวิธี Gradient descent แล้ว เรายังมีวิธีการหา Parameter <script type="math/tex">$\theta$</script> ที่ให้ Cost ที่ต่ำที่สุดอีกวิธี เราเรียกวิธีนี้ว่า Normal equation โดยเพียงใช้สมการ:</p>
+<script type="math/tex; mode=display">$$\theta = (X^T X)^{-1} X^T y \tag{8}$$</script>
+<p>Normal equation ทำงานได้ดีและเร็วเมื่อจำนวน Feature ไม่มาก ผู้สนใจสามารถหาอ่านวิธีการ Derive ให้ได้มาซึ่ง Normal equation นี้ด้วยตนเอง</p>
 <p>ตอนนี้เรามีความรู้และเข้าใจขั้นตอนการสร้างโมเดล Linear regression แล้ว ตอนถัดไปเราจะใช้ตัวอย่างนี้มาสร้างโมเดลจริงกัน</p>
 <p><a href="index.html">หน้าแรก</a> | <a href="ml-blog01.html">บทที่ 1 บทนำ</a> | <a href="ml-blog03.html">บทที่ 3 Linear Regression Programming</a></p>
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
