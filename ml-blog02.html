@@ -134,8 +134,9 @@ MathJax.Hub.Config({
 </ul>
 <p>ทีนี้ดูเหมือนกับว่า ถ้าเรากำหนด Learning rate สูงๆ ก็จะทำให้ได้ค่า Global minimum ของ Cost function เร็วขึ้น อย่างไรก็ตามถ้าค่า Learning rate สูงเกินไป อาจจะทำให้โมเดลหา Global minimum ไม่เจอ เพราะในขั้นท้ายๆ ของ Gradient descent ตัวแปรอาจจะกระโดดเลยจุดต่ำสุดของ J ไปอีกด้านหนึ่ง เพื่อความเข้าใจลองดูภาพประกอบ:</p>
 <p><img alt="Alt text" src="images/ml-blog02-04.png"></p>
-<p>นอกจากวิธี Gradient descent แล้ว เรายังมีวิธีการหา Parameter <script type="math/tex">$\theta$</script> ที่ให้ Cost ที่ต่ำที่สุดอีกวิธี เราเรียกวิธีนี้ว่า Normal equation โดยเพียงใช้สมการ:</p>
-<script type="math/tex; mode=display">$$\theta = (X^T X)^{-1} X^T y \tag{8}$$</script>
+<h2>Normal equation</h2>
+<p>นอกจากวิธี Gradient descent แล้ว เรายังมีวิธีการหา Parameter <script type="math/tex">\theta</script> ที่ให้ Cost ที่ต่ำที่สุดอีกวิธี เราเรียกวิธีนี้ว่า Normal equation โดยเพียงใช้สมการ:</p>
+<script type="math/tex; mode=display">\theta = (X^T X)^{-1} X^T y \tag{8}</script>
 <p>Normal equation ทำงานได้ดีและเร็วเมื่อจำนวน Feature ไม่มาก ผู้สนใจสามารถหาอ่านวิธีการ Derive ให้ได้มาซึ่ง Normal equation นี้ด้วยตนเอง</p>
 <p>ตอนนี้เรามีความรู้และเข้าใจขั้นตอนการสร้างโมเดล Linear regression แล้ว ตอนถัดไปเราจะใช้ตัวอย่างนี้มาสร้างโมเดลจริงกัน</p>
 <p><a href="index.html">หน้าแรก</a> | <a href="ml-blog01.html">บทที่ 1 บทนำ</a> | <a href="ml-blog03.html">บทที่ 3 Linear Regression Programming</a></p>
