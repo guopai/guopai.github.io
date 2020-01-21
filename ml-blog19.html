@@ -1,0 +1,173 @@
+<!doctype html>
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-101718744-3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-101718744-3');
+</script>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning บทที่ 19: Convolutional Neural Network</title>
+<meta name="description" content="Deep learning แนะนำ Convolutional neural network (CNN)">
+<meta name="keywords" content="Machine learning, Deep learning, AI">
+<meta name="author" content="ชิตพงษ์ กิตตินราดร">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Convolutional Neural Network</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
+<p>Neural network ทั่วไปอาจทำงานได้ดีกับข้อมูลที่ไม่ซับซ้อนและถูกเตรียมมาให้มีมาตรฐานเดียวกัน เช่นภาพขาวดำขนาดเล็กที่วัตถุอยู่กลางภาพ แต่พอข้อมูลมีความซับซ้อน ขนาด และความหลากหลายมากขึ้น จะทำงานได้ไม่ดีนัก โดยมักจะเกิดปัญหา Variance ซึ่งก็คือการที่โมเดลไม่สามารถทำนายข้อมูลที่ไม่เคยเห็นได้ดีเท่าที่ควร</p>
+<p>ในบทนี้เราจะมาทำความรู้จัก Convolutional Neural Network หรือ CNN ซึ่งเป็นโครงสร้าง Neural network แบบพิเศษ ที่มีความสามารถในการจำแนกข้อมูลประเภทรูปภาพได้ดีกว่า Neural network ทั่วไปมาก</p>
+<p>ไอเดียหลักของ CNN คือการที่ใช้ Layer ชนิดพิเศษ ที่เรียกว่า Convolution layer ซึ่งทำหน้าที่สกัดเอาส่วนต่างๆ ของภาพออกมา เช่น เส้นขอบของวัตถุต่างๆ เพื่อให้โมเดลสามารถเรียนรู้ลักษณะของภาพได้อย่างมีประสิทธิภาพและแม่นยำ</p>
+<p>ใน CNN จะใช้ Convolution layer มาประกอบกับ Layer ชนิดอื่น เช่น Pooling layer แล้วนำกลุ่ม Layer ดังกล่าวมาซ้อนต่อๆ กัน โดยอาจเปลี่ยน Hyperparameter บางอย่าง เช่นขนาดของ Filter layer (ซึ่งเป็นส่วนหนึ่งของ Convolution layer) และจำนวน Channel ของ layer วิธีการนำเอาส่วนต่างๆ มาประกอบกันนี้ เรียกว่าเป็นโครงสร้าง (Architecture) ของ CNN ซึ่งมีหลายแบบ เช่น LeNet, AlexNet, VGG, ResNet, Inception Network เป็นต้น ซึ่งเราจะพูดถึงโครงสร้างแบบต่างๆ นี้ในบทถัดไป แต่ตอนนี้เรามีทำความเข้าใจส่วนประกอบต่างๆ ของ CNN ซึ่งเป็นพื้นฐานที่จะนำมาประกอบกันเสียก่อน โดยเริ่มที่ Convolution layer</p>
+<h2>Convolution layer</h2>
+<p>เพื่อความเข้าใจ ให้ลองทำความเข้าใจก่อนว่า Convolution คืออะไร</p>
+<p><img alt="Convolution operation" src="images/ml-blog19-01.png"></p>
+<p>จากภาพ สมมุติเรามี Matrix ซ้ายมือ ขนาด 6x6 และมี Matrix ตรงกลาง ซึ่งเรียกว่า Filter หรือ Kernel ขนาด 3x3 เราจะนำเฉพาะ 3x3 ช่องแรกของ Matrix แรก มาคูณแบบ Element-wise กับ Filter matrix แล้วนำผลที่ได้แต่ละค่า (ซึ่งมีทั้งสิ้น 9 ค่า) มาบวกกัน แล้วนำไปสู่ในแถวแรกคอลัมน์แรกของ Matrix ที่สามซึ่งเป็นผลลัพธ์ โดยในภาพ ผลลัพธ์ที่ว่า เท่ากับ -1</p>
+<p>ถัดมา เราจะเลื่อนกรอบขนาด 3x3 ใน Matrix แรกไปทางขวา 1 ช่อง แล้วทำแบบเดิม ผลลัพธ์ที่ได้ นำไปใส่ในแถว 1 ช่อง 2 ของ Matrix ผลลัพธ์ ทำไปเรื่อยๆ จนสุดทาง แล้วเลื่อนกรอบ 3x3 ลงมาด้านล่าง 1 ช่อง (ชิดขอบด้านซ้ายมือ) แล้วทำแบบเดิม จนกระทั่งเติมค่าใน Matrix ผลลัพธ์จนเต็ม</p>
+<p>กระบวนการนี้ เรียกว่า Convolution ซึ่งแสดงสัญลักษณ์ด้วย <script type="math/tex">*</script> ส่วน Neural network ที่มี Layer ที่ใช้กระบวนการ Convolution นี้อย่างน้อย 1 Layer เราก็เรียกว่า Convolutional neural network</p>
+<p>ถ้าหากข้อมูล Input เป็นภาพสี RGB แปลว่าจะมีค่าสีที่เป็น Matrix ขนาด 6x6 จำนวน 3 ชั้น ดังนั้น Filter ของเราก็จะมี 3 ชั้นตามไปด้วย ส่วนการคำนวน Convolve ก็ให้ทำทีละชั้น นั่นคือ Input ชั้นที่ 1 คูณ Element-wise กับ Filter ชั้นที่ 1 ส่วน Input ชั้นที่ 2 คูณ Element-wise กับ Filter ชั้นที่ 2 เป็นต้น เสร็จแล้วนำผลที่ได้ของทั้ง 3 ชั้นมาบวกกันทั้งหมด กลายเป็นตัวเลข Scalar ตัวเดียว แล้วนำไปใส่ในช่องแรกของ Matrix ผลลัพธ์</p>
+<p>ในกระบวนการนี้ Matrix แรกด้านซ้ายมือที่เป็น Input ก็คือ <script type="math/tex">a^{[l-1]}</script> ส่วน Filter matrix คือ Matrix ของค่าน้ำหนัก <script type="math/tex">W^{[l]}</script> ซึ่งมีค่าที่ต้องเรียนรู้จากกระบวนการ Backward propagation ผลที่ได้จากการ Convolve 2 Matrix นี้เข้าด้วยกัน คือ Matrix ผลลัพธ์ นั่นคือ <script type="math/tex">W^{[l]}a^{[l-1]}</script> นั่นเอง จากนั้นเราก็บวก Intercept <script type="math/tex">b^{[l]}</script> เข้าไป ประกอบกันกลายเป็นผลลัพธ์สมการเส้นตรง <script type="math/tex">Z^{[l]} = W^{[l]}a^{[l-1]} + b^{[l]}</script> แล้วก็นำ <script type="math/tex">Z^{[l]}</script> นี้ไปป้อนเข้า Activation function <script type="math/tex">g(Z^{[l]})</script> ก็จะได้ผลเป็น Activation output ของ Layer นั้น นั่นก็คือ <script type="math/tex">A^{[l]}</script>
+</p>
+<p>สังเกตว่า Convolution layer นี้ มีคุณสมบัติพิเศษอยู่ 2 ประการ คือ:</p>
+<p>1) ทั้ง Layer ใช้ค่าน้ำหนัก <script type="math/tex">W</script> ร่วมกัน: กระบวนการ Convolution ใช้ Filter ค่าน้ำหนักตัวเดียวกัน มาคำนวนหา <script type="math/tex">Wa</script> โดยการ Convolve กับ Input ในตำแหน่ง Grid ต่างๆ หลายๆ ครั้งจนครบ ดังนั้น จำนวนของค่าน้ำหนัก <script type="math/tex">w</script> ใน Matrix ค่าน้ำหนัก <script type="math/tex">W</script> จะมีจำนวนน้อยกว่า Neural network แบบทั่วไปมาก ซึ่งนอกจากจะส่งผลให้การคำนวนทำได้เร็วขึ้นมากแล้ว การใช้ค่าน้ำหนักชุดเดิมซ้ำๆ ในหลายๆ ส่วนของภาพจะเป็นการตรวจจับคุณลักษณะบางประการในหลายๆ ส่วนของภาพ</p>
+<p>ตัวอย่างเช่น หาก Filter matrix มีแถวซ้ายเป็นค่าบวก แถวขวาเป็นค่าลบ ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">f =
+\begin{pmatrix}
+    1 & 0 & -1 \\
+    1 & 0 & -1 \\
+    1 & 0 & -1
+\end{pmatrix} \tag{1}</script>
+</p>
+<p>ถ้าเรานำ Filter นี้ไป Convolve กับ Input matrix ที่ด้านซ้ายกับขวาสว่างไม่เท่ากัน เช่น:</p>
+<p>
+<script type="math/tex; mode=display">A =
+\begin{pmatrix}
+    10 & 10 & 10 & 0 & 0 & 0\\
+    10 & 10 & 10 & 0 & 0 & 0\\
+    10 & 10 & 10 & 0 & 0 & 0\\
+    10 & 10 & 10 & 0 & 0 & 0\\
+    10 & 10 & 10 & 0 & 0 & 0\\
+    10 & 10 & 10 & 0 & 0 & 0
+\end{pmatrix} \tag{2}</script>
+</p>
+<p>จะส่งผลให้ Linear function ผลลัพธ์ มีค่ามากตรงแถวกลางๆ ดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">A * f =
+\begin{pmatrix}
+    0 & 30 & 30 & 0\\
+    0 & 30 & 30 & 0\\
+    0 & 30 & 30 & 0\\
+    0 & 30 & 30 & 0
+\end{pmatrix} \tag{3}</script>
+</p>
+<p>ค่ามากหมายถึงมีความสว่างมาก นั่นแปลว่า Filter นี้ใช้ Detect ส่วนของภาพที่เป็นเส้นขอบแนวดิ่งนั่นเอง</p>
+<p>2) การเชื่อมต่อข้าม Layer แบบ Sparse: ค่าของ Output ในแต่ละ Layer เป็นผลมาจากการคำนวนค่า Input เพียงบางส่วน ซึ่งต่างกับ Neural network ทั่วไปที่มีการเชื่อมต่อแบบ Dense หมายถึงค่าของ Output แต่ละ Neuron มาจากการคำนวน Input ทุก Neuron การเชื่อมต่อแบบ Sparse ส่งผลให้การคำนวนนั้นเร็วขึ้นมาก</p>
+<h3>Padding</h3>
+<p>กระบวนการ Convolution มักจะทำให้ Matrix ผลลัพธ์มีมิติเล็กลง ซึ่งถ้าหากเราทำ Convolution หลายๆ ชั้น ภาพสุดท้ายที่ออกมาก็จะเล็กลงมาก นอกจากนั้น Convolution ยังมีแนวโน้มที่จะทำให้ข้อมูลที่อยู่ตามขอบของภาพนั้นไม่ถูกนำไปคำนวนอย่างเต็มที่เหมือนข้อมูลที่อยู่ส่วนกลางของภาพ เพราะ Filter มีโอกาสจับข้อมูลตามขอบภาพน้อยกว่าตรงกลางภาพ</p>
+<p>ทางออกต่อปัญหา 2 ข้อนี้ คือการทำ Padding ซึ่งก็คือการขยายขอบของข้อมูล Input ออกทุกด้านเท่าๆ กัน เช่น ถ้า Input มีขนาด 6x6 การทำ Padding <script type="math/tex">p = 1</script> จะทำให้ Input มีขนาดเป็น 8x8</p>
+<p>เราสามารถคำนวนได้ว่าเมื่อทำ Padding แล้ว มิติของ Output จะเป็นเท่าใด แต่ก่อนอื่น ลองเปรียบเทียบกับแบบธรรมดา</p>
+<p>1) "Valid" convolution คือไม่มี Padding</p>
+<p>มิติของ Output คือ:</p>
+<p>
+<script type="math/tex; mode=display">(n-f + 1), (n-f + 1) \tag{4}</script>
+</p>
+<p>โดย <script type="math/tex">n</script> คือมิติของ Input ส่วน <script type="math/tex">f</script> คือมิติของ Filter</p>
+<p>2) "Same" convolution คือการ Pad เพื่อให้มิติของ Output เท่ากับมิติของ Input</p>
+<p>มิติของ Output คือ:</p>
+<p>
+<script type="math/tex; mode=display">(n + 2p -f + 1), (n + 2p -f + 1) \tag{5}</script>
+</p>
+<p>
+<script type="math/tex; mode=display">p = \frac{f-1}{2} \tag{6}</script>
+</p>
+<p>โดย <script type="math/tex">p</script> คือขนาด Pixel ของ Padding ในแต่ละด้าน.</p>
+<p>ตัวอย่างเช่น ถ้า Filter มีขนาด 5x5 เราจะต้อง Pad เป็นจำนวนดังนี้:</p>
+<p>
+<script type="math/tex; mode=display">p = \frac{5-1}{2} = 2 \text{ pixel} \tag{6}</script>
+</p>
+<p>อนึ่ง <script type="math/tex">f</script> ควรจะเป็นเลขคี่ เพื่อให้เกิดความสมมาตรและมีจุดกึ่งกลาง</p>
+<h3>Stride</h3>
+<p>Stride แปลว่า "ย่างก้าว" หมายถึงจำนวนช่องที่จะเลื่อนไปในกระบวนการ Convolution แต่ละครั้ง เช่นถ้าเลื่อนทีละช่อง Stride <script type="math/tex">s = 1</script> แต่ถ้าเลื่อนทีละ 2 ช่อง ก็คือ <script type="math/tex">s = 2</script>
+</p>
+<p>สูตรในการคำนวนขนาด Output เมื่อใช้ Stride คือ:</p>
+<p>
+<script type="math/tex; mode=display">\lfloor\frac{n + 2p -f}{s} + 1\rfloor, \lfloor\frac{n + 2p -f}{s} + 1\rfloor \tag{7}</script>
+</p>
+<p>สังเกตว่าเราจะปัดเศษลง ไม่ใช่ปัดขึ้น</p>
+<h2>Pooling layer</h2>
+<p>หลังจากที่ข้อมูลผ่าน Convolution layer แล้ว บ่อยครั้งที่จะถูกส่งเข้า Layer อีกแบบหนึ่งที่เรียกว่า Pooling layer</p>
+<p>หน้าที่ของ Pooling layer คือการสกัดเอาส่วนที่สำคัญที่สุดของข้อมูล และเพิ่มประสิทธิภาพการประมวลผลให้รวดเร็วยิ่งขึ้น กลไกของ Pooling layer นั้นเรียบง่ายมาก คือการสกัดเอาเฉพาะค่าสูงสุดของ Grid เก็บไว้ใน Output เช่นจากภาพ แสดง Pooling layer ขนาด 2x2 โดยมีค่า Stride <script type="math/tex">s = 2</script>:</p>
+<p><img alt="Pooling layer" src="images/ml-blog19-02.png"></p>
+<p>Pooling layer ที่สกัดเอาเฉพาะค่าสูงสุดของ Grid เก็บไว้ เรียกว่า  Max pooling ซึ่งเป็นรูปแบบที่ใช้บ่อยที่สุด นอกจากนั้นยังมี Average pooling ซึ่งหาค่าเฉลี่ยของ Grid เก็บไว้ แต่ใช้น้อยกว่า Max pooling มาก</p>
+<h2>ตัวอย่าง Convolutional Network</h2>
+<p>ตอนนี้เรารู้จักองค์ประกอบของ Convolutional neural network แล้ว เราจะจบบทนี้ด้วยการแสดงตัวอย่างว่าองค์ประกอบเหล่านี้ จะถูกนำมาต่อกันเป็น CNN อย่างไร</p>
+<h3>Input Layer</h3>
+<p>สมมุติว่าเรามีภาพตั้งต้นขนาด 32x32 pixel โดยเป็นภาพสี RGB นั่นหมายความว่าภาพนี้มี 3 Layer คือแทนสี Red, Green, และ Blue โดยเราต้องการจำแนกภาพนี้ออกเป็น 10 ประเภท:</p>
+<pre><code>Input layer a[0]: (32, 32, 3)
+</code></pre>
+
+<h3>1st Layer</h3>
+<p>ใน Layer แรก เราจะใช้ Convolution layer ขนาด 5x5 โดยมี Stride เท่ากับ 1 และไม่มี Padding โดยจะใช้ Convolution layer บบนี้ทั้งสิ้น 6 Layer นั่นก็คือ <script type="math/tex">f^{[1]} = 5, s^{[1]} = 1, p^{[1]} = 0, n_C^{[1]} = 6</script> เราจะได้มิติของ <script type="math/tex">a^{[1]}</script> จากการคำนวนตามสมการที่ (4) <script type="math/tex">(n-f + 1)</script> ดังนี้</p>
+<pre><code>Convolution layer a[1]: (28, 28, 6)
+</code></pre>
+
+<p>จากนั้นเราจะใช้ Max pooling ขนาด <script type="math/tex">f^{[1]} = 2, s^{[1]} = 2</script> ก็จะได้มิติของ Activation function ของ Layer ที่ 1 จากการคำนวนตามสมการที่ (7) <script type="math/tex">\lfloor\frac{n + 2p -f}{s} + 1\rfloor</script> ดังนี้:</p>
+<pre><code>Max-pooling layer a[1]: (14, 14, 6)
+</code></pre>
+
+<h3>2nd Layer</h3>
+<p>ต่อมาใน Layer ที่สอง เราจะใช้ Convolution layer ขนาด 5x5 โดยมี Stride เท่ากับ 1 และไม่มี Padding โดยจะใช้ Convolution layer บบนี้ทั้งสิ้น 16 Layer นั่นก็คือ <script type="math/tex">f^{[2]} = 5, s^{[2]} = 1, p^{[2]} = 0, n_C^{[2]} = 16</script> จะได้มิติดังนี้:</p>
+<pre><code>Convolution layer a[2]: (10, 10, 16)
+</code></pre>
+
+<p>จากนั้นเราจะใช้ Max pooling ขนาด <script type="math/tex">f^{[2]} = 2, s^{[2]} = 2</script> ก็จะได้มิติของ Output ของ Layer ที่ 2 ดังนี้:</p>
+<pre><code>Max-pooling layer a[2]: (5, 5, 16)
+</code></pre>
+
+<p>เสร็จแล้วเราจะปิดท้าย Layer ที่สอง ด้วยการรวมเอา Output ทั้งหมดมา Activate ใน Dense layer นั่นก็คือ Layer ที่เชื่อมต่อทุก Neuron แบบปกติ ซึ่งจะมีขนาดเท่ากับ Output นั่นก็คือ 5x5x16 = 400 เราเรียก Layer ชนิดนี้ว่า Dense หรือ Flatten layer:</p>
+<pre><code>Flatten (dense) layer a[2]: (400)
+</code></pre>
+
+<h3>3rd Layer</h3>
+<p>จากนั้นเราจะนำ Dense layer ไปเชื่อมเข้ากับ Dense layer อีกชั้น แต่คราวนี้ลดขนาดลงเป็น 120:</p>
+<pre><code>Flatten (dense) layer a[3]: (120)
+</code></pre>
+
+<h3>4th Layer</h3>
+<p>แล้วก็นำ Dense layer ไปเชื่อมเข้ากับ Dense layer อีกชั้นหนึ่งซึ่งเล็กลงไปอีก คราวนี้มีขนาด 86:</p>
+<pre><code>Flatten (dense) layer a[4]: (86)
+</code></pre>
+
+<h3>5th Layer</h3>
+<p>สุดท้ายก็ Output ออกไปยัง Softmax layer ขนาด 10 neuron เพื่อจำแนก Classification ออกเป็น 10 กลุ่ม:</p>
+<pre><code>Softmax layer a[5]: (10)
+</code></pre>
+
+<p>คงพอจะเห็นภาพว่าเราสามารถนำส่วนประกอบต่างๆ มาประกอบกันเป็น Convolutional neural network ได้ตามตัวอย่าง ซึ่งอันที่จริงเป็นโครงสร้างที่เรียกว่า LeNet-5 ซึ่งถูกตีพิมพ์แผนแพร่เมื่อปี 1998 และถูกนำมาใช้ในการอ่านตัวเลขบนเช็คโดยธนาคารหลายแห่ง ถือเป็นหนึ่งในโครงสร้าง CNN แบบคลาสสิค</p>
+<p><img alt="LeNet-5 CNN architecture" src="images/ml-blog19-lenet5.png"></p>
+<p>ภาพโครงสร้าง LeNet-5 จาก Paper ต้นฉบับ <a href="http://yann.lecun.com/exdb/publis/pdf/lecun-01a.pdf">"Gradient-based learning applied to document recognition"</a> ตีพิมพ์ใน Proceedings of the IEEE, November 1998</p>
+<p>ในบทต่อไปเราจะทำความรู้จักกับโครงสร้าง CNN ที่เป็นที่นิยม</p>
+<p><a href="index.html">หน้าแรก</a> | <a href="ml-blog18.html">บทที่ 18 Neural Network Regularisation</a> | บทที่ 20 CNN Architectures</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
