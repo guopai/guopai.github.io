@@ -3,7 +3,8 @@ body {
     margin: auto;
     padding: 10px;
     color: #333333;
-    line-height: 1.8;
+    font-size: 110%;
+    line-height: 1.9;
 }
 
 .center {
@@ -45,7 +46,7 @@ table {
 table, th, td {
     border: 1px solid darkgray;
     padding: 5px;
-    font-size: 80%;
+    font-size: 90%;
     text-align: left;
 }
 
