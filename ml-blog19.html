@@ -103,7 +103,7 @@ MathJax.Hub.Config({
 <p>โดย <script type="math/tex">p</script> คือขนาด Pixel ของ Padding ในแต่ละด้าน.</p>
 <p>ตัวอย่างเช่น ถ้า Filter มีขนาด 5x5 เราจะต้อง Pad เป็นจำนวนดังนี้:</p>
 <p>
-<script type="math/tex; mode=display">p = \frac{5-1}{2} = 2 \text{ pixel} \tag{6}</script>
+<script type="math/tex; mode=display">p = \frac{5-1}{2} = 2 \text{ pixel} \tag{7}</script>
 </p>
 <p>อนึ่ง <script type="math/tex">f</script> ควรจะเป็นเลขคี่ เพื่อให้เกิดความสมมาตรและมีจุดกึ่งกลาง</p>
 <h3>Stride</h3>
@@ -111,7 +111,7 @@ MathJax.Hub.Config({
 </p>
 <p>สูตรในการคำนวนขนาด Output เมื่อใช้ Stride คือ:</p>
 <p>
-<script type="math/tex; mode=display">\lfloor\frac{n + 2p -f}{s} + 1\rfloor, \lfloor\frac{n + 2p -f}{s} + 1\rfloor \tag{7}</script>
+<script type="math/tex; mode=display">\lfloor\frac{n + 2p -f}{s} + 1\rfloor, \lfloor\frac{n + 2p -f}{s} + 1\rfloor \tag{8}</script>
 </p>
 <p>สังเกตว่าเราจะปัดเศษลง ไม่ใช่ปัดขึ้น</p>
 <h2>Pooling layer</h2>
@@ -131,7 +131,7 @@ MathJax.Hub.Config({
 <pre><code>Convolution layer a[1]: (28, 28, 6)
 </code></pre>
 
-<p>จากนั้นเราจะใช้ Max pooling ขนาด <script type="math/tex">f^{[1]} = 2, s^{[1]} = 2</script> ก็จะได้มิติของ Activation function ของ Layer ที่ 1 จากการคำนวนตามสมการที่ (7) <script type="math/tex">\lfloor\frac{n + 2p -f}{s} + 1\rfloor</script> ดังนี้:</p>
+<p>จากนั้นเราจะใช้ Max pooling ขนาด <script type="math/tex">f^{[1]} = 2, s^{[1]} = 2</script> ก็จะได้มิติของ Activation function ของ Layer ที่ 1 จากการคำนวนตามสมการที่ (8) <script type="math/tex">\lfloor\frac{n + 2p -f}{s} + 1\rfloor</script> ดังนี้:</p>
 <pre><code>Max-pooling layer a[1]: (14, 14, 6)
 </code></pre>
 
