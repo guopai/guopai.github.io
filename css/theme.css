@@ -10,6 +10,32 @@ body {
     text-align: center;
 }
 
+.subtitle {
+    margin: auto;
+    max-width: 80%;
+    color: #808080;
+    font-size: 120%;
+}
+
+.flex-container {
+    display: flex;
+    flex-direction: row;
+}
+
+.column {
+    width: 50%;
+}
+
+@media screen and (max-width: 800px) {
+    .flex-container {
+      flex-direction: column;
+    }
+
+    .column {
+      width: 100%;
+    }
+  }
+
 h2 {
     margin-top: 1.5em;
 }
@@ -57,4 +83,8 @@ pre {
 
 code {
     background-color: #f2f2f2;
+}
+
+hr {
+    border: 2px solid #e6e6e6;
 }
