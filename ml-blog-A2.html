@@ -1,0 +1,537 @@
+<!doctype html>
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-101718744-3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-101718744-3');
+</script>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="generator" content="ReText 7.0.4">
+<title>Machine Learning ภาคผนวก 2: Python อย่างสั้นที่สุด</title>
+<meta name="description" content="สอนพื้นฐาน Python อย่างสั้น กระชับ เพื่อนำไปต่อยอดเองได้">
+<meta name="keywords" content="Machine learning, Deep learning, AI, Python">
+<meta name="author" content="ชิตพงษ์ กิตตินราดร">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+</head>
+<body>
+<h1>Python อย่างสั้นที่สุด</h1>
+<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
+<p>บทนี้จะแนะนำ Python สำหรับผู้ที่ไม่มีพื้นฐานการเขียนโค้ดเลย โดยจะอธิบายเฉพาะเรื่องพื้นฐานที่สำคัญจริงๆ อย่างสั้นและกระชับที่สุด เพื่อให้สามารถเริ่มต้นได้และสามารถใช้ Machine learning framework เช่น scikit-learn และ TensorFlow</p>
+<p>ขอย้ำอีกรอบ ว่าสิ่งที่แนะนำนี้ไม่ได้ครบถ้วนสมบูรณ์ตามหลักวิชาการ แต่เน้นกระชับ สั้น ง่าย ให้เริ่มต้นเรียนรู้ได้เท่านั้น</p>
+<p>Python เป็นภาษาคอมพิวเตอร์แบบ High-level นั่นหมายความว่าเราสามารถสั่งให้ Python ทำสิ่งต่างๆ ได้ในลักษณะที่คล้ายกับภาษาคน โดยไม่ต้องไปสนใจเรื่อง "หลังบ้าน" ของคอมพิวเตอร์มากนัก เช่นการจัดการหน่วยความจำ การระบุประเภทตัวแปร เป็นต้น ทำให้เขียนง่าย อ่านง่าย เข้าใจง่าย</p>
+<p>นอกจากนั้น Python ยังเป็นภาษาแบบ Interpret หมายความว่าเวลาเราเรียก Script หรือโปรแกรมที่เขียนด้วย Python เครื่องก็จะตีความ คำนวน และแสดงผลทันที โดยไม่ต้องสั่งแปลงเป็นภาษาเครื่องก่อนจะรันโปรแกรม (เรียกว่าการ Compile) ทำให้สะดวกรวดเร็วในการพัฒนาโปรแกรม แต่แลกมากับการที่ความเร็วและประสิทธิภาพในการคำนวนจะด้อยกว่าภาษาที่ต้อง Compile เช่น C++ เป็นต้น</p>
+<p>ปัจจุบัน Python เป็นภาษา "มาตรฐาน" สำหรับงานวิทยาศาสตร์ข้อมูล, AI, Machine learning นอกจากนั้นยังใช้ในอีกหลายวงการ เช่นการสร้างเว็บไซต์ ผ่าน Framework เช่น Django และ Flask เป็นต้น</p>
+<h2>การติดตั้งและใช้งาน Python</h2>
+<p>ขั้นแรกให้โหลด Python มาติดตั้งก่อน โดยเข้าไปที่<a href="https://www.python.org/">เว็บไซต์ของ Python</a> ไปที่หน้า Downloads และทำตามคำแนะนำได้เลย</p>
+<p>อย่างไรก็ตาม ถ้าจะใช้ Python ในงานวิทยาศาสตร์ข้อมูล, AI, Machine learning แนะนำวิธีติดตั้งอีกแบบ คือการติดตั้ง Python และ Library มาตรฐานที่มักจะได้ใช้แบบรวดเดียวจบ ผ่าน <a href="https://www.anaconda.com/distribution/">Anaconda</a> ก็จะได้ Library พื้นฐาน เช่น numpy, pandas, matplotlib มาเลย ส่วน scikit-learn และ TensorFlow ก็สามารถติดตั้งได้ง่ายๆ โดยใช้คำสั่ง <code>conda</code> ใน Commandline เช่น <code>conda install scikit-learn</code> และ <code>conda install tensorflow</code> เป็นต้น รายละเอียดเรื่องการติดตั้งและจัดการ Package จะไม่อธิบายมาก สามารถอ่านและศึกษาได้โดยตรง</p>
+<p>การเขียนโค้ดและเรียกโปรแกรมที่เขียนด้วย Python มีหลายวิธี ดังนี้</p>
+<ul>
+<li>iPython: เรียก <code>ipython</code> จาก Commandline จะสามารถเขียนโค้ดและรันทีละบรรทัดๆ เหมาะสำหรับการทำลองไอเดียสั้นๆ เร็วๆ หรือใช้ Python เป็นเครื่องคิดเลข</li>
+<li>IDE: ใช้ Python ผ่านโปรแกรมที่เป็นสภาพแวดล้อมสำหรับการเขียนโค้ดโดยเฉพาะ เช่น PyCharm หรือ Spyder โดยสามารถติดตั้งและเรียกใช้ IDE เหล่านี้ได้เอง</li>
+<li>Jupyter Lab: ใช้ Python ผ่าน Jupyter Notebook (ปัจจุบันพัฒนาเป็นรุ่นใหม่ เรียกว่า Jupyter Lab) โดยการเรียก <code>jupyter lab</code> จาก Commandline จะเปิดเว็บขึ้นมาในลักษณะ Web-based IDE นั่นเอง สำหรับงาน Data science/ML แนะนำวิธีนี้ เพราะสามารถแยกโค้ดเป็น Cell ย่อยๆ และสามารถใส่ Cell ที่เป็นข้อความธรรมดาเพื่ออธิบายโค้ดของเราควบคู่ไปได้</li>
+</ul>
+<h2>การคำนวน</h2>
+<p>เมื่อเรียกใช้ Python ผ่านช่องทางที่ถนัดแล้ว ก็มาเริ่มกันเลย</p>
+<p>การคำนวนและการแสดงผล ทำได้ง่ายมาก เช่น:</p>
+<pre><code>2*0.5/3
+</code></pre>
+
+<p>จะได้คำตอบเป็น 0.3333333333333333 สังเกตว่าถ้าเราคำนวนหลายๆ อย่างใน Term เดียว เราอาจจะไม่แน่ใจว่า Python จะคำนวนสัญลักษณ์ไหนก่อน ซึ่งจริงๆ มีลำดับที่ชัดเจน แต่ถ้าไม่อยากจำ แนะนำว่าให้ใส่วงเล็บให้ชัดเจนไปเลย เช่น:</p>
+<pre><code>(2*0.5)/3
+</code></pre>
+
+<p>นอกจากบวก <code>+</code> ลบ <code>-</code> คูณ <code>*</code> หาร <code>/</code> ยังมี Operator ที่น่ารู้ เช่น ยกกำลัง <code>**</code> Floor division <code>//</code> (หารไม่เอาเศษ) และ Modulus <code>%</code> (หารแล้วเอาแค่เศษ) สามารถดูเพิ่มเติมได้จากเว็บต่างๆ เช่น<a href="https://www.w3schools.com/python/python_operators.asp">ที่นี่</a></p>
+<h2>Variables: การกำหนดตัวแปร</h2>
+<p>เวลาเราเขียนโค้ด เรามักจะต้องการเก็บข้อมูลบางอย่างเอาไว้ก่อนเพื่อเรียกใช้ภายหลัง เราเรียกที่เก็บข้อมูลนี้ว่าตัวแปร หรีอ Variable</p>
+<p>ตัวอย่างเช่น:</p>
+<pre><code>age = 50
+name = &quot;John&quot;
+print(age)
+print(name)
+</code></pre>
+
+<p>จะได้คำตอบคือ:</p>
+<pre><code>50
+John
+</code></pre>
+
+<p>สังเกตว่า ค่าของตัวแปรที่เป็นตัวเลข สามารถใส่ได้เลย ส่วนถ้าเป็นตัวหนังสือ ต้องใช้ Quotation ครอบไว้ จะใช้ <code>"</code> หรือ <code>'</code> ก็ได้</p>
+<p>เราใช้ฟังก์ชัน <code>print()</code> เพื่อแสดงผลสิ่งที่อยู่ในวงเล็บ เราเรียกสิ่งที่อยู่ในวงเล็บว่า Argument โดยในที่นี้เราจะใส่ตัวแปรของเราเป็น Argument ทำให้ Python print ค่าของตัวแปรของเราออกมา อนึ่ง Argument อาจมีได้หลายอัน ขึ้นอยู่กับว่า Function นั้นรองรับ Argument อะไรบ้าง โดยเราใช้ Comma <code>,</code> คั่นระหว่างแต่ละ Argument ซึ่งเดี๋ยวเราจะเห็นตัวอย่างเมื่ออธิบาย Function อื่นๆ ต่อไป</p>
+<p>ทีนี้เราจะลองใช้ประโยชน์จากตัวแปร โดยเราต้องการที่จะบอกว่า John อายุ 50 ปี:</p>
+<pre><code>print(name + ' is ' + str(age) + ' years old.')
+</code></pre>
+
+<p>ได้คำตอบว่า:</p>
+<pre><code>John is 50 years old.
+</code></pre>
+
+<p>ลองมาดูกันว่าเกิดอะไรขึ้นบ้าง:</p>
+<ul>
+<li>เครื่องมือ <code>+</code> ในที่นี้ คือการเอาข้อความ (เรียกว่า String) มาต่อกัน (เรียกการกระทำแบบนี้ว่า Concatenate)</li>
+<li>การ Concatenate จะต้องทำระหว่างข้อมูลประเภทเดียวกันเท่านั้น เช่น String กับ String ดังนั้น เราจึงต้องแปลงตัวแปร <code>age</code> จากตัวเลขจำนวนเต็ม (Integer หรือ int) ให้เป็นข้อความ (String หรือ str) ด้วยการเรียกฟังก์ชัน <code>str()</code></li>
+<li>สังเกตว่าเราเว้นวรรคบางจุด เช่น ก่อนและหลัง <code>is</code> และก่อน <code>years old</code> เพื่อให้ข้อความที่ออกมามีการเว้นวรรคที่ถูกต้อง เพราะการ Concatenate ไม่ได้เว้นวรรคให้เรา</li>
+</ul>
+<p>ทีนี้ถ้าเรากำหนดตัวแปรใหม่ เช่น <code>age = 35</code> แล้วเรียก <code>print</code> เหมือนเดิมอีกรอบ Output ที่ได้ก็จะเปลี่ยนตามตัวแปรใหม่ นั่นก็คือ <code>John is 35 years old.</code></p>
+<h2>Data types: ประเภทของข้อมูล</h2>
+<p>ตัวแปรสามารถเก็บข้อมูลได้หลายประเภท เราจะทำความรู้จักประเภทข้อมูลพื้นฐานที่สำคัญและใช้บ่อยดังนี้:</p>
+<ul>
+<li>Text <code>str</code></li>
+<li>Numerical <code>int</code>, <code>float</code></li>
+<li>Sequence <code>list</code>, <code>tuple</code></li>
+<li>Mapping <code>dict</code></li>
+<li>Boolean <code>bool</code></li>
+</ul>
+<h3>String</h3>
+<p>เรารู้จัก String กันแล้วก่อนหน้านี้ String มีคุณสมบัติที่น่าสนใจบางอย่าง เช่น:</p>
+<p>1) String เป็น Array หมายความว่าตัวอักษรแต่ละตัวจะถูกมองว่าเป็นข้อมูล 1 ชิ้น ดังนั้นเราจึงสามารถจัดการตัวอักษรใน String ได้หลากหลาย เช่น:</p>
+<p><strong>หาความยาว</strong> โดยใช้ฟังก์ชัน len()</p>
+<pre><code>a = &quot;Hello, World!&quot;
+print(len(a))
+</code></pre>
+
+<p>ได้คำตอบคือ <code>13</code></p>
+<p><strong>ตัดเอา Space ว่างท้าย String ออก</strong> โดยใช้ Method <code>.strip()</code> (Method คือฟังก์ชันที่ใช้ได้กับตัวแปร โดยการนำไปต่อท้ายตัวแปรได้ทันที เพื่อกระทำการบางอย่างกับข้อมูลในตัวแปรนั้น ลองดูตัวอย่างข้างล่าง)</p>
+<pre><code>a = &quot; Hello, World! &quot;
+print(a.strip())
+</code></pre>
+
+<p>ได้คำตอบว่า <code>Hello, World!</code> โดยไม่มี Space หลัง <code>!</code></p>
+<p><strong>แยกคำออกจากกัน</strong> โดยใช้ Method <code>.split()</code></p>
+<pre><code>a = &quot;My name is John.&quot;
+print(a.split())
+</code></pre>
+
+<p>จะเป็นการแยกประโยคออกเป็นคำๆ โดยแยกที่ Space ได้ผลคือ <code>['My', 'name', 'is', 'John.']</code> ทั้งนี้สามารถกำหนดได้ว่าให้แยกที่พบอักษรอะไร เช่น <code>a.split(",")</code> คือให้แยกเมื่อพบ Comma เป็นต้น</p>
+<p>สังเกตว่า <code>['My', 'name', 'is', 'John.']</code> เป็นข้อมูลประเภท List ซึ่งจะอธิบายภายหลังว่าคืออะไร ตอนนี้เพียงให้รู้ว่า List นี้มีข้อมูล 4 รายการ คือคำแต่ละคำนั่นเอง คั่นด้วย Comma</p>
+<p><strong>เลือกเฉพาะบางตัวอักษรตามลำดับที่</strong> เป็นความสามารถที่เรียกว่า Slicing ซึ่งใช้ได้กับทุกอย่างที่มีลักษณะเป็น Array หลักการคือ Python จะกำหนดให้ข้อมูลชิ้นแรกมีรหัส Index 0 และเพิ่มขึ้นทีละ 1 ต่อไปเรื่อยๆ ดังนั้น:</p>
+<pre><code>a = &quot;Hello, World!&quot;
+print(a[1])
+</code></pre>
+
+<p>จะได้ <code>e</code></p>
+<p>เราสามารถเลือก Slicing เป็น Range ได้ โดยใช้ Colon <code>:</code> คั่น โดยจะนับ Index เริ่มต้นเป็นชิ้นแรก (Inclusive) แต่ Index ตัวขบขะไม่นับตัวมันเอง (Exclusive) ตัวอย่างเช่น:</p>
+<pre><code>a = &quot;Hello, World!&quot;
+print(a[2:5])
+</code></pre>
+
+<p>จะได้ <code>llo</code></p>
+<p>สุดท้าย ถ้าใน String มีเครื่องหมายที่ปกติจะถูกตีความว่ามีความหมายพิเศษ เช่น <code>"</code> เราจะไม่สามารถใส่เครื่องหมายนั้นลงไปได้ตรงๆ ถ้าอยากใส่ ต้องใช้ Backslash <code>\</code> ไว้ก่อน เราเรียก <code>\</code> ว่า <strong>Escape character</strong> ตัวอย่างเช่น:</p>
+<pre><code>print(&quot;My name is \&quot;John\&quot;.&quot;)
+</code></pre>
+
+<p>จะได้ <code>My name is "John".</code></p>
+<p>แถม Escape character ที่มีประโยชน์มาก คือ <code>\n</code> คือการขึ้นบรรทัดใหม่ ส่วน <code>\t</code> คือ Tab</p>
+<p>อ่านเพิ่มเติมเกี่ยวกับ String ได้<a href="https://www.w3schools.com/Python/python_strings.asp">ที่นี่</a></p>
+<h3>Int และ Float</h3>
+<p>Int (Integer) คือจำนวนเต็ม เช่น -1, 0, 5, 100 ส่วน Float คือจำนวนที่มีทศนิยม เช่น -0.12, 5.816497 เป็นต้น เราสามารถดูได้ว่าตัวเลขของเราคือประเภทอะไร โดยใช้ฟังก์ชัน <code>type()</code> เช่น:</p>
+<pre><code>x = 1
+y = 2.5
+
+print(type(x))
+print(type(y))
+</code></pre>
+
+<p>จะได้:</p>
+<pre><code>&lt;class 'int'&gt;
+&lt;class 'float'&gt;
+</code></pre>
+
+<p>เราสามารถแปลงระหว่าง <code>int</code> กับ <code>float</code> ได้ โดยใช้ฟังก์ชัน <code>int()</code> และ <code>float()</code></p>
+<h3>List</h3>
+<p>List เป็นข้อมูลแบบ Array ที่มีสมาชิกหลายตัว สามารถผสมสมาชิกประเภทต่างๆ กันได้ และสามารถสลับตำแหน่ง เปลี่ยนแปลงข้อมูลได้ จึงใช้งานได้หลายวัตถุประสงค์ยืดหยุ่นมาก เราสามารถสร้าง List โดยการใช้ Bracket <code>[]</code> เช่น:</p>
+<pre><code>emptylist = []
+print(emptylist)
+</code></pre>
+
+<p>ก็จะได้ List ว่างๆ คือ <code>[]</code> ส่วน List ที่มีสมาชิก ก็ใส่สมาชิกนั้นลงไปเลย คั่นแต่ละตัวด้วย Comma เช่น:</p>
+<pre><code>fruitlist = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;]
+print(fruitlist)
+</code></pre>
+
+<p>ก็จะได้ <code>['apple', 'banana', 'cherry']</code></p>
+<p>สมมุติเราอยากเลือกแค่ banana กับ cherry ก็ใช้ Slicing ได้ เช่น:</p>
+<pre><code>fruitlist = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;]
+print(fruitlist[1:])
+</code></pre>
+
+<p>ก็จะได้ <code>['banana', 'cherry']</code> สังเกตว่าตอน Slice ถ้าเราไม่ใส่ Index ตัวจบ ก็แปลว่าให้เลือกไปจนถึงสมาชิกตัวสุดท้าย โดยรวมตัวสุดท้ายด้วย ในทางกลับกัน ถ้าไม่ใส่ Index ตัวเริ่ม ก็คือให้เริ่มที่สมาชิกตัวแรกเลย</p>
+<p>เราสามารถ<strong>เปลี่ยนสมาชิก</strong>ใน List ง่ายๆ เช่น:</p>
+<pre><code>fruitlist = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;]
+fruitlist[1] = &quot;pineapple&quot;
+print(fruitlist)
+</code></pre>
+
+<p>จะได้ <code>['apple', 'pineapple', 'cherry']</code> ทันที</p>
+<p>ส่วนถ้าจะ<strong>เพิ่มสมาชิก</strong> ก็ทำได้โดยใช้ Method <code>.append()</code> เช่น:</p>
+<pre><code>fruitlist = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;]
+fruitlist.append(&quot;orange&quot;)
+print(fruitlist)
+</code></pre>
+
+<p>จะได้ <code>['apple', 'banana', 'cherry', 'orange']</code></p>
+<p>นอกจากนี้ยังมีการ<strong>แทรกสมาชิก</strong> ใช้ <code>.insert(index, object)</code> โดยใส่ Index ที่ต้องการแทรกลงไปเป็น Argument ก่อนจะใส่ Object ที่ต้องการแทรก ส่วนการ<strong>ลบสมาชิก</strong> ก็สามารถใช้ <code>.remove(object)</code> ซึ่งใส่ชื่อ Object เป็น Argument หรือไม่ก็ <code>.pop(index)</code> ซึ่งใช้หมายเลข Index เป็น Argument (ถ้าไม่ใส่จะหมายถึงให้เอารายการสุดท้ายออก)</p>
+<p>ถ้าต้องการลบสมาชิกทั้งหมดใน List ให้เหลือ List ว่างๆ ก็ใช้ <code>.clear()</code></p>
+<p>สุดท้าย เราสามารถ<strong>เอา List มาต่อกัน</strong>ได้ โดยการใช้เครื่องมือ <code>+</code> เช่น:</p>
+<pre><code>list1 = [&quot;a&quot;, &quot;b&quot; , &quot;c&quot;]
+list2 = [1, 2, 3]
+
+list3 = list1 + list2
+print(list3)
+</code></pre>
+
+<p>จะได้ <code>['a', 'b', 'c', 1, 2, 3]</code></p>
+<p>สุดท้าย เราสามารถนับจำนวนสมาชิกใน List ได้ โดยใช้ฟังก์ชัน <code>len()</code> เช่นเดียวกับการนับจำนวนตัวอักษรใน String</p>
+<p>List จะมีประโยชน์มากเมื่อใช้คู่กับ For loop ซึ่งจะอธิบายในส่วนถัดๆ ไป</p>
+<p>สามารถอ่านเรื่อง List เพิ่มเติมได้<a href="https://www.w3schools.com/Python/python_lists.asp">ที่นี่</a></p>
+<h2>Tuple</h2>
+<p>Tuple เป็นข้อมูลแบบ Array ที่มีสมาชิกหลายตัวคล้ายกับ List ต่างกันที่ Tuple นั้นไม่สามารถเปลี่ยนแปลงข้อมูลข้างในได้ เราสามารถสร้าง Tuple โดยใช้วงเล็บ <code>()</code> เช่น:</p>
+<pre><code>emptytuple = ()
+print(emptytuple)
+</code></pre>
+
+<p>ก็จะได้ List ว่างๆ คือ <code>()</code> ส่วนคุณสมบัติอื่นๆ ก็เหมือนกับ List ต่างตรงที่ไม่สามารถเพิ่ม ลบ สิ่งที่อยู่ใน Tuple ได้</p>
+<p>อ่านเพิ่มเกี่ยวกับ Tuple ได้<a href="https://www.w3schools.com/Python/python_tuples.asp">ที่นี่</a></p>
+<h2>Dictionary</h2>
+<p>Dictionary เป็นประเภทข้อมูลที่เก็บข้อมูลแต่ละตัวเป็นคู่ ซึ่งประกอบด้วยรหัส (Key) กับค่า (Value) เรียกว่า Key-value pair เราสามารถสร้าง Dictionary ด้วยการใช้วงเล็บปีกนก <code>{}</code> ตัวอย่างเช่น:</p>
+<pre><code>profiledict = {
+    &quot;name&quot;: &quot;John&quot;,
+    &quot;age&quot;: 50,
+    &quot;sex&quot;: &quot;male&quot;
+}
+
+print(profiledict)
+</code></pre>
+
+<p>จะได้ <code>{'name': 'John', 'age': 50, 'sex': 'male'}</code> สังเกตว่าข้อมูลแต่ละคู่จะใช้ Comma แบ่ง</p>
+<p>เราสามารถ<strong>เรียก Value</strong> ของ Key-value pair โดยการเรียก Key ที่ต้องการ โดยเรียกใน Bracket เช่น:</p>
+<pre><code>print(profiledict[&quot;name&quot;])
+</code></pre>
+
+<p>ก็จะได้ Value ของ Key <code>"name"</code> นั่นก็คือ <code>"John"</code></p>
+<p>อีกวิธีในการเรียก Value คือการใช้ Method <code>get(key)</code> ก็ได้ผลเหมือนกัน</p>
+<p>เราสามารถ<strong>เปลี่ยน Value</strong> ได้ โดยการเรียก Key แล้วกำหนด Value ใหม่โดยใช้เครื่องหมาย <code>=</code> เช่น:</p>
+<pre><code>profiledict = {
+    &quot;name&quot;: &quot;John&quot;,
+    &quot;age&quot;: 50,
+    &quot;sex&quot;: &quot;male&quot;
+}
+
+profiledict[&quot;age&quot;] = 35
+
+print(profiledict)
+</code></pre>
+
+<p>ก็จะได้ <code>{'name': 'John', 'age': 35, 'sex': 'male'}</code> ตามที่ต้องการ</p>
+<p>การ<strong>เพิ่ม Key-value pair</strong> ใหม่ใน Dict ให้ทำเหมือนกับการเปลี่ยน Value โดยกำหนด Key และ Value ตามที่ต้องการได้เลย เช่น:</p>
+<pre><code>profiledict = {
+    &quot;name&quot;: &quot;John&quot;,
+    &quot;age&quot;: 50,
+    &quot;sex&quot;: &quot;male&quot;
+}
+
+profiledict[&quot;address&quot;] = &quot;Bangkok&quot;
+
+print(profiledict)
+</code></pre>
+
+<p>จะได้ <code>{'name': 'John', 'age': 50, 'sex': 'male', 'address': 'Bangkok'}</code></p>
+<p>ส่วนการ<strong>ลบ Key-value pair</strong> ก็ใช้ Method <code>.pop(key)</code></p>
+<p>การ Loop สมาชิกใน Dictionary โดยปกติจะได้ Key ออกมา แต่ถ้าอยากได้ Value ก็สามารถทำได้ โดยจะอธิบายในส่วน For loop</p>
+<p>อ่านเพิ่มเกี่ยวกับ Dictionary ได้<a href="https://www.w3schools.com/Python/python_dictionaries.asp">ที่นี่</a></p>
+<h3>Boolean</h3>
+<p>Boolean คือข้อมูลที่มีสองค่าเท่านั้น คือ <code>True</code> หรือ <code>False</code> โดย Python จะพิจารณาจาก Expression ที่ใส่ เช่น:</p>
+<pre><code>print(10 &gt; 9)
+print(10 == 9)
+print(10 &lt; 9)
+</code></pre>
+
+<p>คำตอบคือ:</p>
+<pre><code>True
+False
+False
+</code></pre>
+
+<p>สังเกตว่า เวลาเปรียบเทียบความเท่ากัน ใช้ <code>==</code> ไม่ใช่ <code>=</code> เพราะ <code>=</code> เป็นเครื่องหมายสำหรับการกำหนดค่าให้กับตัวแปร (Assignment) ไม่ใช่การเปรียบเทียบว่าจริงหรือไม่ (Validation)</p>
+<p>สำหรับรายละเอียดอื่นๆ อ่านเพิ่มได้<a href="https://www.w3schools.com/Python/python_booleans.asp">ที่นี่</a></p>
+<h2>Conditions: การกำหนดเงื่อนไข</h2>
+<p>บ่อยครั้งที่เราต้องการให้โค้ดของเรามีความฉลาด เช่นสามารถทำสิ่งหนึ่งภายใต้เงื่อนไขบางอย่าง หรือให้ทำสิ่งเดิมวนซ้ำๆ จนกระทั่งบรรลุถึงเงื่อนไขที่ต้องการ ความสามารถแบบนี้เรียกว่า Conditions หรือบางทีก็เรียกว่า Flow control เป็นหัวใจของการเขียนโค้ด ควรจะเรียนรู้ไว้ให้คล่อง</p>
+<p>เราจะทำความรู้จัก Conditions 3 รูปแบบ คือ:</p>
+<ul>
+<li>If...Else</li>
+<li>For loop</li>
+<li>While loop</li>
+</ul>
+<h3>If...Else</h3>
+<p>เราสามารถกำหนดให้โปรแกรม เรียกโค้ดบรรทัดหนึ่งๆ ก็ต่อเมื่อเงื่อนไขบางอย่างเป็นจริง</p>
+<p><strong>If</strong>: การกำหนดเงื่อนไข ทำได้โดยการเขียน <code>if</code> เว้นวรรค ตามด้วย Statement ที่เป็นเงื่อนไข ตามด้วย Colon <code>:</code> เช่น:</p>
+<pre><code>a = 10
+b = 25
+
+if b &gt; a:
+  print(&quot;b is greater than a&quot;)
+</code></pre>
+
+<p>เนื่องจากในกรณีนี้ <code>b</code> มากกว่า <code>a</code> ตามเงื่อนไขใน <code>if (statement):</code> Python ก็จะเรียกโค้ดที่อยู่บรรทัดถัดไป <strong>โดยจะเรียกเฉพาะบรรทัดที่ถูก Indent เท่านั้น</strong> การ Indent ทำได้โดยการกด Tab หรือเคาะ Space 2 หรือ 4 ที</p>
+<p><strong>Elif</strong>: ถ้าเราต้องการสร้างเงื่อนไขต่อไป ในกรณีที่เงื่อนไขแรกไม่เป็นจริง ก็ใช้ <code>elif</code> ซึ่งย่อมาจาก Else if เช่น:</p>
+<pre><code>a = 25
+b = 25
+
+if b &gt; a:
+    print(&quot;b is greater than a&quot;)
+elif b == a:
+    print(&quot;b equals a&quot;)
+</code></pre>
+
+<p><strong>Else</strong>: แต่ถ้าเราต้องการเพียงแค่จะดักเงื่อนไขที่ไม่เป็นจริงจาก If ด้านบน ก็เพียงใช้ <code>else</code> ดังนี้:</p>
+<pre><code>a = 50
+b = 25
+
+if b &gt; a:
+    print(&quot;b is greater than a&quot;)
+else:
+    print(&quot;b is not greater than a&quot;)
+</code></pre>
+
+<p><strong>And/Or</strong>: ใน Statement เราสามารถใช้ Operator <code>and</code> หรือ <code>or</code> เชื่อม 2 Statement เข้าด้วยกัน เพื่อสร้างเงื่อนไขที่เจาะจงขึ้นได้ โดย <code>and</code> แปลว่าจะต้องเป็นจริงทั้ง 2 Statement ส่วน <code>or</code> เป็นจริง Statement เดียวก็ถือว่าจริง</p>
+<p>สามารถศึกษาเพิ่มเติมเกี่ยวกับ If...Else ได้<a href="https://www.w3schools.com/Python/python_conditions.asp">ที่นี่</a></p>
+<h3>For loop</h3>
+<p>For loop ใช้สำหรับการวนโค้ดซ้ำๆ ตามสมาชิกของข้อมูลแบบ Text, Sequence, และ Mapping นั่นก็คือ <code>str</code>, <code>list</code>, <code>tuple</code>, และ <code>dict</code> สำหรับผู้เริ่มต้นอาจจะงง จึงให้ลองดูตัวอย่างดังนี้:</p>
+<pre><code>for i in &quot;banana&quot;:
+    print(i)
+</code></pre>
+
+<p>จะได้ Output ว่า:</p>
+<pre><code>b
+a
+n
+a
+n
+a
+</code></pre>
+
+<p>หลักการทำงานของ For loop คือการกำหนดตัวแปรขึ้นมาตัวหนึ่ง เช่น <code>i</code> (นิยมใช้ เพราะย่อมาจาก Iteration แปลว่าการทำซ้ำเป็นรอบ) แล้วกำหนดค่า <code>i</code> ให้เป็นสมาชิกแต่ละตัวตั้งแต่ตัวแรกไปจนถึงตัวสุดท้าย โดยให้กระทำกับ <code>i</code> ตามโค้ดที่ถูก Indent ไว้ เช่นในที่นี้ ก็เพียงให้พิมพ์ค่า <code>i</code> ออกมา โดยการวนแต่ละรอบ จะ Output ออกหนึ่งบรรทัด พอวนรอบถัดไป ก็ Output ออกบรรทัดใหม่ ทำอย่างนี้ไปเรื่อยๆ จนถึงสมาชิกตัวสุดท้าย</p>
+<p>ลองมาดู For loop สำหรับ List กัน:</p>
+<pre><code>fruitlist = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;]
+
+for i in fruitlist:
+    print(i)
+</code></pre>
+
+<p>จะได้:</p>
+<pre><code>apple
+banana
+cherry
+</code></pre>
+
+<p>หลายคนอาจสงสัยว่า จะทำอย่างนี้ไปทำไม คำตอบคือมันจะมีประโยชน์เมื่อไปผสมกับอย่างอื่นที่ทำให้ Output นั้นมีความหมาย ตัวอย่างเช่น:</p>
+<pre><code>fruitlist = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;]
+count = 1
+
+for i in fruitlist:
+    print(&quot;Fruit number &quot; + str(count) + &quot; is &quot; + i + &quot;.&quot;)
+    count = count + 1
+
+print(&quot;There are &quot; + str(count-1) + &quot; fruit types.&quot;)
+</code></pre>
+
+<p>Output ที่ได้คือ:</p>
+<pre><code>Fruit number 1 is apple.
+Fruit number 2 is banana.
+Fruit number 3 is cherry.
+There are 3 fruit types.
+</code></pre>
+
+<p>อธิบายดังนี้:</p>
+<ul>
+<li>เรามีข้อมูลตั้งต้นเป็น List ของประเภทผลไม้ เราต้องการให้โปรแกรมระบุลำดับที่ของประเภทผลไม้ พร้อมกับบอกว่าเป็นประเภทอะไร นอกจากนั้น เรายังอยากให้โปรแกรมสรุปว่าสุดท้ายผลไม้ใน List มีทั้งหมดกี่ประเภท</li>
+<li>เมื่อได้โจทย์แล้ว ก็ต้องวางแผน จะเห็นว่าเราต้องการนับลำดับที่ของผลไม้ โดยให้ตัวเลขเพิ่มขึ้นเรื่อยๆ ดังนั้น เราจะกำหนดตัวแปรสำหรับลำดับที่ที่จะแสดงผล โดยกำหนดไว้เป็น 1 ก่อน ด้วยการกำหนด <code>count = 1</code></li>
+<li>จากนั้นก็เริ่มวน For loop โดยใน Loop ให้พิมพ์ <code>count</code> และ <code>i</code> ซึ่งก็คือชื่อผลไม้ใน List นั่นเอง</li>
+<li>ตอนเราจะจบ Loop แต่ละรอบ เราจะต้องเปลี่ยนตัวแปร <code>count</code> ให้เพิ่มขึ้นรอบละ 1 ซึ่งทำได้โดยการกำหนด <code>count = count + 1</code> หรือจะย่อว่า <code>count += 1</code> ก็ได้</li>
+<li>ดังนั้น พอผ่านรอบแรกมาถึงจุดนี้ <code>count</code> จะเท่ากับ 2 เมื่อ For loop วนรอบสอง ก็จะแสดงค่า <code>count</code> ของรอบนี้ เป็น 2 ตามที่ต้องการ ซึ่งจับคู่กับ <code>banana</code> ทำอย่างนี้ไปเรื่อยๆ จนจบ List</li>
+<li>สุดท้าย เราจะสรุปจำนวนประเภทผลไม้ ซึ่งก็คือ <code>count</code> แต่ต้องลบ 1 เพราะรอบสุดท้าย คือรอบที่ 3 ได้จบรอบด้วยการบวก <code>count</code> ไปอีก 1 ทำให้ <code>count</code> ตอนจบเท่ากับ 4 ตอนพิมพ์จำนวนสรุปตอนจบนี้ ต้องทำ "นอก Loop" นั่นคือให้กลับไปสร้าง Statement ที่ไม่ได้อยู่ใน Indent นั่นเอง เพราะถ้ายังอยู่ใน Indent โปรแกรมก็จะเรียกโค้ดบรรทัดนี้ทุกครั้งที่วน Loop ซึ่งไม่ใช่สิ่งที่เราต้องการ</li>
+<li>อนึ่ง วิธีการสรุปจำนวนรายการใน List ที่ง่ายกว่านั้น คือการใช้ฟังก์ชัน <code>len(object)</code> เช่น <code>print("There are " + str(len(fruitlist)) + " fruit types.")</code> สังเกตว่าเราใช้ <code>str()</code> คลุมรอบ <code>len()</code> อีกที เพราะ <code>len()</code> ให้ผลเป็นตัวเลข ซึ่งเอามา Concatenate กับ Text ไม่ได้ ต้องเปลี่ยนตัวเลขให้เป็น <code>str</code> เสียก่อน</li>
+</ul>
+<p>เราสามารถ<strong>หยุด For loop</strong> ได้ด้วยการใช้ <code>break</code> และ <code>continue</code></p>
+<p>1) <code>break</code> จะหยุด For loop ก่อนที่จะวนครบทุกรายการ โดยจะรันรายการล่าสุดเป็นรายการสุดท้าย:</p>
+<pre><code>fruits = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;]
+for i in fruits:
+    print(i)
+    if i == &quot;banana&quot;:
+        break
+</code></pre>
+
+<p>จะได้:</p>
+<pre><code>apple
+banana
+</code></pre>
+
+<p>2) <code>continue</code> จะข้ามรายการล่าสุด แล้วไปต่อที่รายการถัดไป:</p>
+<pre><code>fruits = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;]
+for i in fruits:
+    if i == &quot;banana&quot;:
+        continue
+    print(i)
+</code></pre>
+
+<p>จะได้:</p>
+<pre><code>apple
+cherry
+</code></pre>
+
+<p>สามารถศึกษาเพิ่มเติมเกี่ยวกับ For loop ได้<a href="https://www.w3schools.com/python/python_for_loops.asp">ที่นี่</a></p>
+<h3>While loop</h3>
+<p>While loop เป็นการวนซ้ำตราบใดที่เงื่อนไขยังคงเป็นจริง เช่น:</p>
+<pre><code>i = 1
+while i &lt; 6:
+    print(i)
+    i += 1
+</code></pre>
+
+<p>จะได้:</p>
+<pre><code>1
+2
+3
+4
+5
+</code></pre>
+
+<p>การใช้ While loop ให้ระวังอย่าลืมบวก <code>i</code> เพิ่ม เพื่อให้มีจุดที่ Loop จะวนจนไปชนเงื่อนไขที่ไม่เป็นจริง มิฉะนั้น หากเงื่อนไขเป็นจริงเสมอ While loop ็จะวนตลอดกาล</p>
+<p>การ<strong>หยุด While loop</strong> สามารถใช้ <code>break</code> และ <code>continue</code> ได้เช่นเดียวกับ For loop</p>
+<p>สามารถศึกษาเพิ่มเติมเกี่ยวกับ While loop ได้<a href="https://www.w3schools.com/python/python_while_loops.asp">ที่นี่</a></p>
+<h2>Function: ฟังก์ชัน</h2>
+<p>Function คือกลุ่มโค้ดที่จะรันต่อเมื่อถูกเรียกใช้เท่านั้น การสร้างฟังก์ชัน ให้ใช้ <code>def</code> เว้นวรรค ตามด้วยชื่อฟังก์ชันที่ต้องการ ตามด้วย Colon <code>:</code> ตัวอย่างเช่น:</p>
+<pre><code>def greeting():
+    print(&quot;Hello!&quot;)
+</code></pre>
+
+<p>พอจะเรียกฟังก์ชัน ก็เพียงเรียก <code>greeting()</code> ก็จะได้:</p>
+<pre><code>Hello!
+</code></pre>
+
+<p>สังเกตว่าที่ผ่านมา เรารู้จักกับฟังก์ชันที่มาพร้อมกับ Python หลายตัวแล้ว เช่น str() หรือ len() ฟังก์ชันเหล่านี้ก็เหมือนกับฟังก์ชันที่เราสร้างขึ้นเอง ต่างกันที่ Python เตรียมมาให้เราแล้วเท่านั้นเอง</p>
+<h3>Argument</h3>
+<p>เราสามารถใส่ข้อมูลเข้าไปในฟังก์ชัน เพื่อให้ฟังก์ชันทำอะไรบางอย่างกับข้อมูล แล้วให้ผลลัพธ์ออกมาได้ โดยผลลัพธ์ก็สามารถออกมาเป็นข้อมูลได้เช่นกัน ข้อมูลที่เราใส่ในฟังก์ชัน เรียกว่า Argument (บางทีก็เรียกว่า Parameter เวลาพูดถึงตัวแปรที่อยู่ในวงเล็บตอนสร้างฟังก์ชัน) โดยใส่ในวงเล็บที่ต่อท้ายชื่อฟังก์ชันตอนเราสร้างฟังก์ชัน ตัวอย่างเช่น:</p>
+<pre><code>def greeting(name):
+    print(&quot;Hello, &quot; + name + &quot;!&quot;)
+</code></pre>
+
+<p>เวลาเรียกฟังก์ชัน ก็ใส่ Argument ที่เราต้องการลงไป เช่น:</p>
+<pre><code>greeting(&quot;John&quot;)
+</code></pre>
+
+<p>ก็จะได้:</p>
+<pre><code>Hello, John!
+</code></pre>
+
+<p>ถ้าเรากำหนด Argument กี่ตัวตอนสร้าง Function ตอนเรียกเราก็ต้องใส่ Argument จำนวนเท่ากัน เข่น:</p>
+<pre><code>def greeting(fname, lname):
+    print(&quot;Hello, &quot; + fname + &quot; &quot; + lname + &quot;!&quot;)
+</code></pre>
+
+<p>เวลาเรียกฟังก์ชัน ก็ใส่ Argument ทั้งสองลงไปตามลำดับ เช่น:</p>
+<pre><code>greeting(&quot;John&quot;, &quot;Doe&quot;)
+</code></pre>
+
+<p>ก็จะได้:</p>
+<pre><code>Hello, John Doe!
+</code></pre>
+
+<p>หากเราไม่รู้ว่าตอนเรียกฟังก์ชัน จะมี Argument ที่ป้อนเข้าไปกี่ตัว เราสามารถทำดังนี้ตอนสร้างฟังก์ชัน:</p>
+<p>1) ใช้ <strong>Arbitary argument</strong> หรือ <code>*args</code> โดยการใส่ <code>*</code> ก่อนชื่อ Parameter ตอนสร้างฟังก์ชัน วิธีนี้จะเป็นการส่ง <code>Tuple</code> เข้าไปในในฟังก์ชัน โดยไม่ต้องระบุจำนวน Argument ที่แน่นอน ตัวอย่างเช่น:</p>
+<pre><code>def fruitlist(*fruit):
+    print(&quot;The last fruit is &quot; + fruit[-1] + &quot;.&quot;)
+
+fruitlist(&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;)
+</code></pre>
+
+<p>ก็จะได้ <code>The last fruit is cherry.</code> สังเกตว่าในฟังก์ชัน เราเลือกผลไม้รายการสุดท้ายโดยการ Slice ด้วย <code>[-1]</code> ซึ่งหมายถึงรายการสุดท้าย</p>
+<p>2) ใช้ <strong>Keyword argument</strong> หรือ <code>kwargs</code> โดยการใส่ Key-value เข้าไปในฟังก์ชัน โดยตอนเรียกให้เรียก Key ก็จะได้ Value วิธีนี้ต้องระบุจำนวน Argument ที่แน่นอน เช่น:</p>
+<pre><code>def fruitlist(fruit1, fruit2, fruit3):
+    print(&quot;The last fruit is &quot; + fruit3 + &quot;.&quot;)
+
+fruitlist(fruit1 = &quot;apple&quot;, fruit2 = &quot;banana&quot;, fruit3 = &quot;cherry&quot;)
+</code></pre>
+
+<p>ก็จะได้ <code>The last fruit is cherry.</code> เช่นเดิม</p>
+<p>3) ใช้ <strong>Arbitary keyword argument</strong> หรือ <code>**kwargs</code> โดยการใส่ <code>**</code> ก่อนชื่อ Parameter ตอนสร้างฟังก์ชัน วิธีนี้จะเป็นการส่ง <code>Dictionary</code> ของ Argument เข้าไปในฟังก์ชัน โดยตอนเรียกก็เรียก Key จะได้ Value ออกมา วิธีนี้ไม่ต้องระบุจำนวน Argument ที่แน่นอน เช่น:</p>
+<pre><code>def fruitlist(**fruits):
+    print(&quot;The last fruit is &quot; + fruits[&quot;fruit3&quot;] + &quot;.&quot;)
+
+fruitlist(fruit1 = &quot;apple&quot;, fruit2 = &quot;banana&quot;, fruit3 = &quot;cherry&quot;)
+</code></pre>
+
+<p>ก็จะได้ <code>The last fruit is cherry.</code> เช่นเดียวกัน</p>
+<h3>ใช้ List และ Dictionary เป็น Argument</h3>
+<p>เราสามารถใส่ List หรือ Dictionary ที่กำหนดไว้แล้ว ลงไปเป็น Argument ได้ เช่น:</p>
+<pre><code>fruits = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;]
+
+def fruitlist(fruits):
+    print(&quot;The last fruit is &quot; + fruits[-1] + &quot;.&quot;)
+
+fruitlist(fruits)
+</code></pre>
+
+<p>หรือ:</p>
+<pre><code>fruitdict = {
+    &quot;fruit1&quot;: &quot;apple&quot;,
+    &quot;fruit2&quot;: &quot;banana&quot;,
+    &quot;fruit3&quot;: &quot;cherry&quot;
+}
+
+def fruitlist(fruitdict):
+    print(&quot;The last fruit is &quot; + fruitdict[&quot;fruit3&quot;] + &quot;.&quot;)
+
+fruitlist(fruitdict)
+</code></pre>
+
+<p>ก็จะได้ <code>The last fruit is cherry.</code> เช่นเดียวกันทั้งหมด</p>
+<h3>Return value</h3>
+<p>เราสามารถให้ฟังก์ชัน Output ค่าออกมาได้ เช่น:</p>
+<pre><code>def bmi(weight, height):
+    return weight/(height**2)
+
+bmi(70, 1.72)
+</code></pre>
+
+<p>สามารถศึกษาเพิ่มเติมเกี่ยวกับ Function ได้<a href="https://www.w3schools.com/python/python_functions.asp">ที่นี่</a></p>
+<h2>Library import: การเรียกใช้ Library</h2>
+<p>Python มี Library ที่ขยายความสามารถเฉพาะทางให้เลือกใช้จำนวนมาก เช่น numpy เป็น Library สำหรับการประมวลผลแบบ Array หลายมิติที่มีประสิทธิภาพสูง หรือ pandas เอาไว้จัดการข้อมูลแบบตาราง เป็นต้น</p>
+<p>ก่อนจะใช้ Library เหล่านี้ เราต้องติดตั้งเสียก่อน โดยถ้าใช้ Python ปกติ ก็ใช้ <code>pip</code> เป็นตัวติดตั้งและจัดการ Package เช่น <code>pip install numpy</code> ส่วนถ้าใช้ Anaconda ที่แนะนำในตอนแรก ก็ใช้คำสั่ง <code>conda</code> จัดการ เช่น <code>conda install numpy</code> เป็นต้น</p>
+<p>การเรียกใช้ Library มีสองวิธีใหญ่ๆ ได้แก่:</p>
+<p>1) <strong>เรียกโดยตรง</strong> โดยใช้ <code>import</code> เช่น:</p>
+<pre><code>import numpy
+</code></pre>
+
+<p>เวลาจะใช้งาน ก็ต้องเรียก <code>numpy</code> ก่อน เช่น:</p>
+<pre><code>a = numpy.array([[1, 2], [3, 4]])
+</code></pre>
+
+<p>2) <strong>เรียกโดยการเปลี่ยนชื่อ</strong> หรือที่เรียกว่า Alias เพื่อย่นชื่อให้สั้นลงโดยใช้ <code>as</code> จะได้เรียกใช้สะดวก เช่น:</p>
+<pre><code>import numpy as np
+</code></pre>
+
+<p>เวลาจะใช้งาน ก็สามารถเรียก <code>np</code> ได้เลย เช่น:</p>
+<pre><code>a = np.array([[1, 2], [3, 4]])
+</code></pre>
+
+<p>3) <strong>เรียกเฉพาะบางฟังก์ชันหรือ Class ที่จะใช้</strong> โดยใช้ <code>from...import</code> เช่น:</p>
+<pre><code>from numpy import array
+</code></pre>
+
+<p>เวลาเรียก ก็เรียกชื่อฟังก์ชัน <code>array</code> เลย เช่น:</p>
+<pre><code>a = array([[1, 2], [3, 4]])
+</code></pre>
+
+<p>สามารถศึกษาเพิ่มเติมเกี่ยวกับการ Import library ได้<a href="https://www.w3schools.com/python/python_modules.asp">ที่นี่</a></p>
+<p>ทั้งหมดนี้น่าจะพอให้สามารถเริ่มต้นเขียนโค้ดด้วย Python เรียกใช้ Library ต่างๆ และประยุกต์นำไปแก้ปัญหาต่างๆ ได้</p>
+<p><a href="index.html">หน้าแรก</a></p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+</body>
+</html>
