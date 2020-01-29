@@ -75,7 +75,7 @@ John
 
 <p>ลองมาดูกันว่าเกิดอะไรขึ้นบ้าง:</p>
 <ul>
-<li>เครื่องมือ <code>+</code> ในที่นี้ คือการเอาข้อความ (เรียกว่า String) มาต่อกัน (เรียกการกระทำแบบนี้ว่า Concatenate)</li>
+<li>เครื่องหมาย <code>+</code> ในที่นี้ คือการเอาข้อความ (เรียกว่า String) มาต่อกัน (เรียกการกระทำแบบนี้ว่า Concatenate)</li>
 <li>การ Concatenate จะต้องทำระหว่างข้อมูลประเภทเดียวกันเท่านั้น เช่น String กับ String ดังนั้น เราจึงต้องแปลงตัวแปร <code>age</code> จากตัวเลขจำนวนเต็ม (Integer หรือ int) ให้เป็นข้อความ (String หรือ str) ด้วยการเรียกฟังก์ชัน <code>str()</code></li>
 <li>สังเกตว่าเราเว้นวรรคบางจุด เช่น ก่อนและหลัง <code>is</code> และก่อน <code>years old</code> เพื่อให้ข้อความที่ออกมามีการเว้นวรรคที่ถูกต้อง เพราะการ Concatenate ไม่ได้เว้นวรรคให้เรา</li>
 </ul>
@@ -179,7 +179,7 @@ print(fruitlist)
 <p>จะได้ <code>['apple', 'banana', 'cherry', 'orange']</code></p>
 <p>นอกจากนี้ยังมีการ<strong>แทรกสมาชิก</strong> ใช้ <code>.insert(index, object)</code> โดยใส่ Index ที่ต้องการแทรกลงไปเป็น Argument ก่อนจะใส่ Object ที่ต้องการแทรก ส่วนการ<strong>ลบสมาชิก</strong> ก็สามารถใช้ <code>.remove(object)</code> ซึ่งใส่ชื่อ Object เป็น Argument หรือไม่ก็ <code>.pop(index)</code> ซึ่งใช้หมายเลข Index เป็น Argument (ถ้าไม่ใส่จะหมายถึงให้เอารายการสุดท้ายออก)</p>
 <p>ถ้าต้องการลบสมาชิกทั้งหมดใน List ให้เหลือ List ว่างๆ ก็ใช้ <code>.clear()</code></p>
-<p>สุดท้าย เราสามารถ<strong>เอา List มาต่อกัน</strong>ได้ โดยการใช้เครื่องมือ <code>+</code> เช่น:</p>
+<p>สุดท้าย เราสามารถ<strong>เอา List มาต่อกัน</strong>ได้ โดยการใช้เครื่องหมาย <code>+</code> เช่น:</p>
 <pre><code>list1 = [&quot;a&quot;, &quot;b&quot; , &quot;c&quot;]
 list2 = [1, 2, 3]
 
