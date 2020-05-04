@@ -33,7 +33,7 @@ MathJax.Hub.Config({
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
 <body>
 <h1>Neural Network Vanishing Gradients Problem</h1>
-<p>โดย <a href="https://www.linkedin.com/in/chitpong-kittinaradorn/">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
+<p>โดย <a href="about.html">ชิตพงษ์ กิตตินราดร</a> | มกราคม 2563</p>
 <p>หลังจากที่เราสามารถสร้างโมเดล Deep learning แบบพื้นฐานแล้ว เราจะมาสำรวจปัญหาต่างๆ ในการเทรน Neural network และแนวทางแก้ไข โดยในบทนี้จะพูดถึงปัญหา Vanishing gradients</p>
 <p>ในการเทรน Deep neural network เราอาจพบว่าโมเดลเทรนจบจนได้ Loss ที่ต่ำที่สุด แต่ก็ไม่ต่ำเท่าที่ควร นั่นคือเกิดปัญหา Bias ทั้งๆ ที่เราได้วางโครงสร้าง Layers, จำนวน Neuron, และจำนวนรายการเนื้อหาเหมาะสมเพียงพอแล้ว</p>
 <p>บ่อยครั้งที่ Bias นี้ เกิดจากปัญหาที่เรียกว่า Vanishing gradients นั่นคือการที่เมื่อเราเทรนโมเดลโดยการอัปเดต Parameter ซ้ำๆ ในกระบวนการ Gradient descent อนุพันธ์ <script type="math/tex">\delta w</script> บางตัวจะมีค่าน้อยลงจนเหลือน้อยมากๆ โดยเฉพาะในตัวที่อยู่ใน Layer ชั้นแรกๆ ที่ใกล้กับ Input layer ส่งผลให้การอัปเดต Parameter ครั้งถัดไป Loss จะเปลี่ยนแปลงน้อยลงมากจนไม่เกิดผลในการ Optimise หรือต้องใช้เวลา (จำนวนรอบ) สูงมากๆ ในการเทรน อนึ่ง ในทางกลับกัน หากอนุพันธ์เพิ่มขึ้นสูงเกินไป ก็จะเกิดปัญหาที่เรียกว่า Exploding gradients ซึ่งก็ส่งผลให้ Optimise ไม่สามารถ Converge หาคำตอบที่ดีได้เช่นกัน</p>
