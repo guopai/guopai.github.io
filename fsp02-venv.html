@@ -1,0 +1,71 @@
+<!doctype html>
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-101718744-3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-101718744-3');
+</script>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>Virtual Environment (venv)</title>
+<meta name="description" content="Full-stack Python web development - virtual environment (venv)">
+<meta name="keywords" content="Python, Web development, virtual environment, venv">
+<meta name="author" content="ชิตพงษ์ กิตตินราดร">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Virtual Environment (venv)</h1>
+<p>โดย <a href="about.html">ชิตพงษ์ กิตตินราดร</a> | สิงหาคม 2563</p>
+<p>ในการใช้ Python สร้างแอปพลิเคชันต่างๆ ขั้นตอนแรกที่เป็นพื้นฐานและมีความสำคัญที่สุด คือการสร้าง "สภาพแวดล้อม" ของ Python สำหรับ Project นั้นโดยเฉพาะ</p>
+<p>"สภาพแวดล้อม" หรือ Virtual environment คือชุดของ Python interpreter และ Package ต่างๆ ที่จำเป็นสำหรับแต่ละ Project นั่นหมายความว่า ถ้าเรามี 3 Project เราก็ต้องมี Virtual environment 3 ชุด</p>
+<p>วิธีการสร้าง Virtual environment บน Linux และ Mac มีดังนี้:</p>
+<h2>สร้าง Virtual environment</h2>
+<p>สมมุติว่าจะสร้าง Virtual environment ชื่อ <code>myproject</code> ใน Directory ชื่อ <code>.venv</code></p>
+<pre><code>python3 -m venv .venv/myproject
+</code></pre>
+
+<p>คำสั่งนี้เป็นการเรียกโมดูล venv ซึ่งเป็นชุดคำสั่งในการสร้าง Virtual environment</p>
+<h2>เรียกใช้ Virtual environment</h2>
+<p>เราสามารถเรียกใช้ <code>myproject</code> ด้วยคำสั่ง:</p>
+<pre><code>source .venv/myproject/bin/activate
+</code></pre>
+
+<p>ถ้าเรียกคำสั่งสำเร็จ เราจะเห็น (myproject) อยู่ข้างหน้า Shell prompt นั่นหมายความว่า คำสั่ง Python ตั้งแต่ตอนนี้เป็นต้นไป จะถูกเรียกภายใต้สภาพแวดล้อม myproject นี้</p>
+<p>ภายใต้สภาพแวดล้อมนี้ เราสามารถติดตั้ง Package ต่างๆ โดย Package เหล่านั้นจะถูกติดตั้งในสภาพแวดล้อมนี้เท่านั้น พอเราเปลี่ยนไปใช้สภาพแวดล้อมอื่น ก็ต้องติดตั้ง Package อีกชุดที่จำเป็นสำหรับ Project นั้นๆ</p>
+<p>การติดตั้ง Package ทำได้โดยใช้คำสั่ง <code>pip</code> เช่น ถ้าต้องการติดตั้ง Flask ก็ทำได้โดย:</p>
+<pre><code>pip install flask
+</code></pre>
+
+<p>สุดท้าย พอเราต้องการออกจากสภาพแวดล้อม ก็เพียงใช้คำสั่ง:</p>
+<pre><code>deactivate
+</code></pre>
+
+<p>เราก็จะออกมาสู่สภาพแวดล้อมตั้งต้น นั่นก็คือ Root นั่นเอง</p>
+<h2>ทำไมต้องใช้ Virtual environment</h2>
+<p>คนที่เพิ่งเริ่มต้นศึกษาอาจจะตั้งคำถามว่า ทำไมต้องใช้ Virtual environment ให้ยุ่งยาก ทำไมไม่ติดตั้ง Package ต่างๆ ที่จะใช้ในสภาพแวดล้อมตั้งต้นที่เดียวให้หมด คำตอบมีสองข้อหลักๆ คือ:</p>
+<ul>
+<li>มีความเป็นไปได้ว่า แต่ละ Project ต้องการใช้ Package ชื่อเดียวกัน แต่คนละเวอร์ชั่นกัน นอกจากนั้น Package ต่างๆ มักจะต้องการ Package อื่นๆ (Dependencies) ซึ่งก็เป็นไปได้อีกว่าหลาย Package สำหรับ Project ต่างๆ อาจต้องการ Dependency ตัวเดียวกัน แต่ต่างเวอร์ชั่นกัน ดังนั้น ถ้าเราติดตั้ง Package สำหรับทุกๆ Project ในสภาพแวดล้อมเดียวกัน ก็จะมีโอกาสที่บาง Package จะไม่สามารถใช้ได้ เพราะไม่สามารถหา Dependency ที่ต้องการได้ เนื่องจาก Package อื่นได้กำหนด Dependency ชื่อเดียวกันแต่คนละเวอร์ชั่นกัน</li>
+<li>ความสะดวกในการ Deploy แอปพลิเคชันบน Server ซึ่งต้องติดตั้ง Package ที่จำเป็นเหมือนกับที่เราติดตั้งและทดสอบบนเครื่องของเรา วิธีที่ง่ายที่สุดในการติดตั้ง Package ให้เหมือนกับบนเครื่องของเรา ก็คือการสร้าง Virtual environment บน Server ที่มีรายการและเวอร์ชั่นของ Package เหมือนกับบนเครื่องเราทุกประการ โดยใช้เทคนิคที่เรียกว่าการ Freeze รายการ Package ไว้ในไฟล์ชื่อ requirements.txt (<code>pip  freeze &gt; requirements.txt</code>) แล้วติดตั้ง Package บน Server จากรายการในไฟล์นี้ (<code>pip install -r requirements.txt</code>)</li>
+</ul>
+<p><a href="index.html">หน้าแรก</a> | <a href="fsp03-git.html">Version Control (Git)</a></p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+
+</body>
+</html>

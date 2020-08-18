@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-101718744-3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-101718744-3');
+</script>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>Version Control (Git)</title>
+<meta name="description" content="Full-stack Python web development - version control (Git)">
+<meta name="keywords" content="Python, Web development, version control, Git">
+<meta name="author" content="ชิตพงษ์ กิตตินราดร">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Version Control (Git)</h1>
+<p>โดย <a href="about.html">ชิตพงษ์ กิตตินราดร</a> | สิงหาคม 2563</p>
+<p>ในการพัฒนาแอปพลิเคชัน ระบบควบคุมเวอร์ชัน หรือ Version control system เช่น Git นั้นมีความสำคัญมาก เหตุผลที่เราควรใช้ Git มีดังนี้:</p>
+<ul>
+<li>ในการพัฒนา ไม่ว่าจะเป็นคนเดียวหรือเป็นทีม Git จะช่วยให้เราสามารถบันทึก Snapshot ของการเปลี่ยนแปลง พร้อมเหตุผลเอาไว้ได้ โดยเราสามารถย้อนกลับไปยัง Snapshot ก่อนหน้าได้</li>
+<li>ในการพัฒนาเป็นทีม Git จะช่วยให้สมาชิกในทีมสามารถเรียกเวอร์ชั่นล่าสุด และสามารถแยกเวอร์ชั่นออกมาพัฒนาเอง แล้วไปรวมเวอร์ชั่นทีหลังได้ ทำให้เกิดความยืดหยุ่นและความแม่นยำในการพัฒนาที่หลายคนทำงานคนละส่วน หรือทำคู่ชนานกัน</li>
+<li>Git เมื่อใช้คู่กับบริการ Git code hosting เช่น Github จะเป็นเทคนิคที่สะดวกสบายในการอับโหลดโค้ดของเราขึ้นบน Server ทั้งแบบ Virtual Private Hosting (VPS) เช่น Amazon AWS และแบบ Platform-as-a-Service (PaaS) เช่น Heroku</li>
+</ul>
+<p>การใช้ Git มีดังนี้:</p>
+<h2>ติดตั้ง Git</h2>
+<p>ก่อนใช้ Git เราต้องติดตั้ง Git บนเครื่องของเราก่อน สามารถดูคำแนะนำที่เว็บไซต์ Git ได้เลย เช่น บน Ubuntu หรือ Debian Linux ติดตั้งโดย:</p>
+<pre><code>sudo apt install git
+</code></pre>
+
+<h2>ใชังาน Git</h2>
+<p>ในการใช้งาน Git สิ่งแรกที่ต้องทำคือการ Initialise Git ใน Root directory ของ Project ของเรา โดยใช้คำสั่ง:</p>
+<pre><code>git init
+</code></pre>
+
+<p>คำสั่งนี้จะสร้างโครงสร้าง Directory และไฟล์ต่างๆ ที่เกี่ยวข้องกับ Git ไว้ใน Root ของแอปพลิเคชันของเรา เราสามารถดูสถานะของ Git ได้ตลอดเวลา โดยใช้คำสั่ง:</p>
+<pre><code>git status
+</code></pre>
+
+<p>ขั้นตอนถัดมา คือเมื่อเราต้องการบันทึก Snapshot ของโค้ดของเรา ให้ใช้คำสั่ง:</p>
+<pre><code>git add .
+</code></pre>
+
+<p>เพื่อ Add ไฟล์และ Directory ทั้งหมดเข้าไปในรายการที่จะบันทึก โดยเราสามารถเลือกบันทึกแค่บางไฟล์ก็ได้ แต่เพื่อความสะดวก สามารถใช้ Dot (.) เพื่อบันทึกทุกอย่าง</p>
+<p>บางที เราต้องการยกเว้นบาง Directory หรือบางไฟล์ตลอดเวลา เช่น Cache ของ Python หรือของ Editor เราสามารถสร้างไฟล์ชื่อ <code>.gitignore</code> แล้วใส่ชื่อไฟล์หรือ Directory นั้นไว้ในไฟล์นี้</p>
+<p>ขั้นต่อมา คือการบันทึกการเปลี่ยนแปลง เรียกว่า Commit:</p>
+<pre><code>git commit -m &quot;Commit message&quot;
+</code></pre>
+
+<p>ในการ Commit เราควรเขียนข้อความ Commit message ไว้ทุกครั้ง เพื่อบันทึกว่าเปลี่ยนแปลงอะไรบ้าง เมื่อเราย้อนกลับมาดูบันทึกรายการการเปลี่ยนแปลงทั้งหมดด้วย <code>git log</code> เราก็จะเห็นข้อความเหล่านี้ จะได้รู้ว่าแต่ละครั้งที่บันทึกมีอะไรเปลี่ยนแปลงบ้าง</p>
+<p>ต่อมา หากเราต้องการอับโหลดโค้ดชุดนี้เข้า Github ให้เราไปสร้าง Repository บน Github ก่อน แล้วทำตามคำแนะนำในการ:</p>
+<ul>
+<li>"ดันเข้า" หรือ <code>git push origin master</code> คือการอับโหลดโค้ดเข้าสู่ Github repository</li>
+<li>"โคลน" หรือ <code>git clone &lt;repository name&gt;</code> คือการดาวน์โหลดโค้ดลงมาสู่เครื่องของเรา หรือบน Server</li>
+<li>"ดึงลงมา" หรือ <code>git pull origin master</code> คือการอับเดตโค้ดที่ Clone ไว้แล้ว ให้มีเวอร์ชั่นเดียวกับเวอร์ชั่นหลักล่าสุด</li>
+</ul>
+<p><a href="index.html">หน้าแรก</a> | <a href="fsp02-venv.html">Virtual Environment (venv)</a> | HTML</p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+
+</body>
+</html>
