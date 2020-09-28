@@ -64,7 +64,7 @@ MathJax.Hub.Config({
 <li>มีความเป็นไปได้ว่า แต่ละ Project ต้องการใช้ Package ชื่อเดียวกัน แต่คนละเวอร์ชั่นกัน นอกจากนั้น Package ต่างๆ มักจะต้องการ Package อื่นๆ (Dependencies) ซึ่งก็เป็นไปได้อีกว่าหลาย Package สำหรับ Project ต่างๆ อาจต้องการ Dependency ตัวเดียวกัน แต่ต่างเวอร์ชั่นกัน ดังนั้น ถ้าเราติดตั้ง Package สำหรับทุกๆ Project ในสภาพแวดล้อมเดียวกัน ก็จะมีโอกาสที่บาง Package จะไม่สามารถใช้ได้ เพราะไม่สามารถหา Dependency ที่ต้องการได้ เนื่องจาก Package อื่นได้กำหนด Dependency ชื่อเดียวกันแต่คนละเวอร์ชั่นกัน</li>
 <li>ความสะดวกในการ Deploy แอปพลิเคชันบน Server ซึ่งต้องติดตั้ง Package ที่จำเป็นเหมือนกับที่เราติดตั้งและทดสอบบนเครื่องของเรา วิธีที่ง่ายที่สุดในการติดตั้ง Package ให้เหมือนกับบนเครื่องของเรา ก็คือการสร้าง Virtual environment บน Server ที่มีรายการและเวอร์ชั่นของ Package เหมือนกับบนเครื่องเราทุกประการ โดยใช้เทคนิคที่เรียกว่าการ Freeze รายการ Package ไว้ในไฟล์ชื่อ requirements.txt (<code>pip  freeze &gt; requirements.txt</code>) แล้วติดตั้ง Package บน Server จากรายการในไฟล์นี้ (<code>pip install -r requirements.txt</code>)</li>
 </ul>
-<p><a href="index.html">หน้าแรก</a> | <a href="fsp03-git.html">Version Control (Git)</a></p>
+<p><a href="index.html">หน้าแรก</a> | <a href="fsp01-linux-admin.html">Linux admin</a> | <a href="fsp03-git.html">Version Control (Git)</a></p>
 <a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
 
 </body>

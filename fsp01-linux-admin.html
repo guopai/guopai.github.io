@@ -1,0 +1,200 @@
+<!doctype html>
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-101718744-3"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-101718744-3');
+</script>
+
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<title>Linux admin</title>
+<meta name="description" content="Full-stack Python web development - Linux admin">
+<meta name="keywords" content="Python, Web development, Linux, Shell commands">
+<meta name="author" content="ชิตพงษ์ กิตตินราดร">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" type="text/css" href="css/theme.css">
+<script type="text/x-mathjax-config">
+MathJax.Hub.Config({
+  config: ["MMLorHTML.js"],
+  jax: ["input/TeX", "input/AsciiMath", "output/HTML-CSS", "output/NativeMML"],
+  extensions: ["MathMenu.js", "MathZoom.js"],
+  TeX: {
+    extensions: ["AMSmath.js", "AMSsymbols.js"],
+    equationNumbers: {autoNumber: "AMS"}
+  }
+});
+</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.4/MathJax.js"></script></head>
+<body>
+<h1>Linux admin</h1>
+<p>โดย <a href="about.html">ชิตพงษ์ กิตตินราดร</a> | กันยายน 2563</p>
+<p>หน้านี้จะรวมคำสั่งพื้นฐานในการใช้งาน Linux ด้วย shell เช่น Bash, Zsh, และ Fish เพื่อเป็นพื้นฐานในการเขียนโค้ดและ deploy บนเว็บต่อไป</p>
+<h2>Files and Directory</h2>
+<p>List directory: <code>ls</code></p>
+<ul>
+<li>
+show all: <code>ls -a</code>
+</li>
+<li>
+show as detailed list: <code>ls -l</code>
+</li>
+<li>
+show human-readable size: <code>ls -h</code>
+</li>
+</ul>
+<p>Make directory: <code>mkdir</code></p>
+<p>Remove directory: <code>rmdir</code></p>
+<p>Copy: <code>cp [filename] [target]</code></p>
+<p>Move: <code>mv [filename] [target]</code></p>
+<p>Remove: <code>rm [filename]</code></p>
+<p>Copy or move many files at once: <code>cp {[file1],[file2],[file3]} target</code></p>
+<p>Recursive remove dir: <code>rm -rfv target/</code></p>
+<h2>Text display</h2>
+<p>Show file content: <code>cat [filename]</code></p>
+<p>Show file content with backward/forward movement: <code>less [filename]</code></p>
+<p>Show tail of file with n-lines: <code>tail -[# of lines] [filename]</code></p>
+<p>Show tail of file and live update: <code>tail -f [filename]</code></p>
+<p>Show only lines with specific string: <code>[command-to-std-output] | grep [string]</code></p>
+<h2>File system</h2>
+<p>Show disk usage in partitions: <code>df -h</code></p>
+<p>Show memory usage: <code>free -m</code></p>
+<p>Show processes: <code>top</code> or <code>htop</code>*</p>
+<p>Show Linux version information: <code>uname -a</code> or <code>neofetch</code>*</p>
+<h2>Compression</h2>
+<p>Compress: <code>tar -czvf target.tar.gz [file(s)]</code></p>
+<p>Uncompress: <code>tar -xzvf target.tar.gz</code></p>
+<h2>SSH</h2>
+<p>Connect to remote: <code>ssh -i pemfile.pem username@host</code></p>
+<p>Copy file from remote: <code>scp -i pemfile.pem username@host:/path/to/file /path/to/destination</code></p>
+<h2>Fonts</h2>
+<p>Install fonts by copy font directory to <code>.local/share/fonts</code></p>
+<p>Refresh font cache: <code>fc-cache -f -v</code></p>
+<h2>PATH environment</h2>
+<p>View PATH: <code>echo $PATH</code></p>
+<p>Bash shell:</p>
+<ul>
+<li>
+Add PATH: <code>export PATH=$PATH:/path/to/bin</code>
+</li>
+<li>
+Persist PATH: add path command to <code>~/.bashrc</code> or <code>~/.bash_profile</code>
+</li>
+</ul>
+<p>Fish shell:</p>
+<ul>
+<li>
+View environments: <code>printenv</code> or <code>sudo printenv</code>
+</li>
+<li>
+Add PATH: <code>set PATH /path/to/bin $PATH</code>
+</li>
+<li>
+Persist PATH: add path command to <code>~/.config/fish/config.fish</code>
+</li>
+</ul>
+<h2>Shell function</h2>
+<p>Fish shell:</p>
+<p>Create a function in <code>~/.config/fish/functions/funcname.fish</code></p>
+<p>In funcname.fish:</p>
+<pre><code>function funcname
+    ls -lh $argv
+end</code></pre>
+<h2>Package management</h2>
+<p>Debian-based</p>
+<ul>
+<li>
+Update repo: <code>sudo apt update</code>
+</li>
+<li>
+Upgrade repo: <code>sudo apt upgrade</code>
+</li>
+<li>
+Install package: <code>sudo apt install [package]</code>
+</li>
+<li>
+Remove package: <code>sudo apt remove [package]</code>
+</li>
+<li>
+Remove package and purge config files: <code>sudo apt remove --purge [package]</code>
+</li>
+<li>
+Clean repo cache: <code>sudo apt clean</code>
+</li>
+<li>
+Remove orphan packages: <code>sudo apt autoremove</code>
+</li>
+</ul>
+<p>Arc-based</p>
+<ul>
+<li>
+Update and upgrade (“sync”) official repo: <code>sudo pacman -Syu</code> or <code>yay -Syu</code>* to also include AUR repo
+</li>
+<li>
+Install package from official repo: <code>sudo pacman -S [package]</code>
+</li>
+<li>
+Install package from AUR: <code>yay -S [package]</code>
+</li>
+<li>
+Remove package along with its dependencies: <code>sudo pacman -Rs [package]</code>
+</li>
+<li>
+Clean repo cache: <code>sudo pacman -Scc</code> or <code>yay -Scc</code> to also clean AUR cache
+</li>
+<li>
+List installed package within official repo: <code>pacman -Qm</code>
+</li>
+<li>
+List installed package within AUR: <code>pacman -Qn</code>
+</li>
+<li>
+Remove orphan packages and their config files: <code>pacman -Qtdq | pacman -Rns -</code>
+</li>
+</ul>
+<h2>Python</h2>
+<p>Virtual environment</p>
+<ul>
+<li>
+Create venv: <code>python3 -m venv ~/.venv/envname</code>
+</li>
+<li>
+Activate venv (Bash shell): <code>source ~/.venv/envname/bin/activate</code>
+</li>
+<li>
+Activate venv (Fish shell): <code>source ~/.venv/envname/bin/activate.fish</code>
+</li>
+<li>
+Deactivate venv: <code>deactivate</code>
+</li>
+</ul>
+<p>Package management</p>
+<ul>
+<li>
+List package: <code>pip list</code>
+</li>
+<li>
+Install package: <code>pip install [packagename]</code>
+</li>
+<li>
+List outdated packages: <code>pip list --outdated</code>
+</li>
+<li>
+Upgrade outdated package: <code>pip install --upgrade [packagename]</code>
+</li>
+<li>
+Remove package: <code>pip remove [packagename]</code>
+</li>
+<li>
+Show package information: <code>pip show [packagename]</code>
+</li>
+</ul>
+<p><a href="index.html">หน้าแรก</a> | <a href="fsp02-venv.html">Virtual Environment (venv)</a></p>
+<a rel="license" href="http://creativecommons.org/licenses/by/4.0/"><img alt="Creative Commons License" style="border-width:0" src="https://i.creativecommons.org/l/by/4.0/80x15.png" /></a><br />This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by/4.0/">Creative Commons Attribution 4.0 International License</a>.
+
+</body>
+</html>
